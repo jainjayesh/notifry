@@ -44,22 +44,33 @@ class Form:
                 out += '    <tr><th><label for="%s">%s</label></th><td>%s</td></tr>\n' % (i.id, net.websafe(i.description), html)
         out += "</table>"
         return out
-        
+
+    def getnotes(self):
+        notes = {}
+        for i in self.inputs:
+            if i.note:
+                notes[i.name] = i.note
+        if self.note:
+            notes['global'] = self.note
+        return notes
+
     def render_css(self): 
         out = [] 
         out.append(self.rendernote(self.note)) 
         for i in self.inputs:
+            out.append('<div class="row">')
             if not i.is_hidden():
                 out.append('<label for="%s">%s</label>' % (i.id, net.websafe(i.description))) 
             out.append(i.pre)
             out.append(i.render()) 
             out.append(self.rendernote(i.note))
-            out.append(i.post) 
+            out.append(i.post)
+            out.append('</div>')
             out.append('\n')
         return ''.join(out) 
         
     def rendernote(self, note):
-        if note: return '<strong class="wrong">%s</strong>' % net.websafe(note)
+        if note: return '<span class="error">%s</span>' % net.websafe(note)
         else: return ""
     
     def validates(self, source=None, _validate=True, **kw):
@@ -70,7 +81,7 @@ class Form:
             if _validate:
                 out = i.validate(v) and out
             else:
-                i.value = v
+                i.set_value(v)
         if _validate:
             out = out and self._validate(source)
             self.valid = out
