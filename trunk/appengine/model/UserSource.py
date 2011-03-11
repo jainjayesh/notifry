@@ -32,7 +32,7 @@ class UserSource(db.Model):
 		}
 
 		try:
-			result['id'] =  self.key().id
+			result['id'] =  self.key().id()
 		except db.NotSavedError, ex:
 			# Not saved yet, so it has no ID.
 			pass

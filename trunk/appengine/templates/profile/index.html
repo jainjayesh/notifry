@@ -1,0 +1,18 @@
+<%inherit file="../layout/layout.html" />
+<h1>Notifry</h1>
+
+<p><a href="/sources/create">Create new source</a></p>
+
+<ul>
+	% for source in sources:
+		<li><a href="/sources/edit?id=${source.key().id()}">${source.title|h}</a> - key ${source.externalKey} - enabled ${source.enabled}</li>
+	% endfor
+</ul>
+
+<p>Devices:</p>
+
+<ul>
+	% for device in devices:
+		<li>${device.deviceType|h}</a> - key ${device.deviceKey|h}, last updated ${device.updated}</li>
+	% endfor
+</ul>

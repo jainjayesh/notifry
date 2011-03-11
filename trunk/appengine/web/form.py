@@ -308,11 +308,15 @@ class Checkbox(Input):
         attrs['value'] = self.value
 
         if self.checked:
-            attrs['checked'] = 'checked'            
+            attrs['checked'] = 'checked'
+        attrs['value'] = 'on'
         return '<input %s/>' % attrs
 
     def set_value(self, value):
-        self.checked = bool(value)
+        if isinstance(value, bool):
+            self.checked = bool(value)
+        else:
+            self.checked = (value == 'on')
 
     def get_value(self):
         return self.checked
