@@ -1,0 +1,10 @@
+<%inherit file="../layout/layout.html" />
+<h1>Login to create token</h1>
+
+% if error:
+	<p>Error getting token: ${error}</p>
+% endif
+
+<form method="post" action="">
+${form.render_css()}
+</form>

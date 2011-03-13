@@ -1,0 +1,10 @@
+<%inherit file="../layout/layout.html" />
+<h1>Auth Tokens</h1>
+
+<p><a href="/admin/token/create">Create new token</a></p>
+
+<ul>
+	% for token in tokens:
+		<li><a href="/admin/token/edit?id=${token.key().id()}">${token.comment|h}</a> - updated ${token.updated}</li>
+	% endfor
+</ul>
