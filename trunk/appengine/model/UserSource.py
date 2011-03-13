@@ -38,3 +38,13 @@ class UserSource(db.Model):
 			pass
 
 		return result
+
+	@staticmethod
+	def find_for_key(key):
+		query = UserSource.all()
+		query.filter('externalKey =', key)
+
+		if query.count(5) > 0:
+			return query[0]
+		else:
+			return None

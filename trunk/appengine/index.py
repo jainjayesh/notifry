@@ -3,6 +3,7 @@ from google.appengine.api import users
 from lib.Renderer import Renderer
 from model.UserSource import UserSource
 from model.UserDevice import UserDevice
+from model.UserMessage import UserMessage
 import datetime
 
 urls = (
@@ -10,8 +11,10 @@ urls = (
 	'/login', 'login',
 	'/logout', 'logout',
 	'/sources/(.*)', 'sources',
+	'/messages/', 'messages',
 	'/registration', 'registerdevice',
-	'/profile', 'profile'
+	'/profile', 'profile',
+	'/notifry', 'notifry'
 )
 
 # Create the renderer and the initial context.
@@ -94,6 +97,11 @@ class registerdevice:
 		if not input.devicekey and not input.devicetype:
 			# Fail with an error.
 			renderer.addData('error', 'Missing required parameters "devicekey" and "devicetype".')
+			return renderer.render('apionly.html')
+
+		# Check 'devicetype' is 'android' - nothing else is supported right now.
+		if input.devicetype != 'android':
+			renderer.addData('error', 'Only Android devices are supported at the moment, sorry.')
 			return renderer.render('apionly.html')
 
 		# If ID supplied, find and update that ID.
@@ -216,6 +224,99 @@ class sources:
 			web.form.Button('Save')
 		)
 		return source_editor_form()
+
+# Notifry someone.
+class notifry:
+	def GET(self):
+		# For debugging, call POST.
+		# This is an easy way to send a message using get params.
+		return self.POST()
+
+	def POST(self):
+		# And we need the following variables.
+		# The defaults are provided below.
+		input = web.input(source = None, message = None, title = None, url = None)
+
+		# We must have the following keys passed,
+		# otherwise this is an invalid request.
+		if not input.source or not input.message or not input.title:
+			# Fail with an error.
+			renderer.addData('error', 'Missing required parameters - need at least source, message, and title.')
+			return renderer.render('apionly.html')
+
+		# Find the source matching the source key.
+		source = UserSource.find_for_key(input.source)
+
+		if not source:
+			# No such source.
+			renderer.addData('error', 'No source matches the key ' + str(input.source))
+			return renderer.render('apionly.html')
+
+		# Create the message object.
+		message = UserMessage()
+		message.source = source
+		message.message = input.message
+		message.title = input.title
+		if input.url:
+			message.url = input.url
+		message.timestamp = datetime.datetime.now()
+		message.deliveredToGoogle = False
+		message.lastDeliveryAttempt = None
+		message.sourceIp = web.ctx.ip
+		message.put()
+
+		# TODO: Check it's not all bigger than 1024 bytes all up.
+		# And handle the edge cases associated with that.
+
+		# Now that it's saved, send it to Google.
+
+		renderer.addData('message', message)
+		return renderer.render('apionly.html')
+
+# Messages - list of messages in the system.
+class messages:
+	def GET(self):
+		# Must be logged in.
+		login_required()
+
+		# List all their sources.
+		sources = UserSource.all()
+		sources.filter('owner = ', users.get_current_user())
+		sources.order('title')
+
+		renderer.addData('sources', sources)
+
+		# List messages, optionally filtered by the source.
+		source = self.get_source()
+		messages = UserMessage.all()
+		if source:
+			messages.filter('source =', source)
+		messages.order('-timestamp')
+
+		renderer.addData('filtersource', source)
+		renderer.addData('messages', messages)
+
+		return renderer.render('messages/index.html')
+
+	def get_source(self):
+		# Helper function to get the source object from the URL.
+		input = web.input(sid=None)
+		if input.sid:
+			# Load source by ID.
+			source = UserSource.get_by_id(long(input.sid))
+			if not source:
+				# It does not exist.
+				web.notfound()
+
+			# Check that the source belongs to the logged in user.
+			if source.owner.user_id() != users.get_current_user().user_id():
+				# It's not theirs. 404.
+				web.notfound()
+
+			return source
+		else:
+			# No source selected.
+			return None
 
 # Initialise and run the application.
 app = web.application(urls, globals())

@@ -24,7 +24,9 @@ class Renderer:
 		self.types[name] = 'template'
 
 	def prepareToJson(self, data):
-		if isinstance(data, dict):
+		if data == None:
+			return None
+		elif isinstance(data, dict):
 			result = {}
 			for key in data:
 				result[key] = self.prepareToJson(data[key])

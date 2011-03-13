@@ -1,11 +1,17 @@
 <%inherit file="../layout/layout.html" />
 <h1>Notifry</h1>
 
+<p><a href="/messages/">View recent messages</a></p>
+
 <p><a href="/sources/create">Create new source</a></p>
 
 <ul>
 	% for source in sources:
-		<li><a href="/sources/edit?id=${source.key().id()}">${source.title|h}</a> - key ${source.externalKey} - enabled ${source.enabled}</li>
+		<li>
+			${source.title|h} - key ${source.externalKey} - enabled ${source.enabled}
+			<a href="/sources/edit?id=${source.key().id()}">edit</a> -
+			<a href="/messages/?sid=${source.key().id()}">messages</a>
+		</li>
 	% endfor
 </ul>
 

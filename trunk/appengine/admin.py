@@ -2,7 +2,7 @@ import web
 from google.appengine.api import users
 from lib.Renderer import Renderer
 from model.AC2DMAuthToken import AC2DMAuthToken
-from model.AC2DMAuthToken import from_username_password
+from model.AC2DMAuthToken import AC2DMTokenException
 import datetime
 
 urls = (
@@ -123,7 +123,7 @@ class createtoken:
 			# Validated.
 			# Attempt to get an auth token.
 			try:
-				token = from_username_password(form.username.get_value(), form.password.get_value())
+				token = AC2DMAuthToken.from_username_password(form.username.get_value(), form.password.get_value())
 				token.put()
 
 				if renderer.get_mode() == 'html':
@@ -133,7 +133,7 @@ class createtoken:
 					# Send back the source data.
 					renderer.addData('token', token)
 					return renderer.render('apionly.html')
-			except Exception, e:
+			except AC2DMTokenException, e:
 				# Failed for some reason!
 				renderer.addData('error', str(e))
 				renderer.addTemplate('form', form)

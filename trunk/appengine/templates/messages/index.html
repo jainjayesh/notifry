@@ -1,0 +1,27 @@
+<%inherit file="../layout/layout.html" />
+<h1>Notifry</h1>
+
+<p>Recent Messages</p>
+
+<form method="get" action="">
+	Filter: <select name="sid">
+		<option value="">All sources</option>
+		% for source in sources:
+			<%
+			selected = ""
+			if filtersource and filtersource.key().id() == source.key().id():
+				selected = 'selected="selected"'
+			%>
+			<option value="${source.key().id()|h}" ${selected}>${source.title|h}</option>
+		% endfor
+	</select>
+	<input type="submit" value="Filter" />
+</form>
+
+<ul>
+	% for message in messages:
+		<li>
+			${message.timestamp} - ${message.title|h} - ${message.message} - (${message.source.title})
+		</li>
+	% endfor
+</ul>
