@@ -18,15 +18,6 @@ urls = (
 renderer = Renderer('templates/')
 renderer.addTemplate('user', users.get_current_user())
 
-# Source editor form.
-source_editor_form = web.form.Form(
-	web.form.Hidden('id'),
-	web.form.Textbox('title', web.form.notnull, description = 'Title'),
-	web.form.Textarea('description', description = 'Description'),
-	web.form.Checkbox('enabled', description = 'Enabled'),
-	web.form.Button('Save')
-)
-
 # Helper function to make sure the user is aware that login is required.
 def login_required():
 	if not users.get_current_user():
@@ -140,10 +131,10 @@ class sources:
 			source = self.get_source()
 			renderer.addTemplate('action', action)
 			
-			source_editor = source_editor_form()
-			source_editor.fill(source.dict())
+			form = self.get_form()
+			form.fill(source.dict())
 
-			renderer.addTemplate('form', source_editor)
+			renderer.addTemplate('form', form)
 			return renderer.render('sources/edit.html')
 		elif action == 'get':
 			# Just get the object.
@@ -164,24 +155,24 @@ class sources:
 		source = self.get_source()
 
 		# Get the form and the form data.
-		source_editor = source_editor_form()
-		source_editor.fill(source.dict())
+		form = self.get_form()
+		form.fill(source.dict())
 
-		if not source_editor.validates():
+		if not form.validates():
 			# Failed to validate. Display the form again.
 			renderer.addTemplate('action', action)
-			renderer.addTemplate('form', source_editor)
-			errors = source_editor.getnotes()
+			renderer.addTemplate('form', form)
+			errors = form.getnotes()
 			renderer.addDataList('errors', errors)
 			return renderer.render('sources/edit.html')
 		else:
 			# Validated - proceed.
 			source.updated = datetime.datetime.now()
-			source.title = source_editor.title.get_value()
-			source.description = source_editor.description.get_value()
+			source.title = form.title.get_value()
+			source.description = form.description.get_value()
 			source.enabled = False
 			source.owner = users.get_current_user()
-			if source_editor.enabled.get_value():
+			if form.enabled.get_value():
 				source.enabled = True
 			source.put()
 
@@ -214,6 +205,17 @@ class sources:
 			source = UserSource()
 			source.new_object()
 			return source
+
+	def get_form(self):
+		# Source editor form.
+		source_editor_form = web.form.Form(
+			web.form.Hidden('id'),
+			web.form.Textbox('title', web.form.notnull, description = 'Title'),
+			web.form.Textarea('description', description = 'Description'),
+			web.form.Checkbox('enabled', description = 'Enabled'),
+			web.form.Button('Save')
+		)
+		return source_editor_form()
 
 # Initialise and run the application.
 app = web.application(urls, globals())
