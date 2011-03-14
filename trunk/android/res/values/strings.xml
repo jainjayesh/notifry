@@ -61,4 +61,6 @@
     <string name="notts">You do not have the TTS library installed - Speak Message Service can not read out your messages until you install it.</string>
     
     <string name="announce_sep">says</string>
+    
+    <string name="backend_url">notifry.appspot.com</string>
 </resources>
