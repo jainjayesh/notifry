@@ -1,10 +1,23 @@
 
 import datetime
 import logging
+from model.UserDevice import UserDevice
+from model.AC2DMAuthToken import AC2DMAuthToken
 
-class A2CDM:
+class AC2DM:
 	def __init__(self, token):
 		self.token = token
+
+	@staticmethod
+	def factory():
+		token = AC2DMAuthToken.get_latest()
+		return A2CDM(token)
+
+	def send_to_all(self, message):
+		devices = UserDevice.devices_for(message.source.owner)
+
+		for device in devices:
+			self.send(message, device)
 
 	def send(self, message, device):
 		# Prepare for our request.

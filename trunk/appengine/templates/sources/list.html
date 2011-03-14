@@ -5,6 +5,10 @@
 
 <ul>
 	% for source in sources:
-		<li><a href="/sources/edit?id=${source.key().id()}">${source.title|h}</a> - key ${source.externalKey}</li>
+		<li>
+			<a href="/sources/edit?id=${source.key().id()}">${source.title|h}</a>
+			| key ${source.externalKey}
+			| <a href="/sources/test?id=${source.key().id()}">Test</a>
+		</li>
 	% endfor
 </ul>

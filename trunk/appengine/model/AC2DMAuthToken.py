@@ -36,7 +36,7 @@ class AC2DMAuthToken(db.Model):
 		query = AC2DMAuthToken.all()
 		query.order('-updated')
 
-		if len(query) > 0:
+		if query.count(5) > 0:
 			return query[0]
 		else:
 			return None

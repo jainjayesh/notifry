@@ -5,6 +5,7 @@ from model.UserSource import UserSource
 from model.UserDevice import UserDevice
 from model.UserMessage import UserMessage
 import datetime
+from lib.AC2DM import AC2DM
 
 urls = (
 	'/', 'index',
@@ -149,6 +150,25 @@ class sources:
 			source = self.get_source()
 			renderer.addData('source', source)
 			return renderer.render('sources/detail.html')
+		elif action == 'test':
+			# Send a test message to the source.
+			source = self.get_source()
+
+			message = UserMessage()
+			message.source = source
+			message.message = "This is a test message."
+			message.title = "Test Message"
+			message.timestamp = datetime.datetime.now()
+			message.deliveredToGoogle = False
+			message.lastDeliveryAttempt = None
+			message.sourceIp = web.ctx.ip
+			message.put()
+
+			sender = AC2DM.factory()
+			sender.send_to_all(message)
+
+			# And we're done.
+			return renderer.render('sources/test.html')
 		else:
 			# List. Not fully supported - see the profile instead.
 			# Although - handy for API's.
@@ -269,6 +289,9 @@ class notifry:
 		# And handle the edge cases associated with that.
 
 		# Now that it's saved, send it to Google.
+		# TODO: This doesn't handle messages correctly.
+		sender = AC2DM.factory()
+		sender.send_to_all(message)
 
 		renderer.addData('message', message)
 		return renderer.render('apionly.html')
