@@ -11,7 +11,7 @@ class AC2DM:
 	@staticmethod
 	def factory():
 		token = AC2DMAuthToken.get_latest()
-		return A2CDM(token)
+		return AC2DM(token)
 
 	def send_to_all(self, message):
 		devices = UserDevice.devices_for(message.source.owner)
