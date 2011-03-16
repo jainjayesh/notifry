@@ -44,7 +44,7 @@ class AC2DM:
 			False, # Don't allow a truncated response
 			True, # Do follow redirects.
 			None, # Default timeout/deadline
-			True # Validate the SSL certificate/issuer/time (important!)
+			False # Don't validate the SSL cert - there isn't a proper one on there at the moment.
 		)
 
 		if result.status_code == 200:
