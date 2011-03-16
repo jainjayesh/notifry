@@ -2,7 +2,7 @@ import web
 from mako.lookup import TemplateLookup
 from google.appengine.ext import db
 import datetime
-import json
+import simplejson as json
 
 class Renderer:
 	def __init__(self, templatedir):
