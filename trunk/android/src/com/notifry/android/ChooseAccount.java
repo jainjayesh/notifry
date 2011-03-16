@@ -40,15 +40,15 @@ public class ChooseAccount extends ListActivity
 	public void onCreate( Bundle savedInstanceState )
 	{
 		super.onCreate(savedInstanceState);
-		accountManager = AccountManager.get(getApplicationContext());
-		Account[] accounts = accountManager.getAccountsByType("com.google");
+		this.accountManager = AccountManager.get(getApplicationContext());
+		Account[] accounts = this.accountManager.getAccountsByType("com.google");
 		this.setListAdapter(new ArrayAdapter<Account>(this, R.layout.account_list_row, accounts));
 	}
 
 	protected void onListItemClick( ListView l, View v, int position, long id )
 	{
 		Account account = (Account) getListView().getItemAtPosition(position);
-		Intent intent = new Intent(this, AppEngineAuthenticator.class);
+		Intent intent = new Intent(this, TestRegister.class);
 		intent.putExtra("account", account);
 		startActivity(intent);
 	}

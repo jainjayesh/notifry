@@ -49,6 +49,9 @@ public class Notifry extends PreferenceActivity
 
 		Preference stopReadingNow = findPreference(getString(R.string.stopReadingNow));
 		stopReadingNow.setOnPreferenceClickListener(stopSpeakingNowHandler);
+		
+		Preference testAccount = findPreference(getString(R.string.testAccount));
+		testAccount.setOnPreferenceClickListener(testAccountHandler);
 
 		Preference previewSpeech = findPreference(getString(R.string.previewSpeech));
 		previewSpeech.setOnPreferenceClickListener(previewSpeechHandler);
@@ -65,19 +68,6 @@ public class Notifry extends PreferenceActivity
 		shakeWaitTime = (EditTextPreference) findPreference(getString(R.string.shakeWaitTime));
 		shakeWaitTime.setOnPreferenceChangeListener(shakeWaitTimeHandler);
 		updateShakeWaitTimeSummary(settings.getString(getString(R.string.shakeWaitTime), "60"));
-		
-		// Register for C2DM.
-	    String registrationId = C2DMessaging.getRegistrationId(this);
-	    if(registrationId != null && !"".equals(registrationId))
-	    {
-	        Log.i("Notifry", "Already registered. registrationId is " + registrationId);
-	        //C2DMessaging.unregister(this);
-	    }
-	    else
-	    {
-	        Log.i("Notifry", "No existing registrationId. Registering..");
-	        C2DMessaging.register(this, "notifry@gmail.com");
-	    }
 		
 		// Figure out if we have the TTS installed.
 		Intent checkIntent = new Intent();
@@ -117,6 +107,17 @@ public class Notifry extends PreferenceActivity
 			return true;
 		}
 	};
+	
+	// On click handler for firing off the test account handler.
+	OnPreferenceClickListener testAccountHandler = new OnPreferenceClickListener()
+	{
+		public boolean onPreferenceClick(Preference preference)
+		{
+			Intent intentData = new Intent(getBaseContext(), ChooseAccount.class);
+			startActivity(intentData);
+			return true;
+		}
+	};	
 
 	// On click handler for previewing speech.
 	OnPreferenceClickListener previewSpeechHandler = new OnPreferenceClickListener()
