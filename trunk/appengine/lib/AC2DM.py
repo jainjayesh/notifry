@@ -50,7 +50,7 @@ class AC2DM:
 		if result.status_code == 200:
 			# Success!
 			# The result body is a queue id. Store it.
-			message.googleQueueId = result.content.trim()
+			message.googleQueueId = result.content.strip()
 			message.deliveredToGoogle = True
 			message.lastDeliveryAttempt = datetime.datetime.now()
 			message.put()
