@@ -18,6 +18,8 @@
 
 package com.notifry.android;
 
+import com.notifry.android.database.PushMessage;
+
 import android.content.Context;
 
 public class SpeakDecision

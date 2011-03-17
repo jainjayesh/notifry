@@ -25,6 +25,7 @@ import org.apache.http.NameValuePair;
 import org.apache.http.message.BasicNameValuePair;
 
 import com.google.android.c2dm.C2DMBaseReceiver;
+import com.notifry.android.database.PushMessage;
 import com.notifry.android.remote.BackendClient;
 import com.notifry.android.remote.BackendResponse;
 
@@ -57,17 +58,17 @@ public class C2DMReceiver extends C2DMBaseReceiver
 		params.add(new BasicNameValuePair("devicetype", "android"));
 		params.add(new BasicNameValuePair("deviceversion", "0.1"));
 		
-		BackendResponse result = client.request("/registration", params);
+		BackendResponse result = null;//client.request("/registration", params, false);
 		
 		// Was it successful?
-		if( result.isError() )
+		/*if( result.isError() )
 		{
 			Log.e(TAG, "Error: " + result.getError());
 		}
 		else
 		{
 			Log.e(TAG, "Success! Server returned: " + result.getJSON().toString());
-		}
+		}*/
 	}
 
 	protected void onMessage( Context context, Intent intent )

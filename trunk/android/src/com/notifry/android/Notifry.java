@@ -20,201 +20,152 @@ package com.notifry.android;
 
 import com.google.android.c2dm.C2DMessaging;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
 import android.os.Bundle;
-import android.preference.EditTextPreference;
-import android.preference.Preference;
-import android.preference.PreferenceActivity;
 import android.preference.PreferenceManager;
-import android.preference.Preference.OnPreferenceChangeListener;
-import android.preference.Preference.OnPreferenceClickListener;
 import android.speech.tts.TextToSpeech;
 import android.util.Log;
+import android.view.View;
+import android.widget.Button;
 import android.widget.Toast;
 
-//import android.util.Log;
-
-public class Notifry extends PreferenceActivity
+public class Notifry extends Activity
 {
-	private EditTextPreference delayReading;
-	private EditTextPreference shakeThreshold;
-	private EditTextPreference shakeWaitTime;
-
 	@Override
-	public void onCreate(Bundle savedInstanceState)
+	public void onCreate( Bundle savedInstanceState )
 	{
+		// Prepare the view.
 		super.onCreate(savedInstanceState);
-		addPreferencesFromResource(R.xml.preferences);
+		setContentView(R.layout.screen_home);
 
-		Preference stopReadingNow = findPreference(getString(R.string.stopReadingNow));
-		stopReadingNow.setOnPreferenceClickListener(stopSpeakingNowHandler);
-		
-		Preference testAccount = findPreference(getString(R.string.testAccount));
-		testAccount.setOnPreferenceClickListener(testAccountHandler);
-
-		Preference previewSpeech = findPreference(getString(R.string.previewSpeech));
-		previewSpeech.setOnPreferenceClickListener(previewSpeechHandler);
-
-		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
-		delayReading = (EditTextPreference) findPreference(getString(R.string.delayReadingTime));
-		delayReading.setOnPreferenceChangeListener(delayReadingHandler);
-		updateDelaySummary(settings.getString(getString(R.string.delayReadingTime), "0"));
-		
-		shakeThreshold = (EditTextPreference) findPreference(getString(R.string.shakeThreshold));
-		shakeThreshold.setOnPreferenceChangeListener(shakeThresholdHandler);
-		updateThresholdSummary(settings.getString(getString(R.string.shakeThreshold), "1500"));
-		
-		shakeWaitTime = (EditTextPreference) findPreference(getString(R.string.shakeWaitTime));
-		shakeWaitTime.setOnPreferenceChangeListener(shakeWaitTimeHandler);
-		updateShakeWaitTimeSummary(settings.getString(getString(R.string.shakeWaitTime), "60"));
-		
 		// Figure out if we have the TTS installed.
 		Intent checkIntent = new Intent();
 		checkIntent.setAction(TextToSpeech.Engine.ACTION_CHECK_TTS_DATA);
 		startActivityForResult(checkIntent, 0x1010);
+
+        // Register for C2DM. We'll report this to the server later.
+        final String registrationId = C2DMessaging.getRegistrationId(this);
+        if( registrationId != null && !"".equals(registrationId) )
+        {
+                Log.i("Notifry", "Already registered. registrationId is " + registrationId);
+        }
+        else
+        {
+                Log.i("Notifry", "No existing registrationId. Registering..");
+                C2DMessaging.register(this, "notifry@gmail.com");
+        }
 	}
 	
-	protected void onActivityResult( int requestCode, int resultCode, Intent data)
+	public void onResume()
+	{
+		super.onResume();
+		
+		// Change the master enable/disable button based on the settings.
+		// This is done in onResume() so it's correct even if you go to the settings and come back.
+		this.changeEnabledLabelFor(findViewById(R.id.home_disableAll));		
+	}
+
+	/**
+	 * Onclick handler to stop reading now.
+	 * 
+	 * @param view
+	 */
+	public void stopReadingNow( View view )
+	{
+		// Inform our service to stop reading now.
+		Intent intentData = new Intent(getBaseContext(), SpeakService.class);
+		intentData.putExtra("stopNow", true);
+		startService(intentData);
+	}
+
+	/**
+	 * Onclick handler to toggle the master enable.
+	 * 
+	 * @param view
+	 */
+	public void disableEnableNotifications( View view )
+	{
+		// Enable or disable the master enable flag, updating the button as
+		// appropriate.
+		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
+		Editor editor = settings.edit();
+		editor.putBoolean(getString(R.string.masterEnable), !settings.getBoolean(getString(R.string.masterEnable), true));
+		editor.commit();
+
+		this.changeEnabledLabelFor(view);
+	}
+
+	/**
+	 * Based on the settings, change the text on the given view to match.
+	 * 
+	 * @param view
+	 */
+	public void changeEnabledLabelFor( View view )
+	{
+		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
+		if( settings.getBoolean(getString(R.string.masterEnable), true) )
+		{
+			// It is enabled. Give the button the enabled text.
+			Button button = (Button) view;
+			button.setText(R.string.disable_all_notifications);
+		}
+		else
+		{
+			Button button = (Button) view;
+			button.setText(R.string.enable_all_notifications);
+		}
+	}
+
+	/**
+	 * Onclick handler to launch the settings dialog.
+	 * @param view
+	 */
+	public void launchSettings( View view )
+	{
+		Intent intent = new Intent(getBaseContext(), Settings.class);
+		startActivity(intent);
+	}
+
+	public void launchRecentMessages( View view )
+	{
+
+	}
+
+	/**
+	 * Onclick handler to launch the account chooser dialog.
+	 * @param view
+	 */
+	public void launchAccounts( View view )
+	{
+		Intent intent = new Intent(getBaseContext(), ChooseAccount.class);
+		startActivity(intent);
+	}
+
+	/**
+	 * Callback function for checking if the Text to Speech is installed. If
+	 * not, it will redirect the user to download the text data.
+	 */
+	protected void onActivityResult( int requestCode, int resultCode, Intent data )
 	{
 		if( requestCode == 0x1010 )
 		{
 			if( resultCode == TextToSpeech.Engine.CHECK_VOICE_DATA_PASS )
 			{
 				// All systems are go.
-				//Log.d("Notifry", "All systems are go.");
+				Log.d("Notifry", "All systems are go.");
 			}
 			else
 			{
 				// TTS data missing. Go get it.
 				Toast.makeText(getApplicationContext(), R.string.need_tts_data_installed, Toast.LENGTH_LONG).show();
-				//Log.d("Notifry", "Redirecting to get data.");
+				Log.d("Notifry", "Redirecting to get data.");
 				Intent installIntent = new Intent();
 				installIntent.setAction(TextToSpeech.Engine.ACTION_INSTALL_TTS_DATA);
 				startActivity(installIntent);
 			}
 		}
 	}
-	
-	// On click handler for stopping the text in motion.
-	OnPreferenceClickListener stopSpeakingNowHandler = new OnPreferenceClickListener()
-	{
-		public boolean onPreferenceClick(Preference preference)
-		{
-			Intent intentData = new Intent(getBaseContext(), SpeakService.class);
-			intentData.putExtra("stopNow", true);
-			startService(intentData);
-			return true;
-		}
-	};
-	
-	// On click handler for firing off the test account handler.
-	OnPreferenceClickListener testAccountHandler = new OnPreferenceClickListener()
-	{
-		public boolean onPreferenceClick(Preference preference)
-		{
-			Intent intentData = new Intent(getBaseContext(), ChooseAccount.class);
-			startActivity(intentData);
-			return true;
-		}
-	};	
-
-	// On click handler for previewing speech.
-	OnPreferenceClickListener previewSpeechHandler = new OnPreferenceClickListener()
-	{
-		public boolean onPreferenceClick(Preference preference)
-		{
-			Intent intentData = new Intent(getBaseContext(), SpeakService.class);
-			intentData.putExtra("text", getString(R.string.preview_speak));
-			startService(intentData);
-			return true;
-		}
-	};
-
-	// On Preference change listener to update the delay summary.
-	OnPreferenceChangeListener delayReadingHandler = new OnPreferenceChangeListener()
-	{
-		public boolean onPreferenceChange(Preference preference, Object newValue)
-		{
-			updateDelaySummary((String) newValue);
-			return true;
-		}
-	};
-
-	// On Preference change listener to update the delay summary.
-	OnPreferenceChangeListener shakeThresholdHandler = new OnPreferenceChangeListener()
-	{
-		public boolean onPreferenceChange(Preference preference, Object newValue)
-		{
-			updateThresholdSummary((String) newValue);
-			return true;
-		}
-	};	
-
-	// On Preference change listener to update the delay summary.
-	OnPreferenceChangeListener shakeWaitTimeHandler = new OnPreferenceChangeListener()
-	{
-		public boolean onPreferenceChange(Preference preference, Object newValue)
-		{
-			updateShakeWaitTimeSummary((String) newValue);
-			return true;
-		}
-	};
-
-	// Helper function to update the delay summary.
-	private void updateDelaySummary(String value)
-	{
-		String template = getString(R.string.delay_readout_summary);
-
-		try
-		{
-			Integer intValue = Integer.parseInt(value);
-			String plural = "s";
-
-			if (intValue == 1)
-			{
-				plural = "";
-			}
-			String result = String.format(template, intValue, plural);
-			delayReading.setSummary(result);
-		}
-		catch( NumberFormatException ex )
-		{
-			// Not a valid number... ignore.
-		}
-	}
-	
-	// Helper function to update the threshold summary.
-	private void updateThresholdSummary(String value)
-	{
-		String template = getString(R.string.shakethreshhold_summary);
-
-		try
-		{
-			Integer intValue = Integer.parseInt(value);
-			String result = String.format(template, intValue);
-			shakeThreshold.setSummary(result);
-		}
-		catch( NumberFormatException ex )
-		{
-			// Not a valid number... ignore.
-		}
-	}
-	
-	// Helper function to update the wait time summary.
-	private void updateShakeWaitTimeSummary(String value)
-	{
-		String template = getString(R.string.shakewaittime_summary);
-
-		try
-		{
-			Integer intValue = Integer.parseInt(value);
-			String result = String.format(template, intValue);
-			shakeWaitTime.setSummary(result);
-		}
-		catch( NumberFormatException ex )
-		{
-			// Not a valid number... ignore.
-		}
-	}	
 }

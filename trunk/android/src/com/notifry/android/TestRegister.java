@@ -65,7 +65,7 @@ public class TestRegister extends Activity
 					try
 					{
 						Log.i("Notifry", "Beginning request...");
-						result = client.request("/registration", params);
+						/*result = client.request("/registration", params, false);
 						// Was it successful?
 						if( result.isError() )
 						{
@@ -74,7 +74,7 @@ public class TestRegister extends Activity
 						else
 						{
 							Log.e(TAG, "Success! Server returned: " + result.getJSON().toString());
-						}
+						}*/
 					}
 					catch( Exception e )
 					{

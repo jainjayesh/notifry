@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+  xmlns:android="http://schemas.android.com/apk/res/android"
+  android:layout_width="match_parent"
+  android:layout_height="match_parent" android:orientation="vertical">
+    <EditText android:text="Title Here" android:id="@+id/detail_title" android:layout_height="wrap_content" android:layout_width="match_parent"></EditText>
+    <CheckBox android:id="@+id/detail_serverenable" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/enabled_on_server"></CheckBox>
+    <CheckBox android:id="@+id/detail_localenable" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/enabled_locally"></CheckBox>
+    <LinearLayout android:id="@+id/linearLayout1" android:layout_height="wrap_content" android:layout_width="match_parent">
+        <Button android:id="@+id/detail_save" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/save" android:layout_weight="1" android:onClick="save"></Button>
+        <Button android:id="@+id/detail_emailkey" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/email_source_key" android:layout_weight="1" android:onClick="emailKey"></Button>
+    </LinearLayout>
+</LinearLayout>

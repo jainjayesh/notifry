@@ -16,9 +16,11 @@ public class BackendResponse
 	private HttpResponse response;
 	private String error = null;
 	private JSONObject json;
+	private BackendRequest request;
 
-	public BackendResponse( HttpResponse response )
+	public BackendResponse( BackendRequest request, HttpResponse response )
 	{
+		this.request = request;
 		this.response = response;
 
 		// Determine if it was an error.
@@ -105,5 +107,10 @@ public class BackendResponse
 	public String getError()
 	{
 		return this.error;
+	}
+	
+	public BackendRequest getRequest()
+	{
+		return this.request;
 	}
 }

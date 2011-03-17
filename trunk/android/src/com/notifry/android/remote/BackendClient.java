@@ -47,6 +47,7 @@ import android.accounts.AccountManager;
 import android.accounts.AccountManagerFuture;
 import android.accounts.AuthenticatorException;
 import android.accounts.OperationCanceledException;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
@@ -67,19 +68,31 @@ public class BackendClient
 		this.backendName = "https://" + context.getString(R.string.backend_url);
 	}
 
-	public BackendResponse request( String urlPath, List<NameValuePair> params ) throws Exception
+	public BackendResponse request( BackendRequest request, String statusMessage ) throws Exception
 	{
 		// Add a 'format=json' to the params.
-		params.add(new BasicNameValuePair("format", "json"));
+		request.add("format", "json");
 		
-		HttpResponse res = requestNoRetry(urlPath, params, false);
+		ProgressDialog dialog = null;
+		
+		if( statusMessage != null )
+		{
+			dialog = ProgressDialog.show(this.context, this.context.getString(R.string.app_name), statusMessage, true);    
+		}
+		
+		HttpResponse res = requestNoRetry(request.getUri(), request.getParams(), false);
 		if( res.getStatusLine().getStatusCode() == 500 )
 		{
-			res = requestNoRetry(urlPath, params, true);
+			res = requestNoRetry(request.getUri(), request.getParams(), true);
 		}
 		
 		// Parse the response.
-		BackendResponse response = new BackendResponse(res);
+		BackendResponse response = new BackendResponse(request, res);
+		
+		if( statusMessage != null )
+		{
+			dialog.dismiss();
+		}
 		
 		return response;
 	}

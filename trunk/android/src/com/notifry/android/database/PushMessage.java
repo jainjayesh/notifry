@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package com.notifry.android;
+package com.notifry.android.database;
 
 import java.util.Date;
 
