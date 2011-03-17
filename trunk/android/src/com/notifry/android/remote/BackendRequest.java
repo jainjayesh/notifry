@@ -24,6 +24,9 @@ import java.util.List;
 import org.apache.http.NameValuePair;
 import org.apache.http.message.BasicNameValuePair;
 
+import com.notifry.android.R;
+
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.util.Log;
 
@@ -45,6 +48,15 @@ public class BackendRequest
 		this.params.add(new BasicNameValuePair(name, value));
 	}
 	
+	public void dumpRequest()
+	{
+		Log.d(TAG, "URI: " + this.uri);
+		for( NameValuePair param: this.params )
+		{
+			Log.d(TAG, "Param: " + param.getName() + " = " + param.getValue());
+		}
+	}
+	
 	public String getUri()
 	{
 		return this.uri;
@@ -57,6 +69,13 @@ public class BackendRequest
 	
 	public void startInThread( final Context context, final String statusMessage, final String accountName )
 	{
+		ProgressDialog dialog = null;
+		
+		if( statusMessage != null )
+		{
+			dialog = ProgressDialog.show(context, context.getString(R.string.app_name), statusMessage, true);    
+		}		
+		
 		Thread thread = new Thread(){
 			public void run()
 			{
@@ -66,7 +85,7 @@ public class BackendRequest
 				try
 				{
 					Log.i(TAG, "Beginning request...");
-					result = client.request(thisRequest, statusMessage);
+					result = client.request(thisRequest);
 
 					// Was it successful?
 					if( result.isError() )
@@ -86,5 +105,10 @@ public class BackendRequest
 		};
 		
 		thread.start();
+		
+		if( statusMessage != null )
+		{
+			dialog.dismiss();
+		}		
 	}
 }

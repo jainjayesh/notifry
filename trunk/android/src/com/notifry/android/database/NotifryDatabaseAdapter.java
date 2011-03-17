@@ -193,6 +193,11 @@ public class NotifryDatabaseAdapter
 		account.setId(cursor.getLong(cursor.getColumnIndex(KEY_ID)));
 		account.setEnabled(cursor.getLong(cursor.getColumnIndex(KEY_ENABLED)) == 0 ? false : true);
 		account.setServerRegistrationId(cursor.getLong(cursor.getColumnIndex(KEY_SERVER_REGISTRATION_ID)));
+		
+		if( account.getServerRegistrationId() == 0 )
+		{
+			account.setServerRegistrationId(null);
+		}
 		return account;
 	}
 

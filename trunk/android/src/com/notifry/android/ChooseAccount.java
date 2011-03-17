@@ -119,8 +119,10 @@ public class ChooseAccount extends ListActivity
 				request.add("id", refreshedAccount.getServerRegistrationId().toString());
 			}
 			
+			request.dumpRequest();
+			
 			// Start a thread to make the request. Block until it's done.
-			request.startInThread(this, "Registering with server...", refreshedAccount.getAccountName());
+			request.startInThread(this, null /*"Registering with server..."*/, refreshedAccount.getAccountName());
 			
 			// Now update the local database if it succeeded. TODO: Later.
 		}

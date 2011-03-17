@@ -68,17 +68,10 @@ public class BackendClient
 		this.backendName = "https://" + context.getString(R.string.backend_url);
 	}
 
-	public BackendResponse request( BackendRequest request, String statusMessage ) throws Exception
+	public BackendResponse request( BackendRequest request ) throws Exception
 	{
 		// Add a 'format=json' to the params.
 		request.add("format", "json");
-		
-		ProgressDialog dialog = null;
-		
-		if( statusMessage != null )
-		{
-			dialog = ProgressDialog.show(this.context, this.context.getString(R.string.app_name), statusMessage, true);    
-		}
 		
 		HttpResponse res = requestNoRetry(request.getUri(), request.getParams(), false);
 		if( res.getStatusLine().getStatusCode() == 500 )
@@ -88,11 +81,6 @@ public class BackendClient
 		
 		// Parse the response.
 		BackendResponse response = new BackendResponse(request, res);
-		
-		if( statusMessage != null )
-		{
-			dialog.dismiss();
-		}
 		
 		return response;
 	}
