@@ -107,7 +107,7 @@ class registerdevice:
 
 		# If ID supplied, find and update that ID.
 		device = UserDevice()
-		if input.id:
+		if input.id and long(input.id) > 0:
 			# Load device from ID.
 			device = UserDevice.get_by_id(long(input.id))
 
