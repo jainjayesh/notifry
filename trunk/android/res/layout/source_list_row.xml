@@ -1,0 +1,6 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+	android:layout_width="fill_parent" android:layout_height="?android:attr/listPreferredItemHeight"
+	android:padding="6dip">
+	<CheckBox android:id="@+id/source_row_local_enabled" android:layout_width="wrap_content" android:layout_height="wrap_content"></CheckBox>
+	<TextView android:id="@+id/source_row_source_name" android:layout_width="fill_parent" android:layout_height="fill_parent" android:gravity="center_vertical" />
+</LinearLayout>

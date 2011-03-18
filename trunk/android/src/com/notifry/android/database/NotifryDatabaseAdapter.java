@@ -28,9 +28,11 @@ import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.util.Log;
 
 public class NotifryDatabaseAdapter
 {
+	private static final String TAG = "Notifry";
 	public static final String KEY_ID = "_id";
 	public static final String KEY_ACCOUNT_NAME = "account_name";
 	public static final String KEY_ENABLED = "enabled";
@@ -173,7 +175,7 @@ public class NotifryDatabaseAdapter
 		{
 			while( cursor.moveToNext() )
 			{
-				result.add(this.inflateFromCursor(cursor));
+				result.add(this.inflateAccountFromCursor(cursor));
 			}
 			
 			cursor.close();
@@ -187,7 +189,7 @@ public class NotifryDatabaseAdapter
 	 * @param cursor
 	 * @return
 	 */
-	private NotifryAccount inflateFromCursor( Cursor cursor )
+	private NotifryAccount inflateAccountFromCursor( Cursor cursor )
 	{
 		NotifryAccount account = new NotifryAccount();
 		account = new NotifryAccount();
@@ -220,7 +222,7 @@ public class NotifryDatabaseAdapter
 			cursor.moveToFirst();
 			if( cursor.getCount() != 0 )
 			{
-				account = this.inflateFromCursor(cursor);
+				account = this.inflateAccountFromCursor(cursor);
 			}
 			cursor.close();
 		}
@@ -246,7 +248,7 @@ public class NotifryDatabaseAdapter
 				cursor.moveToFirst();
 				if( cursor.getCount() != 0 )
 				{
-					account = this.inflateFromCursor(cursor);
+					account = this.inflateAccountFromCursor(cursor);
 				}
 				cursor.close();
 			}
@@ -280,4 +282,139 @@ public class NotifryDatabaseAdapter
 		
 		return account;
 	}
+	
+	/**
+	 * List all the sources in our database. This is not especially efficient.
+	 * @return
+	 */
+	public ArrayList<NotifrySource> listSources( String accountName )
+	{
+		ArrayList<NotifrySource> result = new ArrayList<NotifrySource>();
+		
+		Log.d(TAG, "Listing sources for account " + accountName);
+
+		Cursor cursor = db.query(
+				DATABASE_TABLE_SOURCES,
+				new String[] { KEY_ID, KEY_ACCOUNT_NAME, KEY_CHANGE_TIMESTAMP, KEY_TITLE, KEY_SERVER_ID, KEY_SOURCE_KEY, KEY_SERVER_ENABLED, KEY_LOCAL_ENABLED },
+				KEY_ACCOUNT_NAME + "= ?", new String[] { accountName },
+				null, null, null);
+
+		if( cursor != null )
+		{
+			Log.d(TAG, "Cursor is not null, at least. " + accountName);
+			while( cursor.moveToNext() )
+			{
+				Log.d(TAG, "Got one result! for account " + accountName);
+				result.add(this.inflateSourceFromCursor(cursor));
+			}
+			
+			cursor.close();
+		}
+		
+		return result;
+	}
+
+	/**
+	 * Helper function to inflate a NotifrySource object from a database cursor.
+	 * @param cursor
+	 * @return
+	 */
+	private NotifrySource inflateSourceFromCursor( Cursor cursor )
+	{
+		NotifrySource source = new NotifrySource();
+		source.setAccountName(cursor.getString(cursor.getColumnIndex(KEY_ACCOUNT_NAME)));
+		source.setId(cursor.getLong(cursor.getColumnIndex(KEY_ID)));
+		source.setServerEnabled(cursor.getLong(cursor.getColumnIndex(KEY_SERVER_ENABLED)) == 0 ? false : true);
+		source.setLocalEnabled(cursor.getLong(cursor.getColumnIndex(KEY_LOCAL_ENABLED)) == 0 ? false : true);
+		source.setServerId(cursor.getLong(cursor.getColumnIndex(KEY_SERVER_ID)));
+		source.setTitle(cursor.getString(cursor.getColumnIndex(KEY_TITLE)));
+		source.setChangeTimestamp(cursor.getString(cursor.getColumnIndex(KEY_CHANGE_TIMESTAMP)));
+		source.setSourceKey(cursor.getString(cursor.getColumnIndex(KEY_SOURCE_KEY)));
+		
+		return source;
+	}
+
+	/**
+	 * Get a source from an ID.
+	 * @param id The local ID of the source to fetch.
+	 * @return An inflated source object, or NULL if not found.
+	 */
+	public NotifrySource getSourceById( Long id )
+	{
+		NotifrySource source = null;
+
+		if (id != null)
+		{
+			Cursor cursor = db.query(true, DATABASE_TABLE_SOURCES, new String[] { KEY_ID, KEY_ACCOUNT_NAME, KEY_CHANGE_TIMESTAMP, KEY_TITLE, KEY_SERVER_ID, KEY_SOURCE_KEY, KEY_SERVER_ENABLED, KEY_LOCAL_ENABLED }, KEY_ID + "=" + id, null, null, null, null, null);
+
+			if( cursor != null )
+			{
+				cursor.moveToFirst();
+				if( cursor.getCount() != 0 )
+				{
+					source = this.inflateSourceFromCursor(cursor);
+				}
+				cursor.close();
+			}
+		}
+
+		return source;
+	}
+	
+	/**
+	 * Get a source from a server ID.
+	 * @param id The server ID of the source to fetch.
+	 * @return An inflated source object, or NULL if not found.
+	 */
+	public NotifrySource getSourceByServerId( Long id )
+	{
+		NotifrySource source = null;
+
+		if (id != null)
+		{
+			Cursor cursor = db.query(true, DATABASE_TABLE_SOURCES, new String[] { KEY_ID, KEY_ACCOUNT_NAME, KEY_CHANGE_TIMESTAMP, KEY_TITLE, KEY_SERVER_ID, KEY_SOURCE_KEY, KEY_SERVER_ENABLED, KEY_LOCAL_ENABLED }, KEY_SERVER_ID + "=" + id, null, null, null, null, null);
+
+			if( cursor != null )
+			{
+				cursor.moveToFirst();
+				if( cursor.getCount() != 0 )
+				{
+					source = this.inflateSourceFromCursor(cursor);
+				}
+				cursor.close();
+			}
+		}
+
+		return source;
+	}	
+	
+	/**
+	 * Save the provided source object into the database.
+	 * @param account
+	 * @return
+	 */
+	public NotifrySource saveSource( NotifrySource source )
+	{
+		ContentValues values = new ContentValues();
+		values.put(KEY_ACCOUNT_NAME, source.getAccountName());
+		values.put(KEY_SERVER_ENABLED, source.getServerEnabled() ? 1 : 0);
+		values.put(KEY_LOCAL_ENABLED, source.getLocalEnabled() ? 1 : 0);
+		values.put(KEY_TITLE, source.getTitle());
+		values.put(KEY_SERVER_ID, source.getServerId());
+		values.put(KEY_CHANGE_TIMESTAMP, source.getChangeTimestamp());
+		values.put(KEY_SOURCE_KEY, source.getSourceKey());
+
+		if( source.getId() == null)
+		{
+			// New object.
+			source.setId(db.insertOrThrow(DATABASE_TABLE_SOURCES, null, values));
+		}
+		else
+		{
+			// Update the existing object.
+			db.update(DATABASE_TABLE_SOURCES, values, KEY_ID + "=" + source.getId(), null);
+		}
+		
+		return source;
+	}	
 }

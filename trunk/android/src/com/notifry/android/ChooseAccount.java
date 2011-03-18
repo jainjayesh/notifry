@@ -35,6 +35,7 @@ import com.notifry.android.remote.BackendResponse;
 import android.accounts.AccountManager;
 import android.app.ListActivity;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.os.Bundle;
 import android.os.Handler;
@@ -100,7 +101,14 @@ public class ChooseAccount extends ListActivity
 	 */
 	public void clickAccountName( NotifryAccount account )
 	{
-		Toast.makeText(this, account.getAccountName(), Toast.LENGTH_SHORT).show();
+		//Toast.makeText(this, account.getAccountName(), Toast.LENGTH_SHORT).show();
+		// If enabled, launch the sources list for this account.
+		if( account.getEnabled() )
+		{
+			Intent intent = new Intent(getBaseContext(), SourceList.class);
+			intent.putExtra("account", account.getAccountName());
+			startActivity(intent);
+		}
 	}
 
 	/**

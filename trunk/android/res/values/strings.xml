@@ -43,13 +43,23 @@
     <string name="email_source_key">Email the source key</string>
     
     <string name="settings_heading">Notifry Settings</string>
+    <string name="choose_accounts_heading">Notifry - Choose accounts</string>
+    <string name="sources_heading">Notifry - Manage sources</string>
     
     <string name="no_accounts">No Google accounts on this phone. You will need at least one to be able to use this program.</string>
+    
+    <string name="no_sources">There are no sources for this account yet. Press menu to add a new one.</string>
     
     <string name="registering_with_server">Registering with server...</string>
     <string name="deregistering_with_server">De-registering with server...</string>
     <string name="registering_with_server_complete" formatted="false">Registered %s with the server.</string>
     <string name="deregistering_with_server_complete" formatted="false">De-registered %s with the server.</string>
+    
+    <string name="create_source">Create Source</string>
+    <string name="create_source_message">Enter a title for the new source</string>
+    <string name="create_source_server_waiting">Please wait, creating the source on the server...</string>
+    <string name="create_source_server_complete">Successfully created the source on the server.</string>
+    <string name="loading_sources_from_server">Loading source list from server...</string>
     
     <string name="need_tts_data_installed">You don\'t have the TTS data installed - redirecting you to the data.</string>
     
@@ -57,6 +67,7 @@
     <string name="add_raw">Add string Contact</string>
     <string name="add_raw_message">Enter the contact string, eg \'Google\'.</string>
     <string name="add">Add</string>
+    <string name="create">Create</string>
     <string name="cancel">Cancel</string>
     <string name="delete">Delete</string>
     <string name="settings">Settings</string>
