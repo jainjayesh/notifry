@@ -184,37 +184,49 @@ class sources:
 			return renderer.render('sources/list.html')
 
 	def POST(self, action):
-		source = self.get_source()
+		if action == 'list':
+			sources = UserSource.all()
+			sources.filter('owner = ', users.get_current_user())
+			sources.order('title')
 
-		# Get the form and the form data.
-		form = self.get_form()
-		form.fill(source.dict())
-
-		if not form.validates():
-			# Failed to validate. Display the form again.
-			renderer.addTemplate('action', action)
-			renderer.addTemplate('form', form)
-			errors = form.getnotes()
-			renderer.addDataList('errors', errors)
-			return renderer.render('sources/edit.html')
+			renderer.addDataList('sources', sources)
+			return renderer.render('sources/list.html')
+		elif action == 'get':
+			source = self.get_source()
+			renderer.addData('source', source)
+			return renderer.render('sources/detail.html')
 		else:
-			# Validated - proceed.
-			source.updated = datetime.datetime.now()
-			source.title = form.title.get_value()
-			source.description = form.description.get_value()
-			source.enabled = False
-			source.owner = users.get_current_user()
-			if form.enabled.get_value():
-				source.enabled = True
-			source.put()
+			source = self.get_source()
 
-			if renderer.get_mode() == 'html':
-				# Redirect to the source list.
-				raise web.found('/profile')
+			# Get the form and the form data.
+			form = self.get_form()
+			form.fill(source.dict())
+
+			if not form.validates():
+				# Failed to validate. Display the form again.
+				renderer.addTemplate('action', action)
+				renderer.addTemplate('form', form)
+				errors = form.getnotes()
+				renderer.addDataList('errors', errors)
+				return renderer.render('sources/edit.html')
 			else:
-				# Send back the source data.
-				renderer.addData('source', source)
-				return renderer.render('apionly.html')
+				# Validated - proceed.
+				source.updated = datetime.datetime.now()
+				source.title = form.title.get_value()
+				source.description = form.description.get_value()
+				source.enabled = False
+				source.owner = users.get_current_user()
+				if form.enabled.get_value():
+					source.enabled = True
+				source.put()
+
+				if renderer.get_mode() == 'html':
+					# Redirect to the source list.
+					raise web.found('/profile')
+				else:
+					# Send back the source data.
+					renderer.addData('source', source)
+					return renderer.render('apionly.html')
 
 	def get_source(self):
 		# Helper function to get the source object from the URL.
