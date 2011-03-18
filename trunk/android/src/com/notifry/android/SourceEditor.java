@@ -17,6 +17,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 public class SourceEditor extends Activity
@@ -56,6 +57,9 @@ public class SourceEditor extends Activity
 		serverEnable.setChecked(source.getServerEnabled());
 		CheckBox localEnable = (CheckBox) findViewById(R.id.detail_localenable);
 		localEnable.setChecked(source.getLocalEnabled());
+		
+		TextView sourceKey = (TextView) findViewById(R.id.detail_sourcekey);
+		sourceKey.setText(getString(R.string.source_key_heading) + "\n" + source.getSourceKey());
 	}
 	
 	/**

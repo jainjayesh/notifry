@@ -7,6 +7,7 @@
         <ImageView android:src="@drawable/icon" android:layout_height="wrap_content" android:id="@+id/home_logo" android:layout_width="wrap_content"></ImageView>
         <TextView android:text="@string/app_name" android:id="@+id/home_notifyHeading" android:layout_width="wrap_content" android:layout_height="wrap_content"></TextView>
     </LinearLayout>
+    <TextView android:text="@string/health_check_placeholder" android:id="@+id/home_healthCheck" android:layout_width="wrap_content" android:layout_height="wrap_content"></TextView>
     <LinearLayout android:id="@+id/linearLayout2" android:layout_height="wrap_content" android:layout_width="fill_parent" android:orientation="horizontal">
         <Button android:id="@+id/home_stopReadingNow" android:layout_width="wrap_content" android:layout_weight="1" android:layout_height="wrap_content" android:text="@string/stop_reading_now" android:onClick="stopReadingNow"></Button>
         <Button android:id="@+id/home_disableAll" android:layout_width="wrap_content" android:layout_weight="1" android:layout_height="wrap_content" android:text="@string/disable_all_notifications" android:onClick="disableEnableNotifications"></Button>
