@@ -2,5 +2,5 @@
 	android:layout_width="fill_parent" android:layout_height="?android:attr/listPreferredItemHeight"
 	android:padding="6dip">
 	<CheckBox android:id="@+id/account_row_account_enabled" android:layout_width="wrap_content" android:layout_height="wrap_content"></CheckBox>
-	<TextView android:id="@+id/account_row_account_name" android:layout_width="fill_parent" android:layout_height="wrap_content"/>
+	<TextView android:id="@+id/account_row_account_name" android:layout_width="fill_parent" android:layout_height="fill_parent" android:gravity="center_vertical" />
 </LinearLayout>

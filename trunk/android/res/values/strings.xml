@@ -46,6 +46,11 @@
     
     <string name="no_accounts">No Google accounts on this phone. You will need at least one to be able to use this program.</string>
     
+    <string name="registering_with_server">Registering with server...</string>
+    <string name="deregistering_with_server">De-registering with server...</string>
+    <string name="registering_with_server_complete" formatted="false">Registered %s with the server.</string>
+    <string name="deregistering_with_server_complete" formatted="false">De-registered %s with the server.</string>
+    
     <string name="need_tts_data_installed">You don\'t have the TTS data installed - redirecting you to the data.</string>
     
     <string name="add_contact">Add Contact</string>

@@ -15,9 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  * 
- * This file is based off Google's Chrome to Phone code, although is quite
- * different.
- * 
+ * This file is based off Google's Chrome to Phone code, although is somewhat different.
  * See http://code.google.com/p/chrometophone/source/browse/trunk/android/src/com/google/android/apps/chrometophone/AppEngineClient.java
  */
 
@@ -96,7 +94,7 @@ public class BackendClient
 		}
 		if( newToken )
 		{
-			// invalidate the cached token
+			// Invalidate the cached token
 			AccountManager accountManager = AccountManager.get(this.context);
 			accountManager.invalidateAuthToken(account.type, authToken);
 			authToken = this.getAuthToken(this.context, account);
@@ -158,10 +156,6 @@ public class BackendClient
 			if( authToken == null )
 			{
 				// No auth token - will need to ask permission from user.
-				//Intent intent = new Intent(SetupActivity.AUTH_PERMISSION_ACTION);
-				//intent.putExtra("AccountManagerBundle", bundle);
-				//context.sendBroadcast(intent);
-
 				Intent intent = (Intent) bundle.get(AccountManager.KEY_INTENT);
 				if( intent != null )
 				{

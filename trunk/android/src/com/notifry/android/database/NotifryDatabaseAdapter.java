@@ -175,6 +175,8 @@ public class NotifryDatabaseAdapter
 			{
 				result.add(this.inflateFromCursor(cursor));
 			}
+			
+			cursor.close();
 		}
 		
 		return result;

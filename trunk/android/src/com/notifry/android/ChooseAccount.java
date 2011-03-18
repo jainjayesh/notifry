@@ -23,38 +23,37 @@
 package com.notifry.android;
 
 import java.util.ArrayList;
-import java.util.List;
 
-import org.apache.http.NameValuePair;
-import org.apache.http.message.BasicNameValuePair;
+import org.json.JSONException;
 
 import com.google.android.c2dm.C2DMessaging;
 import com.notifry.android.database.NotifryAccount;
 import com.notifry.android.database.NotifryDatabaseAdapter;
 import com.notifry.android.remote.BackendRequest;
+import com.notifry.android.remote.BackendResponse;
 
-import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.app.ListActivity;
 import android.content.Context;
-import android.content.Intent;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
-import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 public class ChooseAccount extends ListActivity
 {
+	private static final String TAG = "Notifry";
+	private final ChooseAccount thisActivity = this;
+
 	/** Called when the activity is first created. */
 	public void onCreate( Bundle savedInstanceState )
 	{
@@ -67,7 +66,8 @@ public class ChooseAccount extends ListActivity
 		database.open();
 		database.syncAccountList(accountManager);
 		database.close();
-		
+
+		// Set the layout, and allow text filtering.
 		setContentView(R.layout.screen_accounts);
 		getListView().setTextFilterEnabled(true);
 	}
@@ -75,21 +75,40 @@ public class ChooseAccount extends ListActivity
 	public void onResume()
 	{
 		super.onResume();
-		
+
+		// When coming back, refresh our list of accounts.
+		refreshView();
+	}
+	
+	/**
+	 * Refresh the list of accounts viewed by this activity.
+	 */
+	public void refreshView()
+	{
 		// Refresh our list of accounts.
 		NotifryDatabaseAdapter database = new NotifryDatabaseAdapter(this);
 		database.open();
 		ArrayList<NotifryAccount> accounts = database.listAccounts();
 		database.close();
-		
-		this.setListAdapter(new AccountArrayAdapter(this, this, R.layout.account_list_row, accounts));
+
+		this.setListAdapter(new AccountArrayAdapter(this, this, R.layout.account_list_row, accounts));		
 	}
-	
+
+	/**
+	 * Handler for when you click an account name.
+	 * @param account
+	 */
 	public void clickAccountName( NotifryAccount account )
 	{
 		Toast.makeText(this, account.getAccountName(), Toast.LENGTH_SHORT).show();
 	}
-	
+
+	/**
+	 * Handler for when you check or uncheck an account, which fires off a request
+	 * to the server.
+	 * @param account
+	 * @param state
+	 */
 	public void checkedAccount( NotifryAccount account, boolean state )
 	{
 		// Refresh the account object. In case it's changed.
@@ -97,41 +116,135 @@ public class ChooseAccount extends ListActivity
 		database.open();
 		NotifryAccount refreshedAccount = database.getAccountById(account.getId());
 		database.close();
+
+		// Register or de-register the device with the server.
+		BackendRequest request = new BackendRequest("/registration");
+		request.add("devicekey", C2DMessaging.getRegistrationId(this));
+		request.add("devicetype", "android");
+		try
+		{
+			request.add("deviceversion", getPackageManager().getPackageInfo(getPackageName(), 0).versionName);
+		}
+		catch( NameNotFoundException e )
+		{
+			request.add("deviceversion", "Unknown");
+		}
+
+		// If already registered, update the same entry.
+		if( refreshedAccount.getServerRegistrationId() != null )
+		{
+			request.add("id", refreshedAccount.getServerRegistrationId().toString());
+		}
+
+		// Add some metadata to the request so we know how to deal with it
+		// afterwards.
+		request.addMeta("account", refreshedAccount);
+		
+		String statusMessage = "Busy...";
 		
 		if( state )
 		{
-			// Log into the server and populate the sources list.
-			BackendRequest request = new BackendRequest("/registration");
-			request.add("devicekey", C2DMessaging.getRegistrationId(this));
-			request.add("devicetype", "android");
-			try
-			{
-				request.add("deviceversion", getPackageManager().getPackageInfo(getPackageName(), 0).versionName);
-			}
-			catch( NameNotFoundException e )
-			{
-				request.add("deviceversion", "Unknown");
-			}
-			
-			// If already registered, update the same entry.
-			if( refreshedAccount.getServerRegistrationId() != null )
-			{
-				request.add("id", refreshedAccount.getServerRegistrationId().toString());
-			}
-			
-			request.dumpRequest();
-			
-			// Start a thread to make the request. Block until it's done.
-			request.startInThread(this, null /*"Registering with server..."*/, refreshedAccount.getAccountName());
-			
-			// Now update the local database if it succeeded. TODO: Later.
+			// Enable the account.
+			request.addMeta("operation", "register");
+			request.add("operation", "add");
+			statusMessage = getString(R.string.registering_with_server);
 		}
 		else
 		{
-			// Deregister this account from the server. TODO: the server doesn't let you do this at the moment.
+			// Disable the account.
+			request.addMeta("operation", "deregister");
+			request.add("operation", "remove");
+			statusMessage = getString(R.string.deregistering_with_server);
 		}
+
+		// For debugging, dump the request data.
+		//request.dumpRequest();
+		
+		// Where to come back when we're done.
+		request.setHandler(handler);
+
+		// Start a thread to make the request.
+		request.startInThread(this, statusMessage, refreshedAccount.getAccountName());
 	}
 
+	/**
+	 * Private handler class that is the callback for when the external requests are complete.
+	 */
+	private Handler handler = new Handler()
+	{
+		@Override
+		public void handleMessage( Message msg )
+		{
+			// Fetch out the response.
+			BackendResponse response = (BackendResponse) msg.obj;
+
+			// Was it successful?
+			if( response.isError() )
+			{
+				// No, not successful.
+				Toast.makeText(thisActivity, response.getError() + " - Please try again.", Toast.LENGTH_LONG);
+			}
+			else
+			{
+				try
+				{
+					// Fetch out metadata.
+					BackendRequest request = response.getRequest();
+					NotifryAccount account = (NotifryAccount) request.getMeta("account");
+					String operation = (String) request.getMeta("operation");
+
+					// Determine our operation.
+					if( operation.equals("register") )
+					{
+						// We were registering the account.
+						// The server would have given us a registration ID.
+						account.setServerRegistrationId(Long.parseLong(response.getJSON().getJSONObject("device").getString("id")));
+						
+						// Enable the account.
+						account.setEnabled(true);
+						
+						// Open the database and save it.
+						NotifryDatabaseAdapter database = new NotifryDatabaseAdapter(thisActivity);
+						database.open();
+						database.saveAccount(account);
+						database.close();
+						
+						refreshView();
+						
+						Toast.makeText(thisActivity, String.format(getString(R.string.registering_with_server_complete, account.getAccountName())), Toast.LENGTH_SHORT).show();
+					}
+					else if( operation.equals("deregister") )
+					{
+						// We've deregistered the account.
+						account.setServerRegistrationId(null);
+						account.setEnabled(false);
+						
+						// Open the database and save it.
+						NotifryDatabaseAdapter database = new NotifryDatabaseAdapter(thisActivity);
+						database.open();
+						database.saveAccount(account);
+						database.close();
+						
+						refreshView();
+						
+						Toast.makeText(thisActivity, String.format(getString(R.string.deregistering_with_server_complete, account.getAccountName())), Toast.LENGTH_SHORT).show();
+					}
+				}
+				catch( JSONException e )
+				{
+					// The response doesn't look like we expected.
+					Log.d(TAG, "Invalid response from server: " + e.getMessage());
+					Toast.makeText(thisActivity, "Invalid response from the server.", Toast.LENGTH_LONG);
+					refreshView();
+				}
+			}
+		}
+	};
+
+	/**
+	 * An array adapter to put accounts into the list view.
+	 * @author daniel
+	 */
 	private class AccountArrayAdapter extends ArrayAdapter<NotifryAccount>
 	{
 		final private ChooseAccount parentActivity;
@@ -165,8 +278,9 @@ public class ChooseAccount extends ListActivity
 				{
 					title.setText(account.getAccountName());
 					title.setClickable(true);
-					
-					// This doesn't seem memory friendly, but we'll get away with it because
+
+					// This doesn't seem memory friendly, but we'll get away
+					// with it because
 					// there won't be many registered accounts.
 					title.setOnClickListener(new View.OnClickListener()
 					{
@@ -179,11 +293,12 @@ public class ChooseAccount extends ListActivity
 				if( enabled != null )
 				{
 					enabled.setChecked(account.getEnabled());
-					
-					// This doesn't seem memory friendly, but we'll get away with it because
+
+					// This doesn't seem memory friendly, but we'll get away
+					// with it because
 					// there won't be many registered accounts.
 					enabled.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener()
-					{						
+					{
 						public void onCheckedChanged( CompoundButton buttonView, boolean isChecked )
 						{
 							parentActivity.checkedAccount(account, isChecked);

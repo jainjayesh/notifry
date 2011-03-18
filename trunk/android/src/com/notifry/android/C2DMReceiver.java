@@ -19,21 +19,18 @@
 package com.notifry.android;
 
 import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.http.NameValuePair;
-import org.apache.http.message.BasicNameValuePair;
 
 import com.google.android.c2dm.C2DMBaseReceiver;
+
+import com.notifry.android.database.NotifryAccount;
+import com.notifry.android.database.NotifryDatabaseAdapter;
 import com.notifry.android.database.PushMessage;
-import com.notifry.android.remote.BackendClient;
-import com.notifry.android.remote.BackendResponse;
+import com.notifry.android.remote.BackendRequest;
 
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
+import android.content.pm.PackageManager.NameNotFoundException;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.util.Log;
 
 public class C2DMReceiver extends C2DMBaseReceiver
@@ -48,27 +45,46 @@ public class C2DMReceiver extends C2DMBaseReceiver
 	public void onRegistrered( Context context, String registration ) throws Exception
 	{
 		Log.i("Notifry", "registered and got key: " + registration);
+		
+		// Get a list of accounts. We need to send it to any enabled ones on the backend.
+		NotifryDatabaseAdapter database = new NotifryDatabaseAdapter(this);
+		database.open();
+		ArrayList<NotifryAccount> accounts = database.listAccounts();
+		database.close();
+		
+		// TODO: This needs to have better error handling - it just blindly assumes it worked!
+		for( NotifryAccount account: accounts )
+		{
+			if( account.getEnabled() )
+			{
+				// Register or de-register the device with the server.
+				BackendRequest request = new BackendRequest("/registration");
+				request.add("devicekey", registration);
+				request.add("devicetype", "android");
+				try
+				{
+					request.add("deviceversion", getPackageManager().getPackageInfo(getPackageName(), 0).versionName);
+				}
+				catch( NameNotFoundException e )
+				{
+					request.add("deviceversion", "Unknown");
+				}
 
-		// Send the key to the server.
-		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(context);
-		BackendClient client = new BackendClient(context, settings.getString("test_account_name", "invalid"));
-		
-		List<NameValuePair> params = new ArrayList<NameValuePair>();
-		params.add(new BasicNameValuePair("devicekey", registration));
-		params.add(new BasicNameValuePair("devicetype", "android"));
-		params.add(new BasicNameValuePair("deviceversion", "0.1"));
-		
-		BackendResponse result = null;//client.request("/registration", params, false);
-		
-		// Was it successful?
-		/*if( result.isError() )
-		{
-			Log.e(TAG, "Error: " + result.getError());
+				// If already registered, update the same entry.
+				if( account.getServerRegistrationId() != null )
+				{
+					request.add("id", account.getServerRegistrationId().toString());
+				}
+
+				request.add("operation", "add");
+
+				// For debugging, dump the request data.
+				//request.dumpRequest();
+				
+				// Start a thread to make the request.
+				request.startInThread(this, null, account.getAccountName());	
+			}
 		}
-		else
-		{
-			Log.e(TAG, "Success! Server returned: " + result.getJSON().toString());
-		}*/
 	}
 
 	protected void onMessage( Context context, Intent intent )
