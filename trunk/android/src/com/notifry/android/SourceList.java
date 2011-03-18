@@ -348,6 +348,7 @@ public class SourceList extends ListActivity
 			if( source != null )
 			{
 				TextView title = (TextView) convertView.findViewById(R.id.source_row_source_name);
+				TextView serverEnabled = (TextView) convertView.findViewById(R.id.source_row_server_enabled);
 				CheckBox enabled = (CheckBox) convertView.findViewById(R.id.source_row_local_enabled);
 				if( title != null )
 				{
@@ -364,6 +365,18 @@ public class SourceList extends ListActivity
 							// parentActivity.clickAccountName(source);
 						}
 					});
+				}
+				if( serverEnabled != null )
+				{
+					serverEnabled.setClickable(true);
+					if( source.getServerEnabled() == false )
+					{
+						serverEnabled.setText(getString(R.string.source_disabled_on_server));
+					}
+					else
+					{
+						serverEnabled.setText("");
+					}
 				}
 				if( enabled != null )
 				{
