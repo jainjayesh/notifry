@@ -64,6 +64,8 @@
     <string name="source_disabled_on_server">Source is disabled on the server.</string>
     
     <string name="source_saving_to_server">Saving the source to the server...</string>
+    <string name="source_key_email_subject">My Notifry source key</string>
+    <string name="source_key_email_body">The notifry source key you will need is %s - Thanks!</string>
     
     <string name="need_tts_data_installed">You don\'t have the TTS data installed - redirecting you to the data.</string>
     

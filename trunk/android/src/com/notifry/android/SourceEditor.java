@@ -12,6 +12,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.provider.ContactsContract.CommonDataKinds.Email;
 import android.util.Log;
 import android.view.View;
 import android.widget.CheckBox;
@@ -97,6 +98,11 @@ public class SourceEditor extends Activity
 	public void emailKey( View view )
 	{
 		// User wants to email the key to someone.
+		final Intent emailIntent = new Intent(android.content.Intent.ACTION_SEND);
+		emailIntent.setType("plain/text");
+		emailIntent.putExtra(android.content.Intent.EXTRA_SUBJECT, getString(R.string.source_key_email_subject));
+		emailIntent.putExtra(android.content.Intent.EXTRA_TEXT, String.format(getString(R.string.source_key_email_body), getSource().getSourceKey()));
+		this.startActivity(Intent.createChooser(emailIntent, "Send key via email"));
 	}
 	
 	private Handler handler = new Handler()
