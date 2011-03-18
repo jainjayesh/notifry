@@ -91,7 +91,7 @@ class registerdevice:
 
 		# And we need the following variables.
 		# The defaults are provided below.
-		input = web.input(devicekey = None, devicetype = None, id = None, deviceversion = None)
+		input = web.input(devicekey = None, devicetype = None, id = None, deviceversion = None, operation = 'add')
 
 		# We must have the following keys passed,
 		# otherwise this is an invalid request.
@@ -113,25 +113,29 @@ class registerdevice:
 
 			if not device:
 				# Invalid ID. 404.
-				web.notfound()
+				raise web.notfound()
 
 			# Check that the device belongs to the logged in user.
 			if device.owner.user_id() != users.get_current_user().user_id():
 				# It's not theirs. 404.
 				# TODO: Test this more and better.
-				web.notfound()
+				raise web.notfound()
 
-		# TODO: ensure dates are in UTC.
-		device.updated = datetime.datetime.now()
-		device.owner = users.get_current_user()
-		device.deviceKey = input.devicekey
-		device.deviceType = input.devicetype
-		device.deviceVersion = input.deviceversion
+		if input.operation == 'add':
+			# TODO: ensure dates are in UTC.
+			device.updated = datetime.datetime.now()
+			device.owner = users.get_current_user()
+			device.deviceKey = input.devicekey
+			device.deviceType = input.devicetype
+			device.deviceVersion = input.deviceversion
 
-		device.put()
-
-		renderer.addData('device', device)
-		return renderer.render('apionly.html')
+			device.put()
+			renderer.addData('device', device)
+			return renderer.render('apionly.html')
+		else:
+			device.delete()
+			renderer.addData('success', True)
+			return renderer.render('apionly.html')
 
 # Sources list.
 class sources:
@@ -206,7 +210,7 @@ class sources:
 
 			if renderer.get_mode() == 'html':
 				# Redirect to the source list.
-				web.found('/profile')
+				raise web.found('/profile')
 			else:
 				# Send back the source data.
 				renderer.addData('source', source)
@@ -220,12 +224,12 @@ class sources:
 			source = UserSource.get_by_id(long(input.id))
 			if not source:
 				# It does not exist.
-				web.notfound()
+				raise web.notfound()
 
 			# Check that the source belongs to the logged in user.
 			if source.owner.user_id() != users.get_current_user().user_id():
 				# It's not theirs. 404.
-				web.notfound()
+				raise web.notfound()
 
 			return source
 		else:
@@ -329,12 +333,12 @@ class messages:
 			source = UserSource.get_by_id(long(input.sid))
 			if not source:
 				# It does not exist.
-				web.notfound()
+				raise web.notfound()
 
 			# Check that the source belongs to the logged in user.
 			if source.owner.user_id() != users.get_current_user().user_id():
 				# It's not theirs. 404.
-				web.notfound()
+				raise web.notfound()
 
 			return source
 		else:
