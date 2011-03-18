@@ -27,20 +27,17 @@ import java.util.ArrayList;
 import org.json.JSONArray;
 import org.json.JSONException;
 
-import com.google.android.c2dm.C2DMessaging;
 import com.notifry.android.database.NotifryAccount;
 import com.notifry.android.database.NotifryDatabaseAdapter;
 import com.notifry.android.database.NotifrySource;
 import com.notifry.android.remote.BackendRequest;
 import com.notifry.android.remote.BackendResponse;
 
-import android.accounts.AccountManager;
 import android.app.AlertDialog;
 import android.app.ListActivity;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.pm.PackageManager.NameNotFoundException;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -89,7 +86,8 @@ public class SourceList extends ListActivity
 		request.setHandler(handler);
 
 		// Start a thread to make the request.
-		request.startInThread(this, getString(R.string.loading_sources_from_server), this.getAccount().getAccountName());		
+		// This will just update our view when ready.
+		request.startInThread(this, null, this.getAccount().getAccountName());		
 	}
 
 	public void onResume()
@@ -219,13 +217,16 @@ public class SourceList extends ListActivity
 	}
 
 	/**
-	 * Handler for when you click an account name.
+	 * Handler for when you click an source.
 	 * 
 	 * @param account
 	 */
-	public void clickAccountName( NotifryAccount account )
+	public void clickSource( NotifrySource source )
 	{
-		Toast.makeText(this, account.getAccountName(), Toast.LENGTH_SHORT).show();
+		// Launch the source editor.
+		Intent intent = new Intent(getBaseContext(), SourceEditor.class);
+		intent.putExtra("sourceId", source.getId());
+		startActivity(intent);
 	}
 	
 	/**
@@ -264,7 +265,7 @@ public class SourceList extends ListActivity
 			if( response.isError() )
 			{
 				// No, not successful.
-				Toast.makeText(thisActivity, response.getError() + " - Please try again.", Toast.LENGTH_LONG);
+				Toast.makeText(thisActivity, response.getError() + " - Please try again.", Toast.LENGTH_LONG).show();
 			}
 			else
 			{
@@ -308,7 +309,7 @@ public class SourceList extends ListActivity
 				{
 					// The response doesn't look like we expected.
 					Log.d(TAG, "Invalid response from server: " + e.getMessage());
-					Toast.makeText(thisActivity, "Invalid response from the server.", Toast.LENGTH_LONG);
+					Toast.makeText(thisActivity, "Invalid response from the server.", Toast.LENGTH_LONG).show();
 					refreshView();
 				}
 			}
@@ -350,21 +351,21 @@ public class SourceList extends ListActivity
 				TextView title = (TextView) convertView.findViewById(R.id.source_row_source_name);
 				TextView serverEnabled = (TextView) convertView.findViewById(R.id.source_row_server_enabled);
 				CheckBox enabled = (CheckBox) convertView.findViewById(R.id.source_row_local_enabled);
+				
+				View.OnClickListener clickListener = new View.OnClickListener()
+				{
+					public void onClick( View v )
+					{
+						parentActivity.clickSource(source);
+					}
+				};
+				
 				if( title != null )
 				{
 					title.setText(source.getTitle());
 					title.setClickable(true);
 
-					// This doesn't seem memory friendly, but we'll get away
-					// with it because
-					// there won't be many registered sources.
-					title.setOnClickListener(new View.OnClickListener()
-					{
-						public void onClick( View v )
-						{
-							// parentActivity.clickAccountName(source);
-						}
-					});
+					title.setOnClickListener(clickListener);
 				}
 				if( serverEnabled != null )
 				{
@@ -377,6 +378,7 @@ public class SourceList extends ListActivity
 					{
 						serverEnabled.setText("");
 					}
+					serverEnabled.setOnClickListener(clickListener);
 				}
 				if( enabled != null )
 				{

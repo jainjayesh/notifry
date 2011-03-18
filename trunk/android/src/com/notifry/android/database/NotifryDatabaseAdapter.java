@@ -291,8 +291,6 @@ public class NotifryDatabaseAdapter
 	{
 		ArrayList<NotifrySource> result = new ArrayList<NotifrySource>();
 		
-		Log.d(TAG, "Listing sources for account " + accountName);
-
 		Cursor cursor = db.query(
 				DATABASE_TABLE_SOURCES,
 				new String[] { KEY_ID, KEY_ACCOUNT_NAME, KEY_CHANGE_TIMESTAMP, KEY_TITLE, KEY_SERVER_ID, KEY_SOURCE_KEY, KEY_SERVER_ENABLED, KEY_LOCAL_ENABLED },
@@ -301,10 +299,8 @@ public class NotifryDatabaseAdapter
 
 		if( cursor != null )
 		{
-			Log.d(TAG, "Cursor is not null, at least. " + accountName);
 			while( cursor.moveToNext() )
 			{
-				Log.d(TAG, "Got one result! for account " + accountName);
 				result.add(this.inflateSourceFromCursor(cursor));
 			}
 			

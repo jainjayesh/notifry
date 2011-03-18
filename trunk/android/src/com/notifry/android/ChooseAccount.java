@@ -190,7 +190,7 @@ public class ChooseAccount extends ListActivity
 			if( response.isError() )
 			{
 				// No, not successful.
-				Toast.makeText(thisActivity, response.getError() + " - Please try again.", Toast.LENGTH_LONG);
+				Toast.makeText(thisActivity, response.getError() + " - Please try again.", Toast.LENGTH_LONG).show();
 			}
 			else
 			{
@@ -242,7 +242,7 @@ public class ChooseAccount extends ListActivity
 				{
 					// The response doesn't look like we expected.
 					Log.d(TAG, "Invalid response from server: " + e.getMessage());
-					Toast.makeText(thisActivity, "Invalid response from the server.", Toast.LENGTH_LONG);
+					Toast.makeText(thisActivity, "Invalid response from the server.", Toast.LENGTH_LONG).show();
 					refreshView();
 				}
 			}

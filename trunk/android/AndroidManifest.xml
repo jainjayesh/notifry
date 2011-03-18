@@ -17,6 +17,7 @@
         
 		<activity android:name=".ChooseAccount" android:label="@string/choose_accounts_heading" />
 		<activity android:name=".SourceList" android:label="@string/sources_heading" />
+		<activity android:name=".SourceEditor" android:label="@string/sources_heading" />
         
     	<service android:name="com.notifry.android.SpeakService" android:exported="false"></service>
     	<service android:name=".C2DMReceiver" />

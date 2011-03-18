@@ -45,6 +45,7 @@
     <string name="settings_heading">Notifry Settings</string>
     <string name="choose_accounts_heading">Notifry - Choose accounts</string>
     <string name="sources_heading">Notifry - Manage sources</string>
+    <string name="editor_heading">Notifry - Edit source</string>
     
     <string name="no_accounts">No Google accounts on this phone. You will need at least one to be able to use this program.</string>
     
@@ -61,6 +62,8 @@
     <string name="create_source_server_complete">Successfully created the source on the server.</string>
     <string name="loading_sources_from_server">Loading source list from server...</string>
     <string name="source_disabled_on_server">Source is disabled on the server.</string>
+    
+    <string name="source_saving_to_server">Saving the source to the server...</string>
     
     <string name="need_tts_data_installed">You don\'t have the TTS data installed - redirecting you to the data.</string>
     
