@@ -7,6 +7,7 @@ class UserDevice(db.Model):
 	updated = db.DateTimeProperty()
 	deviceType = db.StringProperty()
 	deviceVersion = db.StringProperty()
+	deviceNickname = db.StringProperty()
 
 	def dict(self):
 		result = {
@@ -14,7 +15,8 @@ class UserDevice(db.Model):
 			'created': self.created,
 			'updated': self.updated,
 			'deviceType': self.deviceType,
-			'deviceVersion': self.deviceVersion
+			'deviceVersion': self.deviceVersion,
+			'deviceNickname': self.deviceNickname
 		}
 
 		try:

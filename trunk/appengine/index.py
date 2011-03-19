@@ -91,7 +91,7 @@ class registerdevice:
 
 		# And we need the following variables.
 		# The defaults are provided below.
-		input = web.input(devicekey = None, devicetype = None, id = None, deviceversion = None, operation = 'add')
+		input = web.input(devicekey = None, devicetype = None, id = None, deviceversion = None, operation = 'add', nickname = None)
 
 		# We must have the following keys passed,
 		# otherwise this is an invalid request.
@@ -128,6 +128,7 @@ class registerdevice:
 			device.deviceKey = input.devicekey
 			device.deviceType = input.devicetype
 			device.deviceVersion = input.deviceversion
+			device.deviceNickname = input.nickname
 
 			device.put()
 			renderer.addData('device', device)

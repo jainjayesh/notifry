@@ -20,6 +20,6 @@
 
 <ul>
 	% for device in devices:
-		<li>${device.deviceType|h}</a> - key ${device.deviceKey|h}, last updated ${device.updated}</li>
+		<li>${device.deviceNickname} (${device.deviceType|h}) - key ${device.deviceKey|h} and id ${device.key().id()}, last updated ${device.updated}</li>
 	% endfor
 </ul>
