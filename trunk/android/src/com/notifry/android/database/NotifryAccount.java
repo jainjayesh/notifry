@@ -33,6 +33,7 @@ public class NotifryAccount
 	private String accountName = null;
 	private Long serverRegistrationId = null;
 	private Boolean enabled = null;
+	private Boolean requiresSync = true;
 
 	public Long getId()
 	{
@@ -74,6 +75,16 @@ public class NotifryAccount
 		return serverRegistrationId;
 	}
 	
+	public Boolean getRequiresSync()
+	{
+		return requiresSync;
+	}
+
+	public void setRequiresSync( Boolean requiresSync )
+	{
+		this.requiresSync = requiresSync;
+	}
+
 	/**
 	 * Register the device with the server.
 	 * @param context
@@ -83,7 +94,7 @@ public class NotifryAccount
 	public void registerWithBackend( Context context, String key, boolean register, String statusMessage, Handler handler, HashMap<String, Object> metadata )
 	{
 		// Register the device with the server.
-		BackendRequest request = new BackendRequest("/registration");
+		BackendRequest request = new BackendRequest("/devices/register");
 		request.add("devicekey", key);
 		request.add("devicetype", "android");
 		try

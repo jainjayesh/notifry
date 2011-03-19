@@ -19,13 +19,13 @@
 package com.notifry.android.database;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.content.Context;
-import android.util.Log;
 
 public class NotifrySource
 {
@@ -134,6 +134,7 @@ public class NotifrySource
 		NotifryDatabaseAdapter database = new NotifryDatabaseAdapter(context);
 		database.open();
 		ArrayList<NotifrySource> result = new ArrayList<NotifrySource>();
+		HashSet<Long> seenIds = new HashSet<Long>();
 		
 		for( int i = 0; i < sourceList.length(); i++ )
 		{
@@ -160,6 +161,20 @@ public class NotifrySource
 			
 			// Save it in the database.
 			database.saveSource(source);
+			
+			seenIds.add(source.getId());
+		}
+		
+		// Now, find out the IDs that exist in our database but were not in our list.
+		// Those have been deleted.
+		seenIds.removeAll(database.sourceIdSet(accountName));
+		
+		// tempSource is a hack to get around having to instantiate the objects.
+		NotifrySource tempSource = new NotifrySource();
+		for( Long sourceId: seenIds )
+		{
+			tempSource.setId(sourceId);
+			database.deleteSource(tempSource);
 		}
 		
 		database.close();

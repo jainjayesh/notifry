@@ -19,6 +19,7 @@
 package com.notifry.android.database;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 
 import android.accounts.Account;
 import android.accounts.AccountManager;
@@ -28,7 +29,6 @@ import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.util.Log;
 
 public class NotifryDatabaseAdapter
 {
@@ -48,6 +48,7 @@ public class NotifryDatabaseAdapter
 	public static final String KEY_MESSAGE = "message";
 	public static final String KEY_URL = "url";
 	public static final String KEY_SEEN = "seen";
+	public static final String KEY_REQUIRES_SYNC = "requires_sync";
 
 	private DatabaseHelper dbHelper;
 	private SQLiteDatabase db;
@@ -55,7 +56,8 @@ public class NotifryDatabaseAdapter
 	private static final String DATABASE_CREATE_ACCOUNTS = "create table accounts (_id integer primary key autoincrement, " +
 			"account_name text not null, " +
 			"server_registration_id long, " +
-			"enabled integer not null " +
+			"enabled integer not null, " +
+			"requires_sync integer not null " +
 			");";
 
 	private static final String DATABASE_CREATE_SOURCES = "create table sources (_id integer primary key autoincrement, " +
@@ -152,6 +154,8 @@ public class NotifryDatabaseAdapter
 	{
 		Account[] accounts = accountManager.getAccountsByType("com.google");
 		
+		HashSet<String> seenAccounts = new HashSet<String>();
+		
 		for( int i = 0; i < accounts.length; i++ )
 		{
 			NotifryAccount account = this.getAccountByName(accounts[i].name);
@@ -163,8 +167,30 @@ public class NotifryDatabaseAdapter
 				account.setEnabled(false); // Disabled by default.
 				account.setAccountName(accounts[i].name);
 				this.saveAccount(account);
+				
+				seenAccounts.add(accounts[i].name);
 			}
 		}
+		
+		// List all accounts, and add them to a list of accounts in the database.
+		ArrayList<NotifryAccount> allAccounts = this.listAccounts();
+		HashSet<String> localAccounts = new HashSet<String>();
+		
+		for( NotifryAccount account: allAccounts )
+		{
+			localAccounts.add(account.getAccountName());
+		}
+		
+		// Intersect the sets, and remove any accounts as appropriate.
+		localAccounts.removeAll(seenAccounts);
+		
+		// Now remove anything in local accounts that should not be there.
+		for( String accountName: localAccounts )
+		{
+			this.deleteAccountByName(accountName);
+		}
+		
+		// And we're finally complete!
 	}
 	
 	/**
@@ -176,7 +202,7 @@ public class NotifryDatabaseAdapter
 	{
 		ArrayList<NotifryAccount> result = new ArrayList<NotifryAccount>();
 
-		Cursor cursor = db.query(DATABASE_TABLE_ACCOUNTS, new String[] { KEY_ID, KEY_ACCOUNT_NAME, KEY_ENABLED, KEY_SERVER_REGISTRATION_ID }, null, null, null, null, null);
+		Cursor cursor = db.query(DATABASE_TABLE_ACCOUNTS, new String[] { KEY_ID, KEY_ACCOUNT_NAME, KEY_ENABLED, KEY_SERVER_REGISTRATION_ID, KEY_REQUIRES_SYNC }, null, null, null, null, null);
 		
 		if( cursor != null )
 		{
@@ -204,6 +230,7 @@ public class NotifryDatabaseAdapter
 		account.setId(cursor.getLong(cursor.getColumnIndex(KEY_ID)));
 		account.setEnabled(cursor.getLong(cursor.getColumnIndex(KEY_ENABLED)) == 0 ? false : true);
 		account.setServerRegistrationId(cursor.getLong(cursor.getColumnIndex(KEY_SERVER_REGISTRATION_ID)));
+		account.setRequiresSync(cursor.getLong(cursor.getColumnIndex(KEY_REQUIRES_SYNC)) == 0 ? false : true);
 		
 		if( account.getServerRegistrationId() == 0 )
 		{
@@ -222,7 +249,7 @@ public class NotifryDatabaseAdapter
 	{
 		NotifryAccount account = null;
 
-		Cursor cursor = db.query(true, DATABASE_TABLE_ACCOUNTS, new String[] { KEY_ID, KEY_ACCOUNT_NAME, KEY_ENABLED, KEY_SERVER_REGISTRATION_ID }, KEY_ACCOUNT_NAME + "= ?", new String[] { name }, null, null, null, null);
+		Cursor cursor = db.query(true, DATABASE_TABLE_ACCOUNTS, new String[] { KEY_ID, KEY_ACCOUNT_NAME, KEY_ENABLED, KEY_SERVER_REGISTRATION_ID, KEY_REQUIRES_SYNC }, KEY_ACCOUNT_NAME + "= ?", new String[] { name }, null, null, null, null);
 
 		if( cursor != null )
 		{
@@ -248,7 +275,7 @@ public class NotifryDatabaseAdapter
 
 		if (id != null)
 		{
-			Cursor cursor = db.query(true, DATABASE_TABLE_ACCOUNTS, new String[] { KEY_ID, KEY_ACCOUNT_NAME, KEY_ENABLED, KEY_SERVER_REGISTRATION_ID }, KEY_ID + "=" + id, null, null, null, null, null);
+			Cursor cursor = db.query(true, DATABASE_TABLE_ACCOUNTS, new String[] { KEY_ID, KEY_ACCOUNT_NAME, KEY_ENABLED, KEY_SERVER_REGISTRATION_ID, KEY_REQUIRES_SYNC }, KEY_ID + "=" + id, null, null, null, null, null);
 
 			if( cursor != null )
 			{
@@ -265,6 +292,33 @@ public class NotifryDatabaseAdapter
 	}
 	
 	/**
+	 * Get an account from a server ID.
+	 * @param id The server ID of the account to fetch.
+	 * @return An inflated account object, or NULL if not found.
+	 */
+	public NotifryAccount getAccountByServerId( Long id )
+	{
+		NotifryAccount account = null;
+
+		if (id != null)
+		{
+			Cursor cursor = db.query(true, DATABASE_TABLE_ACCOUNTS, new String[] { KEY_ID, KEY_ACCOUNT_NAME, KEY_ENABLED, KEY_SERVER_REGISTRATION_ID, KEY_REQUIRES_SYNC }, KEY_SERVER_REGISTRATION_ID + "=" + id, null, null, null, null, null);
+
+			if( cursor != null )
+			{
+				cursor.moveToFirst();
+				if( cursor.getCount() != 0 )
+				{
+					account = this.inflateAccountFromCursor(cursor);
+				}
+				cursor.close();
+			}
+		}
+
+		return account;
+	}	
+	
+	/**
 	 * Save the provided account object into the database.
 	 * @param account
 	 * @return
@@ -275,6 +329,7 @@ public class NotifryDatabaseAdapter
 		values.put(KEY_ACCOUNT_NAME, account.getAccountName());
 		values.put(KEY_ENABLED, account.getEnabled() ? 1 : 0);
 		values.put(KEY_SERVER_REGISTRATION_ID, account.getServerRegistrationId());
+		values.put(KEY_REQUIRES_SYNC, account.getRequiresSync() ? 1 : 0);
 		
 		if( account.getId() == null)
 		{
@@ -289,6 +344,24 @@ public class NotifryDatabaseAdapter
 		
 		return account;
 	}
+	
+	/**
+	 * Delete a given account from the database.
+	 * @param source
+	 */
+	public void deleteAccount( NotifryAccount account )
+	{
+		db.delete(DATABASE_TABLE_SOURCES, KEY_ID + "=" + account.getId(), null);
+	}
+	
+	/**
+	 * Delete a given account from the database.
+	 * @param source
+	 */
+	public void deleteAccountByName( String accountName )
+	{
+		db.delete(DATABASE_TABLE_SOURCES, KEY_ACCOUNT_NAME + "= ?", new String[] { accountName });
+	}	
 	
 	/**
 	 * List all the sources in our database. This is not especially efficient.
@@ -316,6 +389,33 @@ public class NotifryDatabaseAdapter
 		
 		return result;
 	}
+	
+	/**
+	 * List all the sources in our database. This is not especially efficient.
+	 * @return
+	 */
+	public HashSet<Long> sourceIdSet( String accountName )
+	{
+		HashSet<Long> idSet = new HashSet<Long>();
+		
+		Cursor cursor = db.query(
+				DATABASE_TABLE_SOURCES,
+				new String[] { KEY_ID },
+				KEY_ACCOUNT_NAME + "= ?", new String[] { accountName },
+				null, null, null);
+
+		if( cursor != null )
+		{
+			while( cursor.moveToNext() )
+			{
+				idSet.add(cursor.getLong(cursor.getColumnIndex(KEY_ID)));
+			}
+			
+			cursor.close();
+		}
+		
+		return idSet;
+	}	
 
 	/**
 	 * Helper function to inflate a NotifrySource object from a database cursor.
@@ -419,6 +519,15 @@ public class NotifryDatabaseAdapter
 		}
 		
 		return source;
+	}
+	
+	/**
+	 * Delete a given source from the database.
+	 * @param source
+	 */
+	public void deleteSource( NotifrySource source )
+	{
+		db.delete(DATABASE_TABLE_SOURCES, KEY_ID + "=" + source.getId(), null);
 	}
 	
 	/**

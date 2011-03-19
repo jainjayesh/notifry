@@ -54,6 +54,7 @@ import android.widget.Toast;
 public class SourceList extends ListActivity
 {
 	public final static int ADD_SOURCE = 1;
+	public final static int REFRESH_SERVER = 2;
 	private static final String TAG = "Notifry";
 	private final SourceList thisActivity = this;
 	private NotifryAccount account = null;
@@ -65,11 +66,30 @@ public class SourceList extends ListActivity
 
 		// Set the layout, and allow text filtering.
 		setContentView(R.layout.screen_sources);
-		getListView().setTextFilterEnabled(true);
+		getListView().setTextFilterEnabled(true);		
+	}
+
+	public void onResume()
+	{
+		super.onResume();
+
+		// When coming back, refresh our list of accounts.
+		refreshView();
 		
+		// And, are we out of sync?
+		if( this.getAccount().getRequiresSync() )
+		{
+			this.syncWithServer();
+		}
+	}
+	
+	/**
+	 * Sync the list with the server.
+	 * This half starts the request to the backend.
+	 */
+	public void syncWithServer()
+	{
 		// Sync the list off the server.
-		// TODO: Handle this gracefully - you might want to use this simply
-		// to quickly disable a source locally.
 		BackendRequest request = new BackendRequest("/sources/list");
 
 		// Indicate what we're doing.
@@ -83,15 +103,7 @@ public class SourceList extends ListActivity
 
 		// Start a thread to make the request.
 		// This will just update our view when ready.
-		request.startInThread(this, null, this.getAccount().getAccountName());		
-	}
-
-	public void onResume()
-	{
-		super.onResume();
-
-		// When coming back, refresh our list of accounts.
-		refreshView();
+		request.startInThread(this, getString(R.string.loading_sources_from_server), this.getAccount().getAccountName());		
 	}
 
 	/**
@@ -135,6 +147,7 @@ public class SourceList extends ListActivity
 	{
 		boolean result = super.onCreateOptionsMenu(menu);
 		menu.add(0, ADD_SOURCE, 0, R.string.create_source).setIcon(android.R.drawable.ic_menu_add);
+		menu.add(0, REFRESH_SERVER, 0, R.string.refresh_sources_server).setIcon(android.R.drawable.ic_menu_rotate);
 		return result;
 	}
 
@@ -145,6 +158,9 @@ public class SourceList extends ListActivity
 		{
 			case ADD_SOURCE:
 				askForSourceName();
+				return true;
+			case REFRESH_SERVER:
+				syncWithServer();
 				return true;
 		}
 
@@ -198,6 +214,7 @@ public class SourceList extends ListActivity
 		BackendRequest request = new BackendRequest("/sources/create");
 		request.add("title", title);
 		request.add("enabled", "on");
+		request.add("device", this.getAccount().getServerRegistrationId().toString());
 
 		// Indicate what we're doing.
 		request.addMeta("operation", "create");
@@ -296,6 +313,17 @@ public class SourceList extends ListActivity
 						// We just got a list from the server. Sync it up!
 						JSONArray serverList = response.getJSON().getJSONArray("sources");
 						NotifrySource.syncFromJSONArray(thisActivity, serverList, thisActivity.getAccount().getAccountName());
+						
+						// Mark the account as synced.
+						NotifryDatabaseAdapter database = new NotifryDatabaseAdapter(thisActivity);
+						database.open();
+						NotifryAccount account = database.getAccountByName(thisActivity.getAccount().getAccountName());
+						account.setRequiresSync(false);
+						database.saveAccount(account);
+						database.close();
+
+						// Force the object to be refreshed next time.
+						thisActivity.account = null;
 						
 						// And refresh.
 						refreshView();

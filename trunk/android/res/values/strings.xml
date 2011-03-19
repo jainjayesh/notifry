@@ -61,6 +61,7 @@
     <string name="deregistering_with_server_complete" formatted="false">De-registered %s with the server.</string>
     
     <string name="create_source">Create Source</string>
+    <string name="refresh_sources_server">Refresh from Server</string>
     <string name="create_source_message">Enter a title for the new source</string>
     <string name="create_source_server_waiting">Please wait, creating the source on the server...</string>
     <string name="create_source_server_complete">Successfully created the source on the server.</string>

@@ -20,6 +20,8 @@ package com.notifry.android;
 
 import java.util.ArrayList;
 
+import org.json.JSONException;
+
 import com.google.android.c2dm.C2DMBaseReceiver;
 
 import com.notifry.android.database.NotifryAccount;
@@ -27,11 +29,13 @@ import com.notifry.android.database.NotifryDatabaseAdapter;
 import com.notifry.android.database.NotifryMessage;
 import com.notifry.android.database.NotifrySource;
 import com.notifry.android.remote.BackendRequest;
+import com.notifry.android.remote.BackendResponse;
 
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageManager.NameNotFoundException;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.util.Log;
 
 public class C2DMReceiver extends C2DMBaseReceiver
@@ -94,7 +98,73 @@ public class C2DMReceiver extends C2DMBaseReceiver
 				startService(intentData);
 			}
 
-			// TODO: Notify the user in other ways too?			
+			// TODO: Notify the user in other ways too?
+		}
+		else if( type.equals("refreshall") )
+		{
+			// Server says to refresh our list when we can. Typically means that
+			// a source has been deleted. Make a note of it.
+			Long serverAccountId = Long.parseLong(extras.getString("device_id"));
+			NotifryDatabaseAdapter database = new NotifryDatabaseAdapter(context);
+			database.open();
+			NotifryAccount account = database.getAccountByServerId(serverAccountId);
+			account.setRequiresSync(true);
+			database.saveAccount(account);
+			database.close();
+			
+			Log.d(TAG, "Server just asked us to refresh sources list - usually due to deletion.");
+		}
+		else if( type.equals("sourcechange") )
+		{
+			// Server says that a source has been created or updated.
+			// We should pull a copy of it locally.
+			Long serverSourceId = Long.parseLong(extras.getString("id"));
+			Long serverDeviceId = Long.parseLong(extras.getString("device_id"));
+			
+			// TODO: Should this really be here?
+			BackendRequest request = new BackendRequest("/sources/get");
+			request.add("id", serverSourceId.toString());
+			request.addMeta("operation", "updatedSource");
+			request.addMeta("context", context);
+			request.addMeta("source_id", serverSourceId);
+			request.addMeta("account_id", serverDeviceId);
+			
+			Log.d(TAG, "Server just asked us to update/create server source ID " + serverSourceId + " for server account ID " + serverDeviceId);
+		
+			// Where to come back when we're done.
+			request.setHandler(handler);
+			
+			NotifryDatabaseAdapter database = new NotifryDatabaseAdapter(context);
+			database.open();
+			NotifryAccount account = database.getAccountByServerId(serverDeviceId);
+			database.close();
+
+			// Start a thread to make the request.
+			// But if there was no account to match that device, don't bother.
+			if( account != null )
+			{
+				request.startInThread(this, null, account.getAccountName());
+			}
+			
+		}
+		else if( type.equals("devicedelete") )
+		{
+			// Server says we've been deregistered. We should now clear our registration.
+			Long deviceId = Long.parseLong(extras.getString("device_id"));
+			NotifryDatabaseAdapter database = new NotifryDatabaseAdapter(context);
+			database.open();
+			NotifryAccount account = database.getAccountByServerId(deviceId);
+			
+			// Disable it, and clear the registration ID.
+			account.setEnabled(false);
+			account.setServerRegistrationId(null);
+			account.setRequiresSync(true);
+			
+			// Save it back to the database.
+			database.saveAccount(account);
+			database.close();
+			
+			Log.d(TAG, "Server just asked us to deregister! And should be done now.");
 		}
 		
 		// TODO: Handle other types of messages.
@@ -104,4 +174,75 @@ public class C2DMReceiver extends C2DMBaseReceiver
 	{
 		Log.e("Notifry", "Error: " + errorId);
 	}
+	
+	/**
+	 * Private handler class that is the callback for when the external requests
+	 * are complete.
+	 */
+	private Handler handler = new Handler()
+	{
+		@Override
+		public void handleMessage( Message msg )
+		{
+			// Fetch out the response.
+			// TODO: I get the feeling this is the wrong place to do all this.
+			BackendResponse response = (BackendResponse) msg.obj;
+			Context context = (Context) response.getRequest().getMeta("context");
+
+			// Was it successful?
+			if( response.isError() )
+			{
+				// No, not successful.
+				// Er... now what?
+				Log.e(TAG, "Error getting remote request via C2DMReciever class - I told you this was a bad idea. " + response.getError());
+			}
+			else
+			{
+				try
+				{
+					// Fetch out metadata.
+					BackendRequest request = response.getRequest();
+					String operation = (String) request.getMeta("operation");
+
+					// Determine our operation.
+					if( operation.equals("updatedSource") )
+					{
+						// We were fetching a new or updated source from the server.
+						// Open the database and save it.
+						NotifryDatabaseAdapter database = new NotifryDatabaseAdapter(context);
+						database.open();
+						
+						Long accountId = (Long) request.getMeta("account_id");
+						NotifryAccount account = database.getAccountByServerId(accountId);
+						
+						Long sourceId = (Long) request.getMeta("source_id");
+						
+						// Try and get an existing source from our database.
+						NotifrySource source = database.getSourceByServerId(sourceId);
+						if( source == null )
+						{
+							// New object!
+							source = new NotifrySource();
+						}
+						
+						// The server would have given us a complete source object.
+						source.fromJSONObject(response.getJSON().getJSONObject("source"));
+						source.setAccountName(account.getAccountName());
+						source.setLocalEnabled(true); // Enabled by default.
+
+						database.saveSource(source);
+						database.close();
+						
+						Log.d(TAG, "Created/updated source based on server request: local " + source.getId() + " remote: " + sourceId);
+					}
+				}
+				catch( JSONException e )
+				{
+					// The response doesn't look like we expected.
+					Log.d(TAG, "Invalid response from server: " + e.getMessage());
+					// And now we've failed. Now what?
+				}
+			}
+		}
+	};	
 }
