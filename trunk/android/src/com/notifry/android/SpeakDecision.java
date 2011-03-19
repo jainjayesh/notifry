@@ -18,14 +18,60 @@
 
 package com.notifry.android;
 
-import com.notifry.android.database.PushMessage;
+import com.notifry.android.database.NotifryMessage;
 
 import android.content.Context;
 
 public class SpeakDecision
 {
-	public static boolean shouldSpeak( Context context, PushMessage message )
+	private Boolean shouldSpeak;
+	private String spokenMessage;
+	private NotifryMessage message;
+
+	public Boolean getShouldSpeak()
 	{
-		return true;
+		return shouldSpeak;
+	}
+
+	public void setShouldSpeak( Boolean shouldSpeak )
+	{
+		this.shouldSpeak = shouldSpeak;
+	}
+
+	public String getSpokenMessage()
+	{
+		return spokenMessage;
+	}
+
+	public void setSpokenMessage( String spokenMessage )
+	{
+		this.spokenMessage = spokenMessage;
+	}
+
+	public NotifryMessage getMessage()
+	{
+		return message;
+	}
+
+	public void setMessage( NotifryMessage message )
+	{
+		this.message = message;
+	}
+
+	/**
+	 * Determine if we should speak the given message or not, and also
+	 * format the text in preparation for the speech.
+	 * @param context
+	 * @param message
+	 * @return
+	 */
+	public static SpeakDecision shouldSpeak( Context context, NotifryMessage message )
+	{
+		SpeakDecision decision = new SpeakDecision();
+		decision.setShouldSpeak(true);
+		decision.setMessage(message);
+		decision.setSpokenMessage(message.getMessage());
+		
+		return decision;
 	}
 }

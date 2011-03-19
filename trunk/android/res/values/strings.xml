@@ -46,10 +46,14 @@
     <string name="choose_accounts_heading">Notifry - Choose accounts</string>
     <string name="sources_heading">Notifry - Manage sources</string>
     <string name="editor_heading">Notifry - Edit source</string>
+    <string name="messages_heading">Notifry - Recent messages</string>
+    <string name="message_detail_heading">Notifry - Message</string>
     
     <string name="no_accounts">No Google accounts on this phone. You will need at least one to be able to use this program.</string>
     
     <string name="no_sources">There are no sources for this account yet. Press menu to add a new one.</string>
+    
+    <string name="no_recent_messages">No recent messages.</string>
     
     <string name="registering_with_server">Registering with server...</string>
     <string name="deregistering_with_server">De-registering with server...</string>

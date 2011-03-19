@@ -43,6 +43,11 @@ public class NotifryDatabaseAdapter
 	public static final String KEY_SOURCE_KEY = "source_key";
 	public static final String KEY_SERVER_ID = "server_id";
 	public static final String KEY_CHANGE_TIMESTAMP = "change_timestamp";
+	public static final String KEY_SOURCE_ID = "source_id";
+	public static final String KEY_TIMESTAMP = "timestamp";
+	public static final String KEY_MESSAGE = "message";
+	public static final String KEY_URL = "url";
+	public static final String KEY_SEEN = "seen";
 
 	private DatabaseHelper dbHelper;
 	private SQLiteDatabase db;
@@ -65,10 +70,12 @@ public class NotifryDatabaseAdapter
 
 	private static final String DATABASE_CREATE_MESSAGES = "create table messages (_id integer primary key autoincrement, " +
 			"source_id integer not null, " +
+			"server_id integer not null, " +
 			"timestamp text not null, " +
 			"title text not null, " +
 			"message text not null, " +
-			"url text not null " +
+			"url text, " +
+			"seen integer not null " +
 			");";
 
 	private static final String DATABASE_NAME = "notifry";
@@ -412,5 +419,116 @@ public class NotifryDatabaseAdapter
 		}
 		
 		return source;
+	}
+	
+	/**
+	 * List all the messages in our database. This is not especially efficient.
+	 * @param source A source to filter by, or NULL for all messages.
+	 * @return
+	 */
+	public ArrayList<NotifryMessage> listMessages( NotifrySource source )
+	{
+		ArrayList<NotifryMessage> result = new ArrayList<NotifryMessage>();
+		
+		String query = "";
+		if( source != null )
+		{
+			query = KEY_SOURCE_ID + "=" + source.getId();
+		}
+		
+		// TODO: Sorting!
+		Cursor cursor = db.query(
+				DATABASE_TABLE_MESSAGES,
+				new String[] { KEY_ID, KEY_SOURCE_ID, KEY_TIMESTAMP, KEY_TITLE, KEY_MESSAGE, KEY_URL, KEY_SERVER_ID },
+				query,
+				null, null, null, null);
+
+		if( cursor != null )
+		{
+			while( cursor.moveToNext() )
+			{
+				result.add(this.inflateMessageFromCursor(cursor));
+			}
+			
+			cursor.close();
+		}
+		
+		return result;
+	}
+
+	/**
+	 * Helper function to inflate a NotifrySource object from a database cursor.
+	 * @param cursor
+	 * @return
+	 */
+	private NotifryMessage inflateMessageFromCursor( Cursor cursor )
+	{
+		NotifryMessage message = new NotifryMessage();
+		message.setId(cursor.getLong(cursor.getColumnIndex(KEY_ID)));
+		message.setTitle(cursor.getString(cursor.getColumnIndex(KEY_TITLE)));
+		message.setMessage(cursor.getString(cursor.getColumnIndex(KEY_MESSAGE)));
+		message.setUrl(cursor.getString(cursor.getColumnIndex(KEY_URL)));
+		message.setSource(this.getSourceById(cursor.getLong(cursor.getColumnIndex(KEY_SOURCE_ID))));
+		message.setServerId(cursor.getLong(cursor.getColumnIndex(KEY_SERVER_ID)));
+		message.setSeen(cursor.getLong(cursor.getColumnIndex(KEY_SEEN)) == 0 ? false : true);
+
+		return message;
+	}
+
+	/**
+	 * Get a message from an ID.
+	 * @param id The local ID of the message to fetch.
+	 * @return An inflated message object, or NULL if not found.
+	 */
+	public NotifryMessage getMessageById( Long id )
+	{
+		NotifryMessage message = null;
+
+		if (id != null)
+		{
+			Cursor cursor = db.query(true, DATABASE_TABLE_MESSAGES, new String[] { KEY_ID, KEY_SOURCE_ID, KEY_TIMESTAMP, KEY_TITLE, KEY_MESSAGE, KEY_URL, KEY_SERVER_ID }, KEY_ID + "=" + id, null, null, null, null, null);
+
+			if( cursor != null )
+			{
+				cursor.moveToFirst();
+				if( cursor.getCount() != 0 )
+				{
+					message = this.inflateMessageFromCursor(cursor);
+				}
+				cursor.close();
+			}
+		}
+
+		return message;
+	}
+	
+	/**
+	 * Save the provided message object into the database.
+	 * @param account
+	 * @return
+	 */
+	public NotifryMessage saveMessage( NotifryMessage message )
+	{
+		ContentValues values = new ContentValues();
+		values.put(KEY_TITLE, message.getTitle());
+		values.put(KEY_SOURCE_ID, message.getSource().getId());
+		values.put(KEY_SERVER_ID, message.getServerId());
+		values.put(KEY_MESSAGE, message.getMessage());
+		values.put(KEY_URL, message.getUrl());
+		values.put(KEY_TIMESTAMP, message.getTimestamp());
+		values.put(KEY_SEEN, message.getSeen() ? 1 : 0);
+
+		if( message.getId() == null)
+		{
+			// New object.
+			message.setId(db.insertOrThrow(DATABASE_TABLE_MESSAGES, null, values));
+		}
+		else
+		{
+			// Update the existing object.
+			db.update(DATABASE_TABLE_MESSAGES, values, KEY_ID + "=" + message.getId(), null);
+		}
+		
+		return message;
 	}	
 }

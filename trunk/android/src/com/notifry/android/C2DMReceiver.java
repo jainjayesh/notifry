@@ -24,7 +24,8 @@ import com.google.android.c2dm.C2DMBaseReceiver;
 
 import com.notifry.android.database.NotifryAccount;
 import com.notifry.android.database.NotifryDatabaseAdapter;
-import com.notifry.android.database.PushMessage;
+import com.notifry.android.database.NotifryMessage;
+import com.notifry.android.database.NotifrySource;
 import com.notifry.android.remote.BackendRequest;
 
 import android.content.Context;
@@ -57,32 +58,7 @@ public class C2DMReceiver extends C2DMBaseReceiver
 		{
 			if( account.getEnabled() )
 			{
-				// Register or de-register the device with the server.
-				BackendRequest request = new BackendRequest("/registration");
-				request.add("devicekey", registration);
-				request.add("devicetype", "android");
-				try
-				{
-					request.add("deviceversion", getPackageManager().getPackageInfo(getPackageName(), 0).versionName);
-				}
-				catch( NameNotFoundException e )
-				{
-					request.add("deviceversion", "Unknown");
-				}
-
-				// If already registered, update the same entry.
-				if( account.getServerRegistrationId() != null )
-				{
-					request.add("id", account.getServerRegistrationId().toString());
-				}
-
-				request.add("operation", "add");
-
-				// For debugging, dump the request data.
-				//request.dumpRequest();
-				
-				// Start a thread to make the request.
-				request.startInThread(this, null, account.getAccountName());	
+				account.registerWithBackend(context, registration, true, null, null, null);
 			}
 		}
 	}
@@ -90,27 +66,38 @@ public class C2DMReceiver extends C2DMBaseReceiver
 	protected void onMessage( Context context, Intent intent )
 	{
 		Bundle extras = intent.getExtras();
-
-		// Fetch the message out into a PushMessage object.
-		PushMessage message = new PushMessage();
-
-		message.setMessage(extras.getString("message"));
-		message.setTitle(extras.getString("title"));
-		message.setUrl(extras.getString("url"));
 		
-		Log.d("Notifry", "Got message! " + message.getMessage());
-
-		// Determine if the message should be spoken.
-		if( SpeakDecision.shouldSpeak(context, message) )
+		// The server would have sent a message type.
+		String type = extras.getString("type");
+		
+		if( type.equals("message") )
 		{
-			// Start talking.
-			Intent intentData = new Intent(getBaseContext(), SpeakService.class);
-			intentData.putExtra("text", message.getMessage());
-			startService(intentData);
-		}
+			// Fetch the message out into a NotifryMessage object.
+			NotifryMessage message = NotifryMessage.fromC2DM(context, extras);
+			
+			Log.d("Notifry", "Got message! " + message.getMessage());
+			
+			// Persist this message to the database.
+			NotifryDatabaseAdapter database = new NotifryDatabaseAdapter(context);
+			database.open();
+			database.saveMessage(message);
+			database.close();			
 
-		// Store this message locally.
-		// Notify the user in other ways too?
+			// Determine if the message should be spoken.			
+			SpeakDecision decision = SpeakDecision.shouldSpeak(context, message);
+
+			if( decision.getShouldSpeak() )
+			{
+				// Start talking.
+				Intent intentData = new Intent(getBaseContext(), SpeakService.class);
+				intentData.putExtra("text", decision.getSpokenMessage());
+				startService(intentData);
+			}
+
+			// TODO: Notify the user in other ways too?			
+		}
+		
+		// TODO: Handle other types of messages.
 	}
 
 	public void onError( Context context, String errorId )

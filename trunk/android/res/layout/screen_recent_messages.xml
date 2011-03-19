@@ -1,4 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent" android:layout_height="match_parent">
-	<ListView android:layout_width="fill_parent" android:id="@+id/recent_listView" android:layout_height="match_parent"></ListView>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+	android:orientation="vertical" android:layout_width="fill_parent"
+	android:layout_height="fill_parent">
+	<ListView android:id="@+id/android:list" android:layout_width="fill_parent"
+		android:layout_height="fill_parent" />
+	<TextView android:id="@+id/android:empty"
+		android:layout_width="fill_parent" android:layout_height="fill_parent"
+		android:text="@string/no_recent_messages" />
 </LinearLayout>

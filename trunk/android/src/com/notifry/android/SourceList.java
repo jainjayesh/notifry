@@ -14,10 +14,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- * 
- * The contents of this are heavily based on this blog post:
- * http://blog.notdot.net/2010/05/Authenticating-against-App-Engine-from-an-Android-app
- * Thanks dude for your awesome writeup!
  */
 
 package com.notifry.android;

@@ -54,7 +54,7 @@ public class Notifry extends Activity
         }
         else
         {
-                Log.i("Notifry", "No existing registrationId. Registering..");
+                Log.i("Notifry", "No existing registrationId. Registering.");
                 C2DMessaging.register(this, "notifry@gmail.com");
         }
 	}
@@ -129,9 +129,14 @@ public class Notifry extends Activity
 		startActivity(intent);
 	}
 
+	/**
+	 * Onclick handler to launch the recent messages dialog.
+	 * @param view
+	 */
 	public void launchRecentMessages( View view )
 	{
-
+		Intent intent = new Intent(getBaseContext(), MessageList.class);
+		startActivity(intent);
 	}
 
 	/**

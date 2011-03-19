@@ -23,6 +23,7 @@
 package com.notifry.android;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import org.json.JSONException;
 
@@ -125,54 +126,28 @@ public class ChooseAccount extends ListActivity
 		NotifryAccount refreshedAccount = database.getAccountById(account.getId());
 		database.close();
 
-		// Register or de-register the device with the server.
-		BackendRequest request = new BackendRequest("/registration");
-		request.add("devicekey", C2DMessaging.getRegistrationId(this));
-		request.add("devicetype", "android");
-		try
-		{
-			request.add("deviceversion", getPackageManager().getPackageInfo(getPackageName(), 0).versionName);
-		}
-		catch( NameNotFoundException e )
-		{
-			request.add("deviceversion", "Unknown");
-		}
-
-		// If already registered, update the same entry.
-		if( refreshedAccount.getServerRegistrationId() != null )
-		{
-			request.add("id", refreshedAccount.getServerRegistrationId().toString());
-		}
-
 		// Add some metadata to the request so we know how to deal with it
 		// afterwards.
-		request.addMeta("account", refreshedAccount);
-		
+		HashMap<String, Object> metadata = new HashMap<String, Object>();
+		metadata.put("account", refreshedAccount);
+
 		String statusMessage = "Busy...";
 		
 		if( state )
 		{
 			// Enable the account.
-			request.addMeta("operation", "register");
-			request.add("operation", "add");
+			metadata.put("operation", "register");
 			statusMessage = getString(R.string.registering_with_server);
 		}
 		else
 		{
 			// Disable the account.
-			request.addMeta("operation", "deregister");
-			request.add("operation", "remove");
+			metadata.put("operation", "deregister");
 			statusMessage = getString(R.string.deregistering_with_server);
 		}
 
-		// For debugging, dump the request data.
-		//request.dumpRequest();
-		
-		// Where to come back when we're done.
-		request.setHandler(handler);
-
-		// Start a thread to make the request.
-		request.startInThread(this, statusMessage, refreshedAccount.getAccountName());
+		// And send off the request.
+		refreshedAccount.registerWithBackend(this, C2DMessaging.getRegistrationId(this), state, statusMessage, handler, metadata);
 	}
 
 	/**

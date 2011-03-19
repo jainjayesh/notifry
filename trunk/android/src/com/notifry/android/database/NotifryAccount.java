@@ -18,6 +18,15 @@
 
 package com.notifry.android.database;
 
+import java.util.HashMap;
+
+import com.notifry.android.remote.BackendRequest;
+
+import android.content.Context;
+import android.content.pm.PackageManager.NameNotFoundException;
+import android.os.Build;
+import android.os.Handler;
+
 public class NotifryAccount
 {
 	private Long id = null;
@@ -63,5 +72,63 @@ public class NotifryAccount
 	public Long getServerRegistrationId()
 	{
 		return serverRegistrationId;
+	}
+	
+	/**
+	 * Register the device with the server.
+	 * @param context
+	 * @param key
+	 * @param showStatus
+	 */
+	public void registerWithBackend( Context context, String key, boolean register, String statusMessage, Handler handler, HashMap<String, Object> metadata )
+	{
+		// Register the device with the server.
+		BackendRequest request = new BackendRequest("/registration");
+		request.add("devicekey", key);
+		request.add("devicetype", "android");
+		try
+		{
+			request.add("deviceversion", context.getPackageManager().getPackageInfo(context.getPackageName(), 0).versionName);
+		}
+		catch( NameNotFoundException e )
+		{
+			request.add("deviceversion", "Unknown");
+		}
+		
+		// Send something so we know what the device is.
+		request.add("nickname", Build.MODEL);
+
+		// If already registered, update the same entry.
+		if( this.getServerRegistrationId() != null )
+		{
+			request.add("id", this.getServerRegistrationId().toString());
+		}
+
+		if( register )
+		{
+			request.add("operation", "add");
+		}
+		else
+		{
+			request.add("operation", "remove");
+		}
+
+		// For debugging, dump the request data.
+		//request.dumpRequest();
+		
+		// And the callback handler, if required.
+		request.setHandler(handler);
+		
+		// Add any metadata if required.
+		if( metadata != null )
+		{
+			for( String metaKey: metadata.keySet() )
+			{
+				request.addMeta(metaKey, metadata.get(metaKey));
+			}
+		}		
+		
+		// Start a thread to make the request.
+		request.startInThread(context, statusMessage, this.getAccountName());
 	}
 }
