@@ -39,7 +39,8 @@ class Renderer:
 		elif isinstance(data, db.Model):
 			return self.prepareToJson(data.dict())
 		elif isinstance(data, datetime.datetime):
-			return str(data)
+			# Return dates in ISO 8601 format. Always in UTC.
+			return data.isoformat()
 		elif isinstance(data, int) or isinstance(data, float) or isinstance(data, bool):
 			return data
 		else:

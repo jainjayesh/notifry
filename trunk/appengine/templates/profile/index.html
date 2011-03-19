@@ -8,10 +8,17 @@
 <ul>
 	% for source in sources:
 		<li>
-			${source.title|h} - key ${source.externalKey} - enabled ${source.enabled}
-			| <a href="/sources/edit?id=${source.key().id()}">edit</a>
-			| <a href="/messages/?sid=${source.key().id()}">messages</a>
+			<a href="/sources/edit?id=${source.key().id()}">Edit</a>
+			| <a href="/messages/?sid=${source.key().id()}">Messages</a>
 			| <a href="/sources/test?id=${source.key().id()}">Test</a>
+			| <a href="/sources/delete?id=${source.key().id()}">Delete</a>
+			| <span class="source_title">${source.title|h}</span> -
+			% if source.enabled:
+				<span class="enabled">Enabled</span>
+			% else:
+				<span class="disabled">Disabled</span>
+			% endif
+			- key ${source.externalKey}
 		</li>
 	% endfor
 </ul>
@@ -20,6 +27,8 @@
 
 <ul>
 	% for device in devices:
-		<li>${device.deviceNickname} (${device.deviceType|h}) - key ${device.deviceKey|h} and id ${device.key().id()}, last updated ${device.updated}</li>
+		<li>
+			<a href="/devices/delete?id=${device.key().id()}">Delete</a>
+			| ${device.deviceNickname|h} (${device.deviceType|h}) - last updated ${device.updated.strftime(dateformat)}</li>
 	% endfor
 </ul>

@@ -1,0 +1,29 @@
+
+/* Temporary styles */
+.enabled
+{
+	color: green;
+}
+
+.disabled
+{
+	color: red;
+}
+
+.source_title
+{
+	font-weight: bold;
+}
+
+.message_title
+{
+	font-weight: bold;
+}
+
+form div.row label
+{
+	width: 100px;
+	text-align: right;
+	display: inline-block;
+	vertical-align: top;
+}

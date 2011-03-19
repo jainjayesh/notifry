@@ -1,0 +1,18 @@
+<%inherit file="../layout/layout.html" />
+<h2>Delete device</h2>
+
+<p>You're about to delete the device ${device.deviceNickname|h}</span>.</p>
+
+<p>Some things you should know:</p>
+
+<ul>
+	<li>The device will be asked to deregister itself. If you want to use it again, you'll need to make sure you register it again.</li>
+	<li>There is a small chance that the device won't know it's been deregistered. Please keep this in mind.</li>
+	<li>This will stop any notifications being sent to the device.</li>
+	<li>If the device doesn't physically exist or have the software installed, this will only remove the device from your list.</li>
+	<li><b>This operation can not be undone.</b></li>
+</ul>
+
+<form method="post" action="">
+	<input type="submit" value="Delete this device" />
+</form>

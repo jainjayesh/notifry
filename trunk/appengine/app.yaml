@@ -17,6 +17,9 @@ handlers:
   script: admin.py
   login: admin
   secure: always
+- url: /cron/.*
+  script: cron.py
+  login: admin
 - url: /.*
   script: index.py
   secure: always

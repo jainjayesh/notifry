@@ -1,0 +1,4 @@
+cron:
+- description: Delete old messages
+  url: /cron/deletemessages
+  schedule: every 1 hours

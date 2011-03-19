@@ -21,7 +21,8 @@
 <ul>
 	% for message in messages:
 		<li>
-			${message.timestamp} - ${message.title|h} - ${message.message} - (${message.source.title})
+			${message.timestamp.strftime(dateformat)}: <span class="message_title">${message.title|h}</span> - (<span class="source_title">${message.source.title|h}</span>)<br />
+			<pre>${message.message|h}</pre>
 		</li>
 	% endfor
 </ul>

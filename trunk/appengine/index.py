@@ -13,7 +13,7 @@ urls = (
 	'/logout', 'logout',
 	'/sources/(.*)', 'sources',
 	'/messages/', 'messages',
-	'/registration', 'registerdevice',
+	'/devices/(.*)', 'devices',
 	'/profile', 'profile',
 	'/notifry', 'notifry'
 )
@@ -21,6 +21,7 @@ urls = (
 # Create the renderer and the initial context.
 renderer = Renderer('templates/')
 renderer.addTemplate('user', users.get_current_user())
+renderer.addTemplate('dateformat', '%A, %d %B %Y %H:%M UTC')
 
 # Helper function to make sure the user is aware that login is required.
 def login_required():
@@ -78,34 +79,81 @@ class profile:
 
 		return renderer.render('profile/index.html')
 
-# Register my device.
-class registerdevice:
-	def GET(self):
-		# For debugging, call POST.
-		# This is an easy way to register a device using get params.
-		return self.POST()
-
-	def POST(self):
+# Handle devices.
+class devices:
+	def GET(self, action):
 		# You must be logged in.
 		login_required()
 
-		# And we need the following variables.
-		# The defaults are provided below.
-		input = web.input(devicekey = None, devicetype = None, id = None, deviceversion = None, operation = 'add', nickname = None)
-
-		# We must have the following keys passed,
-		# otherwise this is an invalid request.
-		if not input.devicekey and not input.devicetype:
-			# Fail with an error.
-			renderer.addData('error', 'Missing required parameters "devicekey" and "devicetype".')
+		if action == "register":
+			# For debugging, call POST.
+			# This is an easy way to register a device using get params.
+			return self.POST(action)
+		elif action == "delete":
+			# Show confirmation screen.
+			device = self.get_device()
+			renderer.addData('device', device)
+			return renderer.render('device/delete.html')
+		else:
+			# List devices.
+			renderer.addDataList('devices', UserDevice.devices_for(users.get_current_user()))
 			return renderer.render('apionly.html')
 
-		# Check 'devicetype' is 'android' - nothing else is supported right now.
-		if input.devicetype != 'android':
-			renderer.addData('error', 'Only Android devices are supported at the moment, sorry.')
+	def POST(self, action):
+		# You must be logged in.
+		login_required()
+
+		if action == 'delete':
+			device = self.get_device()
+
+			# Let the device know it's been deleted.
+			ac2dm = AC2DM.factory()
+			ac2dm.notify_device_delete(device)
+
+			# Now delete it.
+			device.delete()
+			renderer.addData('success', True)
+			return renderer.render('device/deletecomplete.html')
+		elif action == 'deregister':
+			device = self.get_device()
+			device.delete()
+			renderer.addData('success', True)
+			return renderer.render('apionly.html')
+		elif action == 'register':
+			# And we need the following variables.
+			# The defaults are provided below.
+			input = web.input(devicekey = None, devicetype = None, deviceversion = None, nickname = None)
+
+			# We must have the following keys passed,
+			# otherwise this is an invalid request.
+			if not input.devicekey and not input.devicetype:
+				# Fail with an error.
+				renderer.addData('error', 'Missing required parameters "devicekey" and "devicetype".')
+				return renderer.render('apionly.html')
+
+			# Check 'devicetype' is 'android' - nothing else is supported right now.
+			if input.devicetype != 'android':
+				renderer.addData('error', 'Only Android devices are supported at the moment, sorry.')
+				return renderer.render('apionly.html')
+
+			# If ID supplied, find and update that ID.
+			device = self.get_device()
+
+			device.updated = datetime.datetime.now()
+			device.owner = users.get_current_user()
+			device.deviceKey = input.devicekey
+			device.deviceType = input.devicetype
+			device.deviceVersion = input.deviceversion
+			device.deviceNickname = input.nickname
+
+			device.put()
+			renderer.addData('device', device)
 			return renderer.render('apionly.html')
 
+	def get_device(self):
 		# If ID supplied, find and update that ID.
+		input = web.input(id = None)
+
 		device = UserDevice()
 		if input.id and long(input.id) > 0:
 			# Load device from ID.
@@ -121,22 +169,7 @@ class registerdevice:
 				# TODO: Test this more and better.
 				raise web.notfound()
 
-		if input.operation == 'add':
-			# TODO: ensure dates are in UTC.
-			device.updated = datetime.datetime.now()
-			device.owner = users.get_current_user()
-			device.deviceKey = input.devicekey
-			device.deviceType = input.devicetype
-			device.deviceVersion = input.deviceversion
-			device.deviceNickname = input.nickname
-
-			device.put()
-			renderer.addData('device', device)
-			return renderer.render('apionly.html')
-		else:
-			device.delete()
-			renderer.addData('success', True)
-			return renderer.render('apionly.html')
+		return device
 
 # Sources list.
 class sources:
@@ -155,6 +188,11 @@ class sources:
 			source = self.get_source()
 			renderer.addData('source', source)
 			return renderer.render('sources/detail.html')
+		elif action == 'delete':
+			# Show deletion information page.
+			source = self.get_source()
+			renderer.addData('source', source)
+			return renderer.render('sources/delete.html')
 		elif action == 'test':
 			# Send a test message to the source.
 			source = self.get_source()
@@ -196,6 +234,19 @@ class sources:
 			source = self.get_source()
 			renderer.addData('source', source)
 			return renderer.render('sources/detail.html')
+		elif action == 'delete':
+			source = self.get_source()
+			UserMessage.deleteForSource(source)
+
+			# Notify devices that something changed.
+			# Also, if given a device, exclude that device from
+			# the notification.
+			input = web.input(device = None)
+			source.notify_delete(input.device)
+
+			source.delete()
+			renderer.addData('success', True)
+			return renderer.render('sources/deletecomplete.html')
 		else:
 			source = self.get_source()
 
@@ -220,6 +271,12 @@ class sources:
 				if form.enabled.get_value():
 					source.enabled = True
 				source.put()
+
+				# Notify devices that something changed.
+				# Also, if given a device, exclude that device from
+				# the notification.
+				input = web.input(device = None)
+				source.notify(input.device)
 
 				if renderer.get_mode() == 'html':
 					# Redirect to the source list.
@@ -255,9 +312,9 @@ class sources:
 		# Source editor form.
 		source_editor_form = web.form.Form(
 			web.form.Hidden('id'),
-			web.form.Textbox('title', web.form.notnull, description = 'Title'),
-			web.form.Textarea('description', description = 'Description'),
-			web.form.Checkbox('enabled', description = 'Enabled'),
+			web.form.Textbox('title', web.form.notnull, description = 'Title:'),
+			web.form.Textarea('description', description = 'Description:'),
+			web.form.Checkbox('enabled', description = 'Enabled:'),
 			web.form.Button('Save')
 		)
 		return source_editor_form()

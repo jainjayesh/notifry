@@ -1,0 +1,8 @@
+<%inherit file="../layout/layout.html" />
+<h2>Delete source</h2>
+
+<p>You're about to delete the source <span class="source_title">${source.title|h}</span>. Any future notifications to this source will fail. This operation can't be undone.</p>
+
+<form method="post" action="">
+	<input type="submit" value="Delete this source" />
+</form>

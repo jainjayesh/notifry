@@ -2,6 +2,7 @@ from google.appengine.ext import db
 import datetime
 import hashlib
 import random
+from lib.AC2DM import AC2DM
 
 class UserSource(db.Model):
 	owner = db.UserProperty()
@@ -38,6 +39,17 @@ class UserSource(db.Model):
 			pass
 
 		return result
+
+	def notify(self, originating_device_id):
+		# Let the user's devices know that the source has been added or changed.
+		ac2dm = AC2DM.factory()
+		ac2dm.notify_all_source_change(self, originating_device_id)
+
+	def notify_delete(self, originating_device_id):
+		# Let the user's devices know that the source has been deleted. It can
+		# resync their list with the server.
+		ac2dm = AC2DM.factory()
+		ac2dm.notify_all_source_delete(self, originating_device_id)
 
 	@staticmethod
 	def find_for_key(key):

@@ -33,3 +33,15 @@ class UserMessage(db.Model):
 			pass
 
 		return result
+
+	@staticmethod
+	def deleteForSource(source):
+		messages = UserMessage.all(keys_only=True)
+		messages.filter('source = ', source)
+		db.delete(messages)
+
+	@staticmethod
+	def deleteOlderThan(date):
+		messages = UserMessage.all(keys_only=True)
+		messages.filter('timestamp <', date)
+		db.delete(messages)
