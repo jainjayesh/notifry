@@ -52,6 +52,7 @@ class AC2DM:
 
 		params['data.type'] = "sourcechange"
 		params['data.id'] = str(source.key().id())
+		params['data.device_id'] = str(device.key().id())
 
 		result = self.send_to_google(params)
 
@@ -79,6 +80,7 @@ class AC2DM:
 		params['delay_until_idle'] = 1
 
 		params['data.type'] = "refreshall"
+		params['data.device_id'] = str(device.key().id())
 
 		result = self.send_to_google(params)
 
@@ -98,6 +100,7 @@ class AC2DM:
 		params['delay_until_idle'] = 1
 
 		params['data.type'] = "devicedelete"
+		params['data.device_id'] = str(device.key().id())
 
 		result = self.send_to_google(params)
 
