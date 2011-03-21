@@ -194,24 +194,8 @@ class sources:
 			renderer.addData('source', source)
 			return renderer.render('sources/delete.html')
 		elif action == 'test':
-			# Send a test message to the source.
-			source = self.get_source()
-
-			message = UserMessage()
-			message.source = source
-			message.message = "This is a test message."
-			message.title = "Test Message"
-			message.timestamp = datetime.datetime.now()
-			message.deliveredToGoogle = False
-			message.lastDeliveryAttempt = None
-			message.sourceIp = web.ctx.ip
-			message.put()
-
-			sender = AC2DM.factory()
-			sender.send_to_all(message)
-
-			# And we're done.
-			return renderer.render('sources/test.html')
+			# Use the same handler as the POST action.
+			return self.POST(action)
 		else:
 			# List. Not fully supported - see the profile instead.
 			# Although - handy for API's.
@@ -234,6 +218,17 @@ class sources:
 			source = self.get_source()
 			renderer.addData('source', source)
 			return renderer.render('sources/detail.html')
+		elif action == 'test':
+			# Send a test message to the source.
+			source = self.get_source()
+
+			message = UserMessage.createTest(source, web.ctx.ip)
+
+			sender = AC2DM.factory()
+			sender.send_to_all(message)
+
+			# And we're done.
+			return renderer.render('sources/test.html')
 		elif action == 'delete':
 			source = self.get_source()
 			UserMessage.deleteForSource(source)

@@ -1,5 +1,6 @@
 from google.appengine.ext import db
 from model.UserSource import UserSource
+import datetime
 
 class UserMessage(db.Model):
 	source = db.ReferenceProperty(UserSource)
@@ -45,3 +46,17 @@ class UserMessage(db.Model):
 		messages = UserMessage.all(keys_only=True)
 		messages.filter('timestamp <', date)
 		db.delete(messages)
+
+	@staticmethod
+	def createTest(source, ip):
+		message = UserMessage()
+		message.source = source
+		message.message = "This is a test message."
+		message.title = "Test Message"
+		message.timestamp = datetime.datetime.now()
+		message.deliveredToGoogle = False
+		message.lastDeliveryAttempt = None
+		message.sourceIp = ip
+		message.put()
+
+		return message
