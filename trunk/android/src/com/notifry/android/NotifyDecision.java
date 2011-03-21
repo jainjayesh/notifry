@@ -22,30 +22,19 @@ import com.notifry.android.database.NotifryMessage;
 
 import android.content.Context;
 
-public class SpeakDecision
+public class NotifyDecision
 {
-	private Boolean shouldSpeak;
-	private String spokenMessage;
+	private Boolean shouldNotify;
 	private NotifryMessage message;
 
-	public Boolean getShouldSpeak()
+	public Boolean getShouldNotify()
 	{
-		return shouldSpeak;
+		return shouldNotify;
 	}
 
-	public void setShouldSpeak( Boolean shouldSpeak )
+	public void setShouldNotify( Boolean shouldNotify )
 	{
-		this.shouldSpeak = shouldSpeak;
-	}
-
-	public String getSpokenMessage()
-	{
-		return spokenMessage;
-	}
-
-	public void setSpokenMessage( String spokenMessage )
-	{
-		this.spokenMessage = spokenMessage;
+		this.shouldNotify = shouldNotify;
 	}
 
 	public NotifryMessage getMessage()
@@ -57,21 +46,25 @@ public class SpeakDecision
 	{
 		this.message = message;
 	}
+	
+	public String getSpokenMessage()
+	{
+		return this.message.getTitle() + ". " + this.message.getMessage();
+	}
 
 	/**
-	 * Determine if we should speak the given message or not, and also
-	 * format the text in preparation for the speech.
+	 * Determine if we should notify about this message or now.
+	 * 
 	 * @param context
 	 * @param message
 	 * @return
 	 */
-	public static SpeakDecision shouldSpeak( Context context, NotifryMessage message )
+	public static NotifyDecision shouldNotify( Context context, NotifryMessage message )
 	{
-		SpeakDecision decision = new SpeakDecision();
-		decision.setShouldSpeak(true);
+		NotifyDecision decision = new NotifyDecision();
+		decision.setShouldNotify(message.getSource().getLocalEnabled());
 		decision.setMessage(message);
-		decision.setSpokenMessage(message.getMessage());
-		
+
 		return decision;
 	}
 }

@@ -85,20 +85,13 @@ public class C2DMReceiver extends C2DMBaseReceiver
 			NotifryDatabaseAdapter database = new NotifryDatabaseAdapter(context);
 			database.open();
 			database.saveMessage(message);
-			database.close();			
-
-			// Determine if the message should be spoken.			
-			SpeakDecision decision = SpeakDecision.shouldSpeak(context, message);
-
-			if( decision.getShouldSpeak() )
-			{
-				// Start talking.
-				Intent intentData = new Intent(getBaseContext(), SpeakService.class);
-				intentData.putExtra("text", decision.getSpokenMessage());
-				startService(intentData);
-			}
-
-			// TODO: Notify the user in other ways too?
+			database.close();
+			
+			// Send a notification to the notification service, which will then
+			// dispatch and handle everything else.
+			Intent intentData = new Intent(getBaseContext(), NotificationService.class);
+			intentData.putExtra("messageId", message.getId());
+			startService(intentData);
 		}
 		else if( type.equals("refreshall") )
 		{

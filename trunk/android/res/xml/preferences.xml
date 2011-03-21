@@ -1,8 +1,14 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 	<Preference android:persistent="false" android:key="@string/stopReadingNow" android:summary="@string/stop_reading_now_summary" android:title="@string/stop_reading_now" android:enabled="true" android:selectable="true"/>
-	<Preference android:persistent="false" android:key="@string/testAccount" android:summary="@string/test_account_summary" android:title="@string/test_account" android:enabled="true" android:selectable="true"/>
-	<CheckBoxPreference android:persistent="true" android:title="@string/master_enable_checkbox" android:key="@string/masterEnable" android:summary="@string/master_enable_checkbox_summary" android:defaultValue="true"/>
-	<RingtonePreference android:persistent="true" android:title="@string/choose_notification_tone" android:key="@string/choosenNotification" android:summary="@string/choose_notification_tone_summary" android:ringtoneType="notification" />
+	<CheckBoxPreference android:persistent="true" android:title="@string/master_enable_checkbox" android:key="@string/masterEnable" android:summary="@string/master_enable_checkbox_summary" android:defaultValue="true"/>	
+	<PreferenceScreen android:persistent="false" android:enabled="true" android:selectable="true" android:summary="@string/notification_settings_summary" android:title="@string/notification_settings">
+		<CheckBoxPreference android:persistent="true" android:title="@string/play_ringtone" android:key="@string/playRingtone" android:summary="@string/play_ringtone_summary" android:defaultValue="true"/>
+		<RingtonePreference android:persistent="true" android:title="@string/choose_notification_tone" android:key="@string/choosenNotification" android:summary="@string/choose_notification_tone_summary" android:ringtoneType="notification" />
+		<CheckBoxPreference android:persistent="true" android:title="@string/vibrate" android:key="@string/vibrateNotify" android:summary="@string/vibrate_summary" android:defaultValue="true"/>
+		<CheckBoxPreference android:persistent="true" android:title="@string/led_flash" android:key="@string/ledFlash" android:summary="@string/led_flash_summary" android:defaultValue="true"/>
+		<CheckBoxPreference android:persistent="true" android:title="@string/fast_led_flash" android:key="@string/fastLedFlash" android:summary="@string/fast_led_flash_summary" android:defaultValue="false"/>
+		<CheckBoxPreference android:persistent="true" android:title="@string/speak_message" android:key="@string/speakMessage" android:summary="@string/speak_message_summary" android:defaultValue="true"/>
+	</PreferenceScreen>
 	<PreferenceScreen android:persistent="false" android:enabled="true" android:selectable="true" android:summary="@string/advanced_settings_summary" android:title="@string/advanced_settings">
 		<Preference android:title="@string/preview" android:summary="@string/preview_summary" android:key="@string/previewSpeech"/>
 		<EditTextPreference android:persistent="true" android:key="@string/delayReadingTime" android:summary="@string/delay_readout_summary" android:title="@string/delay_readout" android:digits="0123456789" android:maxLength="2"></EditTextPreference>

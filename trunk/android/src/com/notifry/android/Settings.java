@@ -42,9 +42,6 @@ public class Settings extends PreferenceActivity
 
 		Preference stopReadingNow = findPreference(getString(R.string.stopReadingNow));
 		stopReadingNow.setOnPreferenceClickListener(stopSpeakingNowHandler);
-		
-		Preference testAccount = findPreference(getString(R.string.testAccount));
-		testAccount.setOnPreferenceClickListener(testAccountHandler);
 
 		Preference previewSpeech = findPreference(getString(R.string.previewSpeech));
 		previewSpeech.setOnPreferenceClickListener(previewSpeechHandler);
@@ -74,17 +71,6 @@ public class Settings extends PreferenceActivity
 			return true;
 		}
 	};
-	
-	// On click handler for firing off the test account handler.
-	OnPreferenceClickListener testAccountHandler = new OnPreferenceClickListener()
-	{
-		public boolean onPreferenceClick(Preference preference)
-		{
-			Intent intentData = new Intent(getBaseContext(), ChooseAccount.class);
-			startActivity(intentData);
-			return true;
-		}
-	};	
 
 	// On click handler for previewing speech.
 	OnPreferenceClickListener previewSpeechHandler = new OnPreferenceClickListener()

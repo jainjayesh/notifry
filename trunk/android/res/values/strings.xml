@@ -2,9 +2,9 @@
 <resources>
     <string name="app_name">Notifry</string>
     <string name="master_enable_checkbox">Enable the service</string>
-    <string name="master_enable_checkbox_summary">When off, no notifications are read out.</string>
+    <string name="master_enable_checkbox_summary">When off, no notifications are shown at all.</string>
     <string name="choose_notification_tone">Select Notification Tone</string>
-    <string name="choose_notification_tone_summary">Choose the notification tone played before the message starts reading.</string>
+    <string name="choose_notification_tone_summary">Choose the notification tone.</string>
     <string name="read_all_sms_checkbox">Read out all messages</string>
     <string name="read_all_warning">Warning: reading out all SMS messages can be embarrassing!</string>
     <string name="announce_sender">Announce the sender</string>
@@ -16,7 +16,7 @@
     <string name="edit_whitelist">Edit whitelist</string>
     <string name="edit_whitelist_summary">Choose which contacts are read out.</string>
 	<string name="delay_readout">Delay reading</string>
-	<string name="delay_readout_summary" formatted="false">Delay reading the SMS for %d second%s.</string>
+	<string name="delay_readout_summary" formatted="false">Delay reading the message for %d second%s.</string>
     <string name="advanced_settings">Advanced Settings</string>
     <string name="advanced_settings_summary">Change advanced settings.</string>
     <string name="language">Choose Language</string>
@@ -25,13 +25,25 @@
     <string name="read_speed_summary">Select how fast to read the message.</string>
     <string name="preview">Preview</string>
     <string name="preview_summary">Preview the selected language and speed settings.</string>
-    <string name="preview_speak">Hello from your Speak Message Service. 12 70 called and wants its Android back.</string> <!-- http://en.wikipedia.org/wiki/Android -->
+    <string name="preview_speak">We will notifry you.</string>
     <string name="shakestop">Enable Shake to Stop</string>
     <string name="shakestop_summary">Enable the ability to shake the phone to stop reading.</string>
     <string name="shakethreshhold">Shake Threshold</string>
     <string name="shakethreshhold_summary">Currently %d, default 1500.</string>
     <string name="shakewaittime">Shake Wait Time</string>
     <string name="shakewaittime_summary">Wait %d seconds for a shake event.</string>
+    <string name="notification_settings">Notification settings</string>
+    <string name="notification_settings_summary">Change how notifications are delivered.</string>
+    <string name="play_ringtone">Play ringtone</string>
+    <string name="play_ringtone_summary">Play a ringtone when a notification comes in.</string>
+    <string name="vibrate">Vibrate</string>
+    <string name="vibrate_summary">Vibrate when a notification comes in.</string>
+    <string name="led_flash">Flash the LED</string>
+    <string name="led_flash_summary">Flash the LED for a notification.</string>
+    <string name="fast_led_flash">Fast LED flash</string>
+    <string name="fast_led_flash_summary">Use a fast LED flash - useful for phones like the G2 which have short flashes.</string>
+    <string name="speak_message">Speak the message</string>
+    <string name="speak_message_summary">Speak out the message using Text to Speech.</string>
     
     <string name="disable_all_notifications">Disable all notifications</string>
     <string name="enable_all_notifications">Enable all notifications</string>
@@ -104,6 +116,11 @@
     <string name="shakeToStop">shakeToStop</string>
     <string name="shakeThreshold">shakeThreshold</string>
     <string name="shakeWaitTime">shakeWaitTime</string>
+    <string name="playRingtone">playRingtone</string>
+    <string name="vibrateNotify">vibrateNotify</string>
+    <string name="ledFlash">ledFlash</string>
+    <string name="fastLedFlash">fastLedFlash</string>
+    <string name="speakMessage">speakMessage</string>
     <string name="preferencesName">SpeakMessageServicePrefs</string>
     
     <string name="notts">You do not have the TTS library installed - Speak Message Service can not read out your messages until you install it.</string>

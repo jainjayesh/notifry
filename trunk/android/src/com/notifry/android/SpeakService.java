@@ -35,9 +35,11 @@ import android.os.Message;
 import android.preference.PreferenceManager;
 import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
+import android.util.Log;
 
 public class SpeakService extends Service implements SensorEventListener, TextToSpeech.OnInitListener
 {
+	private static final String TAG = "Notifry";
 	private TextToSpeech tts = null;
 	private Vector<String> queue = new Vector<String>();
 	private boolean initialized = false;
@@ -132,7 +134,7 @@ public class SpeakService extends Service implements SensorEventListener, TextTo
 	public void onStart( final Intent intent, int startId )
 	{
 		super.onStart(intent, startId);
-
+		
 		if( temporaryDisable )
 		{
 			// Temporarily disabled - don't speak.

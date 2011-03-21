@@ -49,6 +49,10 @@ public class NotifryDatabaseAdapter
 	public static final String KEY_URL = "url";
 	public static final String KEY_SEEN = "seen";
 	public static final String KEY_REQUIRES_SYNC = "requires_sync";
+	
+	public static final String[] ACCOUNT_PROJECTION = new String[] { KEY_ID, KEY_ACCOUNT_NAME, KEY_ENABLED, KEY_SERVER_REGISTRATION_ID, KEY_REQUIRES_SYNC };
+	public static final String[] SOURCE_PROJECTION = new String[] { KEY_ID, KEY_ACCOUNT_NAME, KEY_CHANGE_TIMESTAMP, KEY_TITLE, KEY_SERVER_ID, KEY_SOURCE_KEY, KEY_SERVER_ENABLED, KEY_LOCAL_ENABLED };
+	public static final String[] MESSAGE_PROJECTION = new String[] { KEY_ID, KEY_SOURCE_ID, KEY_TIMESTAMP, KEY_TITLE, KEY_MESSAGE, KEY_URL, KEY_SERVER_ID, KEY_SEEN };	
 
 	private DatabaseHelper dbHelper;
 	private SQLiteDatabase db;
@@ -202,7 +206,7 @@ public class NotifryDatabaseAdapter
 	{
 		ArrayList<NotifryAccount> result = new ArrayList<NotifryAccount>();
 
-		Cursor cursor = db.query(DATABASE_TABLE_ACCOUNTS, new String[] { KEY_ID, KEY_ACCOUNT_NAME, KEY_ENABLED, KEY_SERVER_REGISTRATION_ID, KEY_REQUIRES_SYNC }, null, null, null, null, null);
+		Cursor cursor = db.query(DATABASE_TABLE_ACCOUNTS, ACCOUNT_PROJECTION, null, null, null, null, null);
 		
 		if( cursor != null )
 		{
@@ -249,7 +253,7 @@ public class NotifryDatabaseAdapter
 	{
 		NotifryAccount account = null;
 
-		Cursor cursor = db.query(true, DATABASE_TABLE_ACCOUNTS, new String[] { KEY_ID, KEY_ACCOUNT_NAME, KEY_ENABLED, KEY_SERVER_REGISTRATION_ID, KEY_REQUIRES_SYNC }, KEY_ACCOUNT_NAME + "= ?", new String[] { name }, null, null, null, null);
+		Cursor cursor = db.query(true, DATABASE_TABLE_ACCOUNTS, ACCOUNT_PROJECTION, KEY_ACCOUNT_NAME + "= ?", new String[] { name }, null, null, null, null);
 
 		if( cursor != null )
 		{
@@ -275,7 +279,7 @@ public class NotifryDatabaseAdapter
 
 		if (id != null)
 		{
-			Cursor cursor = db.query(true, DATABASE_TABLE_ACCOUNTS, new String[] { KEY_ID, KEY_ACCOUNT_NAME, KEY_ENABLED, KEY_SERVER_REGISTRATION_ID, KEY_REQUIRES_SYNC }, KEY_ID + "=" + id, null, null, null, null, null);
+			Cursor cursor = db.query(true, DATABASE_TABLE_ACCOUNTS, ACCOUNT_PROJECTION, KEY_ID + "=" + id, null, null, null, null, null);
 
 			if( cursor != null )
 			{
@@ -302,7 +306,7 @@ public class NotifryDatabaseAdapter
 
 		if (id != null)
 		{
-			Cursor cursor = db.query(true, DATABASE_TABLE_ACCOUNTS, new String[] { KEY_ID, KEY_ACCOUNT_NAME, KEY_ENABLED, KEY_SERVER_REGISTRATION_ID, KEY_REQUIRES_SYNC }, KEY_SERVER_REGISTRATION_ID + "=" + id, null, null, null, null, null);
+			Cursor cursor = db.query(true, DATABASE_TABLE_ACCOUNTS, ACCOUNT_PROJECTION, KEY_SERVER_REGISTRATION_ID + "=" + id, null, null, null, null, null);
 
 			if( cursor != null )
 			{
@@ -373,7 +377,7 @@ public class NotifryDatabaseAdapter
 		
 		Cursor cursor = db.query(
 				DATABASE_TABLE_SOURCES,
-				new String[] { KEY_ID, KEY_ACCOUNT_NAME, KEY_CHANGE_TIMESTAMP, KEY_TITLE, KEY_SERVER_ID, KEY_SOURCE_KEY, KEY_SERVER_ENABLED, KEY_LOCAL_ENABLED },
+				SOURCE_PROJECTION,
 				KEY_ACCOUNT_NAME + "= ?", new String[] { accountName },
 				null, null, null);
 
@@ -448,7 +452,7 @@ public class NotifryDatabaseAdapter
 
 		if (id != null)
 		{
-			Cursor cursor = db.query(true, DATABASE_TABLE_SOURCES, new String[] { KEY_ID, KEY_ACCOUNT_NAME, KEY_CHANGE_TIMESTAMP, KEY_TITLE, KEY_SERVER_ID, KEY_SOURCE_KEY, KEY_SERVER_ENABLED, KEY_LOCAL_ENABLED }, KEY_ID + "=" + id, null, null, null, null, null);
+			Cursor cursor = db.query(true, DATABASE_TABLE_SOURCES, SOURCE_PROJECTION, KEY_ID + "=" + id, null, null, null, null, null);
 
 			if( cursor != null )
 			{
@@ -475,7 +479,7 @@ public class NotifryDatabaseAdapter
 
 		if (id != null)
 		{
-			Cursor cursor = db.query(true, DATABASE_TABLE_SOURCES, new String[] { KEY_ID, KEY_ACCOUNT_NAME, KEY_CHANGE_TIMESTAMP, KEY_TITLE, KEY_SERVER_ID, KEY_SOURCE_KEY, KEY_SERVER_ENABLED, KEY_LOCAL_ENABLED }, KEY_SERVER_ID + "=" + id, null, null, null, null, null);
+			Cursor cursor = db.query(true, DATABASE_TABLE_SOURCES, SOURCE_PROJECTION, KEY_SERVER_ID + "=" + id, null, null, null, null, null);
 
 			if( cursor != null )
 			{
@@ -548,7 +552,7 @@ public class NotifryDatabaseAdapter
 		// TODO: Sorting!
 		Cursor cursor = db.query(
 				DATABASE_TABLE_MESSAGES,
-				new String[] { KEY_ID, KEY_SOURCE_ID, KEY_TIMESTAMP, KEY_TITLE, KEY_MESSAGE, KEY_URL, KEY_SERVER_ID },
+				MESSAGE_PROJECTION,
 				query,
 				null, null, null, null);
 
@@ -564,6 +568,37 @@ public class NotifryDatabaseAdapter
 		
 		return result;
 	}
+	
+	/**
+	 * Count the unread messages for a given source.
+	 * @param source A source to filter by, or NULL for all messages.
+	 * @return
+	 */
+	public int countUnreadMessages( NotifrySource source )
+	{
+		String query = KEY_SEEN + " = 0 ";
+		if( source != null )
+		{
+			query += " AND " + KEY_SOURCE_ID + "=" + source.getId();
+		}
+		
+		// TODO: Sorting!
+		Cursor cursor = db.query(
+				DATABASE_TABLE_MESSAGES,
+				MESSAGE_PROJECTION,
+				query,
+				null, null, null, null);
+
+		int count = 0;
+		
+		if( cursor != null )
+		{
+			count = cursor.getCount();
+			cursor.close();
+		}
+		
+		return count;
+	}	
 
 	/**
 	 * Helper function to inflate a NotifrySource object from a database cursor.
@@ -595,7 +630,7 @@ public class NotifryDatabaseAdapter
 
 		if (id != null)
 		{
-			Cursor cursor = db.query(true, DATABASE_TABLE_MESSAGES, new String[] { KEY_ID, KEY_SOURCE_ID, KEY_TIMESTAMP, KEY_TITLE, KEY_MESSAGE, KEY_URL, KEY_SERVER_ID }, KEY_ID + "=" + id, null, null, null, null, null);
+			Cursor cursor = db.query(true, DATABASE_TABLE_MESSAGES, MESSAGE_PROJECTION, KEY_ID + "=" + id, null, null, null, null, null);
 
 			if( cursor != null )
 			{
