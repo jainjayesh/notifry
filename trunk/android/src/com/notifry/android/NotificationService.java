@@ -47,6 +47,8 @@ public class NotificationService extends Service
 
 	public void onCreate()
 	{
+		super.onCreate();
+		
 		// Fetch out our notification service.
 		this.notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
 	}

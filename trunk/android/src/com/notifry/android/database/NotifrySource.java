@@ -26,6 +26,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.content.Context;
+import android.util.Log;
 
 public class NotifrySource
 {
@@ -173,6 +174,7 @@ public class NotifrySource
 		NotifrySource tempSource = new NotifrySource();
 		for( Long sourceId: seenIds )
 		{
+			Log.d(TAG, "*** Deleting " + sourceId);
 			tempSource.setId(sourceId);
 			database.deleteSource(tempSource);
 		}

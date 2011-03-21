@@ -22,6 +22,7 @@
 		<activity android:name=".MessageDetail" android:label="@string/message_detail_heading" />
         
         <service android:name="com.notifry.android.NotificationService" android:exported="false"></service>
+        <service android:name="com.notifry.android.UpdaterService" android:exported="false"></service>
     	<service android:name="com.notifry.android.SpeakService" android:exported="false"></service>
     	<service android:name=".C2DMReceiver" />
     	

@@ -96,7 +96,7 @@ public class SourceList extends ListActivity
 		request.addMeta("operation", "list");
 
 		// For debugging, dump the request data.
-		//request.dumpRequest();
+		request.dumpRequest();
 		
 		// Where to come back when we're done.
 		request.setHandler(handler);
@@ -134,9 +134,11 @@ public class SourceList extends ListActivity
 	public void refreshView()
 	{
 		// Refresh our list of sources.
+		NotifryAccount account = this.getAccount();
 		NotifryDatabaseAdapter database = new NotifryDatabaseAdapter(this);
 		database.open();
-		ArrayList<NotifrySource> sources = database.listSources(this.getAccount().getAccountName());
+		//database.debugListSources();
+		ArrayList<NotifrySource> sources = database.listSources(account.getAccountName());
 		database.close();
 
 		this.setListAdapter(new SourceArrayAdapter(this, this, R.layout.source_list_row, sources));

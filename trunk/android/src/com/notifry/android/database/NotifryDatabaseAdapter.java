@@ -29,6 +29,7 @@ import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.util.Log;
 
 public class NotifryDatabaseAdapter
 {
@@ -138,6 +139,16 @@ public class NotifryDatabaseAdapter
 	{
 		this.dbHelper = new DatabaseHelper(this.context);
 		this.db = this.dbHelper.getWritableDatabase();
+		/*this.db.beginTransaction();
+		try
+		{
+			throw new Exception("stop");
+		}
+		catch( Exception ex )
+		{
+			StackTraceElement[] stack = ex.getStackTrace();
+			Log.d(TAG, "Open: " + stack[1].getClassName() + ':' + stack[1].getLineNumber());
+		}*/
 		return this;
 	}
 
@@ -146,8 +157,19 @@ public class NotifryDatabaseAdapter
 	 */
 	public void close()
 	{
+		//db.setTransactionSuccessful();
 		db.close();
 		dbHelper.close();
+		
+		/*try
+		{
+			throw new Exception("stop");
+		}
+		catch( Exception ex )
+		{
+			StackTraceElement[] stack = ex.getStackTrace();
+			Log.d(TAG, "Close: " + stack[1].getClassName() + ':' + stack[1].getLineNumber());
+		}*/		
 	}
 
 	/**
@@ -398,6 +420,34 @@ public class NotifryDatabaseAdapter
 	 * List all the sources in our database. This is not especially efficient.
 	 * @return
 	 */
+	public void debugListSources()
+	{	
+		Cursor cursor = db.query(
+				DATABASE_TABLE_SOURCES,
+				SOURCE_PROJECTION,
+				null, null,
+				null, null, null);
+
+		if( cursor != null )
+		{
+			while( cursor.moveToNext() )
+			{
+				NotifrySource source = this.inflateSourceFromCursor(cursor);
+				Log.d(TAG, "Got a source...");
+				Log.d(TAG, "* ID: " + source.getId());
+				Log.d(TAG, "* Title: " + source.getTitle());
+				Log.d(TAG, "* Server ID: " + source.getServerId());
+				Log.d(TAG, "* Account: " + source.getAccountName());
+			}
+			
+			cursor.close();
+		}
+	}	
+	
+	/**
+	 * List all the sources in our database. This is not especially efficient.
+	 * @return
+	 */
 	public HashSet<Long> sourceIdSet( String accountName )
 	{
 		HashSet<Long> idSet = new HashSet<Long>();
@@ -531,6 +581,7 @@ public class NotifryDatabaseAdapter
 	 */
 	public void deleteSource( NotifrySource source )
 	{
+		Log.d(TAG, "Deleting source " + source.getId());
 		db.delete(DATABASE_TABLE_SOURCES, KEY_ID + "=" + source.getId(), null);
 	}
 	
@@ -580,8 +631,7 @@ public class NotifryDatabaseAdapter
 		{
 			query += " AND " + KEY_SOURCE_ID + "=" + source.getId();
 		}
-		
-		// TODO: Sorting!
+
 		Cursor cursor = db.query(
 				DATABASE_TABLE_MESSAGES,
 				MESSAGE_PROJECTION,
