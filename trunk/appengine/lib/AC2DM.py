@@ -131,7 +131,7 @@ class AC2DM:
 		params['data.message'] = message.message
 		if message.url:
 			params['data.url'] = message.url
-		params['data.timestamp'] = str(message.timestamp)
+		params['data.timestamp'] = message.timestamp.isoformat()
 
 		result = self.send_to_google(params)
 
