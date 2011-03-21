@@ -18,6 +18,13 @@
 
 package com.notifry.android.database;
 
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
+import java.util.TimeZone;
+
 import android.content.Context;
 import android.os.Bundle;
 import android.util.Log;
@@ -82,6 +89,24 @@ public class NotifryMessage
 	public void setTimestamp( String timestamp )
 	{
 		this.timestamp = timestamp;
+	}
+	
+	public String getDisplayTimestamp()
+	{
+		try
+		{	
+			// Parse it, and display in LOCAL timezone.
+			SimpleDateFormat ISO8601DATEFORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSSSS", Locale.US);
+			ISO8601DATEFORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
+			Date date = ISO8601DATEFORMAT.parse(this.timestamp);
+			DateFormat formatter = DateFormat.getDateTimeInstance();
+			formatter.setTimeZone(TimeZone.getDefault());
+			return formatter.format(date);
+		}
+		catch( ParseException e )
+		{
+			return "Parse error";
+		}
 	}
 
 	public String getMessage()

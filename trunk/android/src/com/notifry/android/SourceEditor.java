@@ -8,11 +8,14 @@ import com.notifry.android.remote.BackendRequest;
 import com.notifry.android.remote.BackendResponse;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.provider.ContactsContract.CommonDataKinds.Email;
+import android.text.Editable;
 import android.util.Log;
 import android.view.View;
 import android.widget.CheckBox;
@@ -90,10 +93,56 @@ public class SourceEditor extends Activity
 		}
 		
 		request.addMeta("source", source);
+		request.addMeta("operation", "save");
 		
 		request.setHandler(handler);
 		
 		request.startInThread(this, getString(R.string.source_saving_to_server), source.getAccountName());
+	}
+	
+	/**
+	 * Delete this source.
+	 */
+	public void delete( View view )
+	{
+		// User clicked delete button.
+		// Confirm that's what they want.
+		new AlertDialog.Builder(this).
+		setTitle(getString(R.string.delete_source)).
+		setMessage(getString(R.string.delete_source_message)).
+		setPositiveButton(
+				getString(R.string.delete),
+				new DialogInterface.OnClickListener()
+				{
+					public void onClick( DialogInterface dialog, int whichButton )
+					{
+						// Fire it off to the delete source function.
+						deleteSource(thisActivity.getSource());
+					}
+				}).
+		setNegativeButton(
+				getString(R.string.cancel),
+				new DialogInterface.OnClickListener()
+				{
+					public void onClick( DialogInterface dialog, int whichButton )
+					{
+						// No need to take any action.
+					}
+				}).
+		show();		
+
+	}
+	
+	public void deleteSource( NotifrySource source )
+	{
+		// Now, send the updates to the server. On success, save the changes locally.
+		BackendRequest request = new BackendRequest("/sources/delete");
+		request.add("id", source.getServerId().toString());
+		request.addMeta("operation", "delete");
+		request.addMeta("source", getSource());
+		request.setHandler(handler);
+		
+		request.startInThread(this, getString(R.string.source_deleting_from_server), source.getAccountName());		
 	}
 	
 	/**
@@ -130,19 +179,39 @@ public class SourceEditor extends Activity
 					// Fetch out metadata.
 					BackendRequest request = response.getRequest();
 					NotifrySource source = (NotifrySource) request.getMeta("source");
-					// Load the source from the server information. We assume the server is correct.
-					source.fromJSONObject(response.getJSON().getJSONObject("source"));
+					
+					String operation = (String) request.getMeta("operation");
+					
+					if( operation.equals("save") )
+					{
+						// Load the source from the server information. We assume the server is correct.
+						source.fromJSONObject(response.getJSON().getJSONObject("source"));
+	
+						// Open the database and save it.
+						NotifryDatabaseAdapter database = new NotifryDatabaseAdapter(thisActivity);
+						database.open();
+						database.saveSource(source);
+						database.close();
+						
+						Toast.makeText(thisActivity, getString(R.string.source_save_success), Toast.LENGTH_SHORT).show();
+						
+						// "Exit" our activity and go back to the list.
+						thisActivity.finish();
+					}
+					else if( operation.equals("delete") )
+					{
+						// Delete from local.
+						NotifryDatabaseAdapter database = new NotifryDatabaseAdapter(thisActivity);
+						database.open();
+						database.deleteSource(source);
+						database.close();
 
-					// Open the database and save it.
-					NotifryDatabaseAdapter database = new NotifryDatabaseAdapter(thisActivity);
-					database.open();
-					database.saveSource(source);
-					database.close();
-					
-					Toast.makeText(thisActivity, "Source saved successfully.", Toast.LENGTH_SHORT).show();
-					
-					// "Exit" our activity and go back to the list.
-					thisActivity.finish();
+						// Let the user know we're done.
+						Toast.makeText(thisActivity, getString(R.string.source_delete_success), Toast.LENGTH_SHORT).show();
+						
+						// And exit this activity.
+						thisActivity.finish();
+					}
 				}
 				catch( JSONException e )
 				{

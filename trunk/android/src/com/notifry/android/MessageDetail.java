@@ -93,6 +93,12 @@ public class MessageDetail extends Activity
 			NotifryDatabaseAdapter database = new NotifryDatabaseAdapter(this);
 			database.open();
 			this.message = database.getMessageById(sourceIntent.getLongExtra("messageId", 0));
+			// Change the seen flag if required.
+			if( this.message.getSeen() == false )
+			{
+				this.message.setSeen(true);
+				database.saveMessage(message);
+			}
 			database.close();
 		}
 

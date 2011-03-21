@@ -548,13 +548,12 @@ public class NotifryDatabaseAdapter
 		{
 			query = KEY_SOURCE_ID + "=" + source.getId();
 		}
-		
-		// TODO: Sorting!
+
 		Cursor cursor = db.query(
 				DATABASE_TABLE_MESSAGES,
 				MESSAGE_PROJECTION,
 				query,
-				null, null, null, null);
+				null, null, null, KEY_TIMESTAMP + " DESC");
 
 		if( cursor != null )
 		{
@@ -615,6 +614,7 @@ public class NotifryDatabaseAdapter
 		message.setSource(this.getSourceById(cursor.getLong(cursor.getColumnIndex(KEY_SOURCE_ID))));
 		message.setServerId(cursor.getLong(cursor.getColumnIndex(KEY_SERVER_ID)));
 		message.setSeen(cursor.getLong(cursor.getColumnIndex(KEY_SEEN)) == 0 ? false : true);
+		message.setTimestamp(cursor.getString(cursor.getColumnIndex(KEY_TIMESTAMP)));
 
 		return message;
 	}
@@ -674,5 +674,42 @@ public class NotifryDatabaseAdapter
 		}
 		
 		return message;
+	}
+	
+	/**
+	 * Delete a given message from the database.
+	 * @param source
+	 */
+	public void deleteMessage( NotifryMessage message )
+	{
+		db.delete(DATABASE_TABLE_MESSAGES, KEY_ID + "=" + message.getId(), null);
+	}
+	
+	/**
+	 * Delete all messages for a given source.
+	 * @param source
+	 */
+	public void deleteMessagesBySource( NotifrySource source, boolean onlyRead )
+	{
+		String query = null;
+		if( source != null )
+		{
+			query = KEY_SOURCE_ID + "=" + source.getId();
+		}
+		if( onlyRead )
+		{
+			if( query != null )
+			{
+				query += " AND ";
+			}
+			else
+			{
+				query = "";
+			}
+			
+			query += KEY_SEEN + "= 1";
+		}
+
+		db.delete(DATABASE_TABLE_MESSAGES, query, null);
 	}	
 }

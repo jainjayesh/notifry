@@ -30,6 +30,8 @@ import android.content.Intent;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
@@ -37,6 +39,8 @@ import android.widget.TextView;
 
 public class MessageList extends ListActivity
 {
+	private final static int DELETE_ALL = 1;
+	private final static int DELETE_SEEN = 2;
 	private static final String TAG = "Notifry";
 	private final MessageList thisActivity = this;
 	private NotifrySource source = null;
@@ -98,6 +102,43 @@ public class MessageList extends ListActivity
 		database.close();
 
 		this.setListAdapter(new MessageArrayAdapter(this, this, R.layout.message_list_row, messages));
+	}
+	
+	@Override
+	public boolean onCreateOptionsMenu( Menu menu )
+	{
+		boolean result = super.onCreateOptionsMenu(menu);
+		menu.add(0, DELETE_ALL, 0, R.string.delete_all).setIcon(android.R.drawable.ic_menu_delete);
+		menu.add(0, DELETE_SEEN, 0, R.string.delete_read).setIcon(android.R.drawable.ic_menu_delete);
+		return result;
+	}
+
+	@Override
+	public boolean onOptionsItemSelected( MenuItem item )
+	{
+		switch( item.getItemId() )
+		{
+			case DELETE_ALL:
+				deleteAll(false);
+				return true;
+			case DELETE_SEEN:
+				deleteAll(true);
+				return true;
+		}
+
+		return super.onOptionsItemSelected(item);
+	}
+	
+	public void deleteAll( boolean onlySeen )
+	{
+		// Delete all messages. Optionally, those matching the given source.
+		NotifryDatabaseAdapter database = new NotifryDatabaseAdapter(this);
+		database.open();
+		database.deleteMessagesBySource(this.getSource(), onlySeen);
+		database.close();
+		
+		// And refresh!
+		refreshView();
 	}
 
 	/*@Override
@@ -192,7 +233,7 @@ public class MessageList extends ListActivity
 				}
 				if( timestamp != null )
 				{
-					timestamp.setText(message.getTimestamp());
+					timestamp.setText(message.getDisplayTimestamp());
 					timestamp.setClickable(true);
 
 					timestamp.setOnClickListener(clickListener);
