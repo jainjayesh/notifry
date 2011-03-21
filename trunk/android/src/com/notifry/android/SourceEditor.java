@@ -14,8 +14,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.provider.ContactsContract.CommonDataKinds.Email;
-import android.text.Editable;
 import android.util.Log;
 import android.view.View;
 import android.widget.CheckBox;
@@ -133,6 +131,10 @@ public class SourceEditor extends Activity
 
 	}
 	
+	/**
+	 * Send a request to the backend to delete the source.
+	 * @param source
+	 */
 	public void deleteSource( NotifrySource source )
 	{
 		// Now, send the updates to the server. On success, save the changes locally.
@@ -144,6 +146,21 @@ public class SourceEditor extends Activity
 		
 		request.startInThread(this, getString(R.string.source_deleting_from_server), source.getAccountName());		
 	}
+	
+	/**
+	 * Send a request to the backend to test this source.
+	 * @param view
+	 */
+	public void test( View view )
+	{
+		BackendRequest request = new BackendRequest("/sources/test");
+		request.add("id", getSource().getServerId().toString());
+		request.addMeta("operation", "test");
+		request.addMeta("source", getSource());
+		request.setHandler(handler);
+		
+		request.startInThread(this, getString(R.string.source_deleting_from_server), source.getAccountName());		
+	}	
 	
 	/**
 	 * Email the source key to someone.
@@ -211,6 +228,11 @@ public class SourceEditor extends Activity
 						
 						// And exit this activity.
 						thisActivity.finish();
+					}
+					else if( operation.equals("test") )
+					{
+						// The server has been asked to test us.
+						Toast.makeText(thisActivity, getString(R.string.source_test_success), Toast.LENGTH_SHORT).show();
 					}
 				}
 				catch( JSONException e )
