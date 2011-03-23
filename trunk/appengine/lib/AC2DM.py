@@ -5,6 +5,7 @@ import urllib
 from model.UserDevice import UserDevice
 from model.AC2DMAuthToken import AC2DMAuthToken
 from google.appengine.api.urlfetch import fetch
+from google.appengine.api import mail
 
 class AC2DM:
 	def __init__(self, token):
@@ -117,6 +118,10 @@ class AC2DM:
 		for device in devices:
 			self.send(message, device)
 
+		message.deliveredToGoogle = True
+		message.lastDeliveryAttempt = datetime.datetime.now()
+		message.put()
+
 	def send(self, message, device):
 		# Prepare for our request.
 		params = {}
@@ -138,16 +143,15 @@ class AC2DM:
 		if result.status_code == 200:
 			# Success!
 			# The result body is a queue id. Store it.
-			message.googleQueueId = result.content.strip()
-			message.deliveredToGoogle = True
-			message.lastDeliveryAttempt = datetime.datetime.now()
+			message.googleQueueIds.append(str(device.key().id()) + ": " + result.content.strip())
 			message.put()
 			return True
 		else:
 			# Failed to send. Log the error message.
-			message.lastDeliveryAttempt = datetime.datetime.now()
-			message.deliveredToGoogle = False
 			message.put()
+			errorMessage = 'Unable to send message ' + message.key().id() + ' to Google: Status code ' + str(result.status_code) + ' body ' + result.content
+			logging.error(errorMessage)
 
-			logging.error('Unable to send message ' + message.key().id() + ' to Google: Status code ' + str(result.status_code) + ' body ' + result.content)
+			# During BETA testing, send me an email when this fails.
+			mail.send_mail(sender="Daniel Foote <freefoote@gmail.com>", to="Daniel Foote <freefoote@gmail.com>", subject="Error sending message", body=errorMessage)
 			return False

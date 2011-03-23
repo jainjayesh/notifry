@@ -341,6 +341,12 @@ class notifry:
 			renderer.addData('error', 'No source matches the key ' + str(input.source))
 			return renderer.render('apionly.html')
 
+		# If the source is server disabled, let the calling sysadmin know.
+		# TODO: Is this an information leak?
+		if not source.enabled:
+			renderer.addData('error', 'User has this source disabled on the server.')
+			return renderer.render('apionly.html')
+
 		# Create the message object.
 		message = UserMessage()
 		message.source = source
@@ -352,17 +358,20 @@ class notifry:
 		message.deliveredToGoogle = False
 		message.lastDeliveryAttempt = None
 		message.sourceIp = web.ctx.ip
+
+		if not message.checksize():
+			# Too big! We've done our best, but...
+			renderer.addData('error', 'Your message is too big. The title and URL were too long and the message could not be trimmed to fit. Maximum size is nearly 1024 bytes.')
+			return renderer.render('apionly.html')
+
 		message.put()
 
-		# TODO: Check it's not all bigger than 1024 bytes all up.
-		# And handle the edge cases associated with that.
-
 		# Now that it's saved, send it to Google.
-		# TODO: This doesn't handle messages correctly.
 		sender = AC2DM.factory()
 		sender.send_to_all(message)
 
 		renderer.addData('message', message)
+		renderer.addData('size', message.getsize())
 		return renderer.render('apionly.html')
 
 # Messages - list of messages in the system.
