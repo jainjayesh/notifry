@@ -159,8 +159,8 @@ public class SourceEditor extends Activity
 		request.addMeta("source", getSource());
 		request.setHandler(handler);
 		
-		request.startInThread(this, getString(R.string.source_deleting_from_server), source.getAccountName());		
-	}	
+		request.startInThread(this, getString(R.string.source_testing_with_server), source.getAccountName());		
+	}
 	
 	/**
 	 * Email the source key to someone.

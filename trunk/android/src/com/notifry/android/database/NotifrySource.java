@@ -43,6 +43,21 @@ public class NotifrySource extends ORM<NotifrySource>
 	private String sourceKey = null;
 	private Boolean serverEnabled = null;
 	private Boolean localEnabled = null;
+	
+	/**
+	 * Get the notification ID.
+	 * This is the local source ID as an integer.
+	 * @return
+	 */
+	public int getNotificationId()
+	{
+		// Yes, this casting will potentially lose precision. But unless
+		// you've created a lot of local sources, you're unlikely to run
+		// into it. If you run into this in production, please let me know.
+		Long sourceId = this.getId();
+		int notifyId = (int)(sourceId % Integer.MAX_VALUE);
+		return notifyId;
+	}
 
 	public String getAccountName()
 	{

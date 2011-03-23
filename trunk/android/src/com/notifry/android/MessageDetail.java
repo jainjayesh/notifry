@@ -18,7 +18,6 @@
 
 package com.notifry.android;
 
-import com.notifry.android.database.NotifryDatabaseAdapter;
 import com.notifry.android.database.NotifryMessage;
 
 import android.app.Activity;
@@ -45,6 +44,12 @@ public class MessageDetail extends Activity
 		super.onResume();
 		
 		this.loadFromMessage(this.getMessage());
+		
+		// Clear the notification.
+		Intent intentData = new Intent(getBaseContext(), NotificationService.class);
+		intentData.putExtra("operation", "clear");
+		intentData.putExtra("sourceId", this.getMessage().getSource().getId());
+		startService(intentData);		
 	}
 	
 	/**
@@ -59,9 +64,8 @@ public class MessageDetail extends Activity
 		TextView source = (TextView) findViewById(R.id.message_detail_source);
 		source.setText(message.getSource().getTitle());
 
-		// TODO: Display in the local timezone.
 		TextView timestamp = (TextView) findViewById(R.id.message_detail_timestamp);
-		timestamp.setText(message.getTimestamp());
+		timestamp.setText(message.getDisplayTimestamp());
 
 		TextView url = (TextView) findViewById(R.id.message_detail_url);
 		if( message.getUrl() != null )

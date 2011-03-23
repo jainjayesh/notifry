@@ -29,6 +29,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Typeface;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -61,6 +62,15 @@ public class MessageList extends ListActivity
 
 		// When coming back, refresh our list of messages.
 		refreshView();
+		
+		// And tell the notification service to clear the notification.
+		if( this.getSource() != null )
+		{
+			Intent intentData = new Intent(getBaseContext(), NotificationService.class);
+			intentData.putExtra("operation", "clear");
+			intentData.putExtra("sourceId", this.getSource().getId());
+			startService(intentData);
+		}
 	}
 
 	/**

@@ -26,9 +26,9 @@
     	<service android:name="com.notifry.android.SpeakService" android:exported="false"></service>
     	<service android:name=".C2DMReceiver" />
     	
-    	<provider android:name="com.notifry.android.database.NotifryDatabaseAdapter" android:authorities="com.notifry.android.provider.NotifryAccounts" />
-    	<provider android:name="com.notifry.android.database.NotifryDatabaseAdapter" android:authorities="com.notifry.android.provider.NotifrySources" />
-    	<provider android:name="com.notifry.android.database.NotifryDatabaseAdapter" android:authorities="com.notifry.android.provider.NotifryMessages" />
+    	<provider android:name="com.notifry.android.database.NotifryDatabaseAdapter" android:authorities="com.notifry.android.provider.NotifryAccounts" android:exported="false" />
+    	<provider android:name="com.notifry.android.database.NotifryDatabaseAdapter" android:authorities="com.notifry.android.provider.NotifrySources" android:exported="false" />
+    	<provider android:name="com.notifry.android.database.NotifryDatabaseAdapter" android:authorities="com.notifry.android.provider.NotifryMessages" android:exported="false" />
     	
 		<receiver android:name="com.notifry.android.WidgetReciever">
 			<intent-filter>

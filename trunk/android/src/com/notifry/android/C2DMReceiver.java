@@ -70,6 +70,7 @@ public class C2DMReceiver extends C2DMBaseReceiver
 			// dispatch and handle everything else.
 			Intent intentData = new Intent(getBaseContext(), NotificationService.class);
 			intentData.putExtra("messageId", message.getId());
+			intentData.putExtra("operation", "notifry");
 			startService(intentData);
 		}
 		else if( type.equals("refreshall") )
