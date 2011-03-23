@@ -17,7 +17,7 @@ class UserSource(db.Model):
 		self.generate_key()
 
 	def generate_key(self):
-		random_key = str(datetime.datetime.now()) + str(random.random()) + "salt for good measure and a healthy heart"
+		random_key = str(random.random()) + str(datetime.datetime.now()) + str(random.random()) + "salt for good measure and a healthy heart"
 		digest = hashlib.md5(random_key).hexdigest()
 		self.externalKey = digest
 
