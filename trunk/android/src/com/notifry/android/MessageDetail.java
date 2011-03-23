@@ -47,7 +47,7 @@ public class MessageDetail extends Activity
 		
 		// Clear the notification.
 		Intent intentData = new Intent(getBaseContext(), NotificationService.class);
-		intentData.putExtra("operation", "clear");
+		intentData.putExtra("operation", "update");
 		intentData.putExtra("sourceId", this.getMessage().getSource().getId());
 		startService(intentData);		
 	}

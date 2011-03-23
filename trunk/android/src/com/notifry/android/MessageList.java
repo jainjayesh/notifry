@@ -67,7 +67,7 @@ public class MessageList extends ListActivity
 		if( this.getSource() != null )
 		{
 			Intent intentData = new Intent(getBaseContext(), NotificationService.class);
-			intentData.putExtra("operation", "clear");
+			intentData.putExtra("operation", "update");
 			intentData.putExtra("sourceId", this.getSource().getId());
 			startService(intentData);
 		}

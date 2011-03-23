@@ -52,6 +52,46 @@ public class NotificationService extends Service
 		// Fetch out our notification service.
 		this.notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
 	}
+	
+	public Notification setLatestEventInfo( NotifrySource source, NotifryMessage message )
+	{
+		int icon = R.drawable.icon_statusbar;
+		long when = System.currentTimeMillis(); // TODO - make this the timestamp on the message?
+		Notification notification = new Notification(icon, getString(R.string.app_name), when);		
+		
+		int unreadMessagesOfType = 0;
+		Context context = getApplicationContext();
+		String contentTitle = "";
+		String contentText = "";
+
+		unreadMessagesOfType = NotifryMessage.FACTORY.countUnread(this, source); 		
+
+		if( unreadMessagesOfType == 1 && message != null )
+		{
+			// Only one message of this type. Set the title to be the message's title, and then
+			// content to be the message itself.
+			contentTitle = message.getTitle();
+			contentText = message.getMessage();
+		}
+		else
+		{
+			// More than one message. Instead, the title is the source name,
+			// and the content is the number of unseen messages.
+			contentTitle = message.getSource().getTitle();
+			contentText = String.format("%d unseen messages", unreadMessagesOfType);
+		}
+
+		// Generate the intent to go to that message list.
+		// TODO: Maybe go to the message if just one message?
+		Intent notificationIntent = new Intent(this, MessageList.class);
+		notificationIntent.putExtra("sourceId", message.getSource().getId());
+		PendingIntent contentIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0);
+
+		// Set the notification data.
+		notification.setLatestEventInfo(context, contentTitle, contentText, contentIntent);
+		
+		return notification;
+	}
 
 	public void onStart( Intent intent, int startId )
 	{
@@ -60,7 +100,7 @@ public class NotificationService extends Service
 		// Determine our action.
 		String operation = intent.getStringExtra("operation");
 		
-		if( operation == null || operation.equals("notifry") )
+		if( operation.equals("notifry") )
 		{
 			// Is the master enable off? Then don't bother doing anything.
 			SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
@@ -72,13 +112,8 @@ public class NotificationService extends Service
 	
 			// We were provided with a message ID. Load it and then handle it.
 			Long messageId = intent.getLongExtra("messageId", 0);
-			int unreadMessagesOfType = 0;
 			
 			NotifryMessage message = NotifryMessage.FACTORY.get(this, messageId); 
-			if( message != null )
-			{
-				unreadMessagesOfType = NotifryMessage.FACTORY.countUnread(this, message.getSource()); 
-			}
 			
 			// If the message is NULL, then we've been passed an invalid message - return.
 			if( message == null )
@@ -93,36 +128,7 @@ public class NotificationService extends Service
 			if( decision.getShouldNotify() )
 			{
 				// Ok, let's start notifying!
-				int icon = R.drawable.icon_statusbar;
-				long when = System.currentTimeMillis(); // TODO - make this the timestamp on the message.
-				Notification notification = new Notification(icon, getString(R.string.app_name), when);
-				
-				Context context = getApplicationContext();
-				String contentTitle = "";
-				String contentText = "";
-				
-				if( unreadMessagesOfType == 1 )
-				{
-					// Only one message of this type. Set the title to be the message's title, and then
-					// content to be the message itself.
-					contentTitle = message.getTitle();
-					contentText = message.getMessage();
-				}
-				else
-				{
-					// More than one message. Instead, the title is the source name,
-					// and the content is the number of unseen messages.
-					contentTitle = message.getSource().getTitle();
-					contentText = String.format("%d unseen messages", unreadMessagesOfType);
-				}
-	
-				// Generate the intent to go to that message list.
-				Intent notificationIntent = new Intent(this, MessageList.class);
-				notificationIntent.putExtra("sourceId", message.getSource().getId());
-				PendingIntent contentIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0);
-	
-				// Set the notification data.
-				notification.setLatestEventInfo(context, contentTitle, contentText, contentIntent);
+				Notification notification = this.setLatestEventInfo(message.getSource(), message);
 				
 				// Now, other notification methods.
 				if( settings.getBoolean(getString(R.string.playRingtone), true) )
@@ -175,7 +181,7 @@ public class NotificationService extends Service
 				}
 			}
 		}
-		else if( operation.equals("clear") )
+		else if( operation.equals("update") )
 		{
 			// Clear the notifications for a given source - if there are no unread messages.
 			NotifrySource source = NotifrySource.FACTORY.get(this, intent.getLongExtra("sourceId", 0));
