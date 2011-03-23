@@ -63,10 +63,7 @@ public class UpdaterService extends Service
 		{
 			// We want to update our registration key with the server.
 			// Get a list of accounts. We need to send it to any enabled ones on the backend.
-			NotifryDatabaseAdapter database = new NotifryDatabaseAdapter(this);
-			database.open();
-			ArrayList<NotifryAccount> accounts = database.listAccounts();
-			database.close();
+			ArrayList<NotifryAccount> accounts = NotifryAccount.FACTORY.listAll(this); 
 			
 			String newRegistration = intent.getExtras().getString("registration");
 
@@ -97,10 +94,7 @@ public class UpdaterService extends Service
 			// Where to come back when we're done.
 			request.setHandler(handler);
 			
-			NotifryDatabaseAdapter database = new NotifryDatabaseAdapter(this);
-			database.open();
-			NotifryAccount account = database.getAccountByServerId(serverDeviceId);
-			database.close();
+			NotifryAccount account = NotifryAccount.FACTORY.getByServerId(this, serverDeviceId); 
 
 			// Start a thread to make the request.
 			// But if there was no account to match that device, don't bother.
@@ -142,16 +136,14 @@ public class UpdaterService extends Service
 					{
 						// We were fetching a new or updated source from the server.
 						// Open the database and save it.
-						NotifryDatabaseAdapter database = new NotifryDatabaseAdapter(thisService);
-						database.open();
 						
 						Long accountId = (Long) request.getMeta("account_id");
-						NotifryAccount account = database.getAccountByServerId(accountId);
+						NotifryAccount account = NotifryAccount.FACTORY.getByServerId(thisService, accountId);
 						
 						Long sourceId = (Long) request.getMeta("source_id");
 						
 						// Try and get an existing source from our database.
-						NotifrySource source = database.getSourceByServerId(sourceId);
+						NotifrySource source = NotifrySource.FACTORY.getByServerId(thisService, sourceId);
 						if( source == null )
 						{
 							// New object!
@@ -163,8 +155,7 @@ public class UpdaterService extends Service
 						source.fromJSONObject(response.getJSON().getJSONObject("source"));
 						source.setAccountName(account.getAccountName());
 
-						database.saveSource(source);
-						database.close();
+						source.save(thisService);
 						
 						Log.d(TAG, "Created/updated source based on server request: local " + source.getId() + " remote: " + sourceId);
 					}

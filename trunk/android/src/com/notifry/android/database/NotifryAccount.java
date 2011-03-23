@@ -18,32 +18,31 @@
 
 package com.notifry.android.database;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 
 import com.notifry.android.remote.BackendRequest;
 
+import android.accounts.Account;
+import android.accounts.AccountManager;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.pm.PackageManager.NameNotFoundException;
+import android.database.Cursor;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Handler;
+import android.util.Log;
 
-public class NotifryAccount
+public class NotifryAccount extends ORM<NotifryAccount>
 {
-	private Long id = null;
+	public final static NotifryAccount FACTORY = new NotifryAccount();
+	
 	private String accountName = null;
 	private Long serverRegistrationId = null;
 	private Boolean enabled = null;
 	private Boolean requiresSync = true;
-
-	public Long getId()
-	{
-		return id;
-	}
-
-	public void setId( Long id )
-	{
-		this.id = id;
-	}
 
 	public String getAccountName()
 	{
@@ -141,5 +140,114 @@ public class NotifryAccount
 		
 		// Start a thread to make the request.
 		request.startInThread(context, statusMessage, this.getAccountName());
+	}
+	
+	public ArrayList<NotifryAccount> listAll( Context context )
+	{
+		return NotifryAccount.FACTORY.genericList(context, null, null, NotifryDatabaseAdapter.KEY_ACCOUNT_NAME + " ASC");
+	}	
+	
+	public NotifryAccount getByAccountName( Context context, String accountName )
+	{
+		return this.getOne(context, NotifryDatabaseAdapter.KEY_ACCOUNT_NAME + "=?", new String[] { accountName });
+	}
+	
+	public NotifryAccount getByServerId( Context context, Long serverId )
+	{
+		return this.getOne(context, NotifryDatabaseAdapter.KEY_SERVER_REGISTRATION_ID + "=" + serverId, null);
+	}
+	
+	public void deleteByAccountName( Context context, String accountName )
+	{
+		this.genericDelete(context, NotifryDatabaseAdapter.KEY_ACCOUNT_NAME + "= ?", new String[] { accountName });
+	}
+	
+	/**
+	 * Sync the account list with our own copy, adding new ones as needed.
+	 * @param accountManager
+	 */
+	public void syncAccountList( Context context, AccountManager accountManager )
+	{
+		Account[] accounts = accountManager.getAccountsByType("com.google");
+		
+		HashSet<String> seenAccounts = new HashSet<String>();
+		
+		for( int i = 0; i < accounts.length; i++ )
+		{
+			NotifryAccount account = NotifryAccount.FACTORY.getByAccountName(context, accounts[i].name);
+			
+			if( account == null )
+			{
+				// Can't find it. Create one.
+				account = new NotifryAccount();
+				account.setEnabled(false); // Disabled by default.
+				account.setAccountName(accounts[i].name);
+				account.save(context);
+			}
+			
+			seenAccounts.add(accounts[i].name);
+		}
+		
+		// List all accounts, and add them to a list of accounts in the database.
+		ArrayList<NotifryAccount> allAccounts = NotifryAccount.FACTORY.listAll(context);
+		HashSet<String> localAccounts = new HashSet<String>();
+		
+		for( NotifryAccount account: allAccounts )
+		{
+			localAccounts.add(account.getAccountName());
+		}
+		
+		// Intersect the sets, and remove any accounts as appropriate.
+		localAccounts.removeAll(seenAccounts);
+		
+		// Now remove anything in local accounts that should not be there.
+		for( String accountName: localAccounts )
+		{
+			NotifryAccount.FACTORY.deleteByAccountName(context, accountName);
+		}
+		
+		// And we're finally complete!
+	}	
+
+	@Override
+	public Uri getContentUri()
+	{
+		return NotifryDatabaseAdapter.CONTENT_URI_ACCOUNTS;
+	}
+
+	@Override
+	protected ContentValues flatten()
+	{
+		ContentValues values = new ContentValues();
+		values.put(NotifryDatabaseAdapter.KEY_ACCOUNT_NAME, this.getAccountName());
+		values.put(NotifryDatabaseAdapter.KEY_ENABLED, this.getEnabled() ? 1 : 0);
+		values.put(NotifryDatabaseAdapter.KEY_SERVER_REGISTRATION_ID, this.getServerRegistrationId());
+		values.put(NotifryDatabaseAdapter.KEY_REQUIRES_SYNC, this.getRequiresSync() ? 1 : 0);
+		
+		return values;
+	}
+
+	@Override
+	protected NotifryAccount inflate( Context context, Cursor cursor )
+	{
+		NotifryAccount account = new NotifryAccount();
+		account = new NotifryAccount();
+		account.setAccountName(cursor.getString(cursor.getColumnIndex(NotifryDatabaseAdapter.KEY_ACCOUNT_NAME)));
+		account.setId(cursor.getLong(cursor.getColumnIndex(NotifryDatabaseAdapter.KEY_ID)));
+		account.setEnabled(cursor.getLong(cursor.getColumnIndex(NotifryDatabaseAdapter.KEY_ENABLED)) == 0 ? false : true);
+		account.setServerRegistrationId(cursor.getLong(cursor.getColumnIndex(NotifryDatabaseAdapter.KEY_SERVER_REGISTRATION_ID)));
+		account.setRequiresSync(cursor.getLong(cursor.getColumnIndex(NotifryDatabaseAdapter.KEY_REQUIRES_SYNC)) == 0 ? false : true);
+		
+		if( account.getServerRegistrationId() == 0 )
+		{
+			account.setServerRegistrationId(null);
+		}
+		return account;
+	}
+
+	@Override
+	protected String[] getProjection()
+	{
+		return NotifryDatabaseAdapter.ACCOUNT_PROJECTION;
 	}
 }

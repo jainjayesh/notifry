@@ -14,25 +14,54 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ * 
+ * Excellent writeup of content providers:
+ * http://www.devx.com/wireless/Article/41133/1763/page/1
  */
 
 package com.notifry.android.database;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-
-import android.accounts.Account;
-import android.accounts.AccountManager;
+import android.content.ContentProvider;
+import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.UriMatcher;
 import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.util.Log;
+import android.database.sqlite.SQLiteQueryBuilder;
+import android.net.Uri;
 
-public class NotifryDatabaseAdapter
+public class NotifryDatabaseAdapter extends ContentProvider
 {
+	public static final String PROVIDER_NAME_ACCOUNTS = "com.notifry.android.provider.NotifryAccounts";
+	public static final String PROVIDER_NAME_SOURCES = "com.notifry.android.provider.NotifrySources";
+	public static final String PROVIDER_NAME_MESSAGES = "com.notifry.android.provider.NotifryMessages";
+	
+	public static final Uri CONTENT_URI_ACCOUNTS = Uri.parse("content://"+ PROVIDER_NAME_ACCOUNTS + "/accounts");
+    public static final Uri CONTENT_URI_SOURCES = Uri.parse("content://"+ PROVIDER_NAME_SOURCES + "/sources");
+    public static final Uri CONTENT_URI_MESSAGES = Uri.parse("content://"+ PROVIDER_NAME_MESSAGES + "/messages");
+    
+    private static final int ACCOUNTS = 1;
+    private static final int ACCOUNT_ID = 2;
+    private static final int SOURCES = 3;
+    private static final int SOURCE_ID = 4;
+    private static final int MESSAGES = 5;
+    private static final int MESSAGE_ID = 6;    
+    
+    private static final UriMatcher uriMatcher;
+    static
+    {
+    	uriMatcher = new UriMatcher(UriMatcher.NO_MATCH);
+    	uriMatcher.addURI(PROVIDER_NAME_ACCOUNTS, "accounts", ACCOUNTS);
+    	uriMatcher.addURI(PROVIDER_NAME_ACCOUNTS, "accounts/#", ACCOUNT_ID);
+    	uriMatcher.addURI(PROVIDER_NAME_SOURCES, "sources", SOURCES);
+    	uriMatcher.addURI(PROVIDER_NAME_SOURCES, "sources/#", SOURCE_ID);
+    	uriMatcher.addURI(PROVIDER_NAME_MESSAGES, "messages", MESSAGES);
+    	uriMatcher.addURI(PROVIDER_NAME_MESSAGES, "messages/#", MESSAGE_ID);
+    }
+	
 	private static final String TAG = "Notifry";
 	public static final String KEY_ID = "_id";
 	public static final String KEY_ACCOUNT_NAME = "account_name";
@@ -55,7 +84,6 @@ public class NotifryDatabaseAdapter
 	public static final String[] SOURCE_PROJECTION = new String[] { KEY_ID, KEY_ACCOUNT_NAME, KEY_CHANGE_TIMESTAMP, KEY_TITLE, KEY_SERVER_ID, KEY_SOURCE_KEY, KEY_SERVER_ENABLED, KEY_LOCAL_ENABLED };
 	public static final String[] MESSAGE_PROJECTION = new String[] { KEY_ID, KEY_SOURCE_ID, KEY_TIMESTAMP, KEY_TITLE, KEY_MESSAGE, KEY_URL, KEY_SERVER_ID, KEY_SEEN };	
 
-	private DatabaseHelper dbHelper;
 	private SQLiteDatabase db;
 
 	private static final String DATABASE_CREATE_ACCOUNTS = "create table accounts (_id integer primary key autoincrement, " +
@@ -92,8 +120,6 @@ public class NotifryDatabaseAdapter
 
 	private static final int DATABASE_VERSION = 1;
 
-	private final Context context;
-
 	/**
 	 * Database helper class to create and manage the schema.
 	 */
@@ -118,648 +144,159 @@ public class NotifryDatabaseAdapter
 			// Not implemented. Here for when needed in the future.
 		}
 	}
-
-	/**
-	 * Create a new adapter.
-	 * 
-	 * @param context
-	 */
-	public NotifryDatabaseAdapter( Context context )
+	
+	@Override
+	public String getType( Uri uri )
 	{
-		this.context = context;
-	}
-
-	/**
-	 * Open the database.
-	 * 
-	 * @return
-	 * @throws SQLException
-	 */
-	public NotifryDatabaseAdapter open() throws SQLException
-	{
-		this.dbHelper = new DatabaseHelper(this.context);
-		this.db = this.dbHelper.getWritableDatabase();
-		/*this.db.beginTransaction();
-		try
+		switch( uriMatcher.match(uri) )
 		{
-			throw new Exception("stop");
+			// Get all accounts.
+			case ACCOUNTS:
+				return "vnd.android.cursor.dir/vnd.notifry.accounts";
+			// Get a single account.
+			case ACCOUNT_ID:
+				return "vnd.android.cursor.item/vnd.notifry.accounts";
+			// Get all accounts.
+			case SOURCES:
+				return "vnd.android.cursor.dir/vnd.notifry.sources";
+			// Get a single account.
+			case SOURCE_ID:
+				return "vnd.android.cursor.item/vnd.notifry.sources";
+				// Get all accounts.
+			case MESSAGES:
+				return "vnd.android.cursor.dir/vnd.notifry.messages";
+			// Get a single account.
+			case MESSAGE_ID:
+				return "vnd.android.cursor.item/vnd.notifry.messages";				
+			default:
+				throw new IllegalArgumentException("Unsupported URI: " + uri);
 		}
-		catch( Exception ex )
-		{
-			StackTraceElement[] stack = ex.getStackTrace();
-			Log.d(TAG, "Open: " + stack[1].getClassName() + ':' + stack[1].getLineNumber());
-		}*/
-		return this;
-	}
-
-	/**
-	 * Close the database.
-	 */
-	public void close()
-	{
-		//db.setTransactionSuccessful();
-		db.close();
-		dbHelper.close();
-		
-		/*try
-		{
-			throw new Exception("stop");
-		}
-		catch( Exception ex )
-		{
-			StackTraceElement[] stack = ex.getStackTrace();
-			Log.d(TAG, "Close: " + stack[1].getClassName() + ':' + stack[1].getLineNumber());
-		}*/		
-	}
-
-	/**
-	 * Sync the account list with our own copy, adding new ones as needed.
-	 * @param accountManager
-	 */
-	public void syncAccountList( AccountManager accountManager )
-	{
-		Account[] accounts = accountManager.getAccountsByType("com.google");
-		
-		HashSet<String> seenAccounts = new HashSet<String>();
-		
-		for( int i = 0; i < accounts.length; i++ )
-		{
-			NotifryAccount account = this.getAccountByName(accounts[i].name);
-			
-			if( account == null )
-			{
-				// Can't find it. Create one.
-				account = new NotifryAccount();
-				account.setEnabled(false); // Disabled by default.
-				account.setAccountName(accounts[i].name);
-				this.saveAccount(account);
-				
-				seenAccounts.add(accounts[i].name);
-			}
-		}
-		
-		// List all accounts, and add them to a list of accounts in the database.
-		ArrayList<NotifryAccount> allAccounts = this.listAccounts();
-		HashSet<String> localAccounts = new HashSet<String>();
-		
-		for( NotifryAccount account: allAccounts )
-		{
-			localAccounts.add(account.getAccountName());
-		}
-		
-		// Intersect the sets, and remove any accounts as appropriate.
-		localAccounts.removeAll(seenAccounts);
-		
-		// Now remove anything in local accounts that should not be there.
-		for( String accountName: localAccounts )
-		{
-			this.deleteAccountByName(accountName);
-		}
-		
-		// And we're finally complete!
 	}
 	
-	/**
-	 * List all the accounts in our database. This is not especially efficient, but you're only likely
-	 * to have a few accounts on the phone.
-	 * @return
-	 */
-	public ArrayList<NotifryAccount> listAccounts()
+	@Override
+	public boolean onCreate()
 	{
-		ArrayList<NotifryAccount> result = new ArrayList<NotifryAccount>();
-
-		Cursor cursor = db.query(DATABASE_TABLE_ACCOUNTS, ACCOUNT_PROJECTION, null, null, null, null, null);
-		
-		if( cursor != null )
-		{
-			while( cursor.moveToNext() )
-			{
-				result.add(this.inflateAccountFromCursor(cursor));
-			}
-			
-			cursor.close();
-		}
-		
-		return result;
-	}
-
-	/**
-	 * Helper function to inflate a NotifryAccount object from a database cursor.
-	 * @param cursor
-	 * @return
-	 */
-	private NotifryAccount inflateAccountFromCursor( Cursor cursor )
-	{
-		NotifryAccount account = new NotifryAccount();
-		account = new NotifryAccount();
-		account.setAccountName(cursor.getString(cursor.getColumnIndex(KEY_ACCOUNT_NAME)));
-		account.setId(cursor.getLong(cursor.getColumnIndex(KEY_ID)));
-		account.setEnabled(cursor.getLong(cursor.getColumnIndex(KEY_ENABLED)) == 0 ? false : true);
-		account.setServerRegistrationId(cursor.getLong(cursor.getColumnIndex(KEY_SERVER_REGISTRATION_ID)));
-		account.setRequiresSync(cursor.getLong(cursor.getColumnIndex(KEY_REQUIRES_SYNC)) == 0 ? false : true);
-		
-		if( account.getServerRegistrationId() == 0 )
-		{
-			account.setServerRegistrationId(null);
-		}
-		return account;
-	}
-
-	/**
-	 * Get an account object from an account name.
-	 * 
-	 * @param name The account name to find.
-	 * @return An inflated NotifryAccount object, or NULL if not found.
-	 */
-	public NotifryAccount getAccountByName( String name )
-	{
-		NotifryAccount account = null;
-
-		Cursor cursor = db.query(true, DATABASE_TABLE_ACCOUNTS, ACCOUNT_PROJECTION, KEY_ACCOUNT_NAME + "= ?", new String[] { name }, null, null, null, null);
-
-		if( cursor != null )
-		{
-			cursor.moveToFirst();
-			if( cursor.getCount() != 0 )
-			{
-				account = this.inflateAccountFromCursor(cursor);
-			}
-			cursor.close();
-		}
-
-		return account;
+		Context context = getContext();
+		DatabaseHelper dbHelper = new DatabaseHelper(context);
+		db = dbHelper.getWritableDatabase();
+		return (db == null) ? false : true;
 	}
 	
-	/**
-	 * Get an account from an ID.
-	 * @param id The local ID of the account to fetch.
-	 * @return An inflated account object, or NULL if not found.
-	 */
-	public NotifryAccount getAccountById( Long id )
+	private String getTableFor( Uri uri )
 	{
-		NotifryAccount account = null;
-
-		if (id != null)
+		switch( uriMatcher.match(uri) )
 		{
-			Cursor cursor = db.query(true, DATABASE_TABLE_ACCOUNTS, ACCOUNT_PROJECTION, KEY_ID + "=" + id, null, null, null, null, null);
-
-			if( cursor != null )
-			{
-				cursor.moveToFirst();
-				if( cursor.getCount() != 0 )
-				{
-					account = this.inflateAccountFromCursor(cursor);
-				}
-				cursor.close();
-			}
+			case ACCOUNTS:
+			case ACCOUNT_ID:
+				return DATABASE_TABLE_ACCOUNTS;
+			case SOURCES:
+			case SOURCE_ID:
+				return DATABASE_TABLE_SOURCES;
+			case MESSAGES:
+			case MESSAGE_ID:
+				return DATABASE_TABLE_MESSAGES;
+			default:
+				throw new IllegalArgumentException("Unsupported URI: " + uri);
 		}
-
-		return account;
 	}
 	
-	/**
-	 * Get an account from a server ID.
-	 * @param id The server ID of the account to fetch.
-	 * @return An inflated account object, or NULL if not found.
-	 */
-	public NotifryAccount getAccountByServerId( Long id )
+	private Uri getContentUriFor( Uri uri )
 	{
-		NotifryAccount account = null;
-
-		if (id != null)
+		switch( uriMatcher.match(uri) )
 		{
-			Cursor cursor = db.query(true, DATABASE_TABLE_ACCOUNTS, ACCOUNT_PROJECTION, KEY_SERVER_REGISTRATION_ID + "=" + id, null, null, null, null, null);
-
-			if( cursor != null )
-			{
-				cursor.moveToFirst();
-				if( cursor.getCount() != 0 )
-				{
-					account = this.inflateAccountFromCursor(cursor);
-				}
-				cursor.close();
-			}
-		}
-
-		return account;
-	}	
-	
-	/**
-	 * Save the provided account object into the database.
-	 * @param account
-	 * @return
-	 */
-	public NotifryAccount saveAccount( NotifryAccount account )
-	{
-		ContentValues values = new ContentValues();
-		values.put(KEY_ACCOUNT_NAME, account.getAccountName());
-		values.put(KEY_ENABLED, account.getEnabled() ? 1 : 0);
-		values.put(KEY_SERVER_REGISTRATION_ID, account.getServerRegistrationId());
-		values.put(KEY_REQUIRES_SYNC, account.getRequiresSync() ? 1 : 0);
-		
-		if( account.getId() == null)
-		{
-			// New object.
-			account.setId(db.insert(DATABASE_TABLE_ACCOUNTS, null, values));
-		}
-		else
-		{
-			// Update the existing object.
-			db.update(DATABASE_TABLE_ACCOUNTS, values, KEY_ID + "=" + account.getId(), null);
-		}
-		
-		return account;
-	}
-	
-	/**
-	 * Delete a given account from the database.
-	 * @param source
-	 */
-	public void deleteAccount( NotifryAccount account )
-	{
-		db.delete(DATABASE_TABLE_SOURCES, KEY_ID + "=" + account.getId(), null);
-	}
-	
-	/**
-	 * Delete a given account from the database.
-	 * @param source
-	 */
-	public void deleteAccountByName( String accountName )
-	{
-		db.delete(DATABASE_TABLE_SOURCES, KEY_ACCOUNT_NAME + "= ?", new String[] { accountName });
-	}	
-	
-	/**
-	 * List all the sources in our database. This is not especially efficient.
-	 * @return
-	 */
-	public ArrayList<NotifrySource> listSources( String accountName )
-	{
-		ArrayList<NotifrySource> result = new ArrayList<NotifrySource>();
-		
-		Cursor cursor = db.query(
-				DATABASE_TABLE_SOURCES,
-				SOURCE_PROJECTION,
-				KEY_ACCOUNT_NAME + "= ?", new String[] { accountName },
-				null, null, null);
-
-		if( cursor != null )
-		{
-			while( cursor.moveToNext() )
-			{
-				result.add(this.inflateSourceFromCursor(cursor));
-			}
-			
-			cursor.close();
-		}
-		
-		return result;
-	}
-	
-	/**
-	 * List all the sources in our database. This is not especially efficient.
-	 * @return
-	 */
-	public void debugListSources()
-	{	
-		Cursor cursor = db.query(
-				DATABASE_TABLE_SOURCES,
-				SOURCE_PROJECTION,
-				null, null,
-				null, null, null);
-
-		if( cursor != null )
-		{
-			while( cursor.moveToNext() )
-			{
-				NotifrySource source = this.inflateSourceFromCursor(cursor);
-				Log.d(TAG, "Got a source...");
-				Log.d(TAG, "* ID: " + source.getId());
-				Log.d(TAG, "* Title: " + source.getTitle());
-				Log.d(TAG, "* Server ID: " + source.getServerId());
-				Log.d(TAG, "* Account: " + source.getAccountName());
-			}
-			
-			cursor.close();
+			case ACCOUNTS:
+			case ACCOUNT_ID:
+				return CONTENT_URI_ACCOUNTS;
+			case SOURCES:
+			case SOURCE_ID:
+				return CONTENT_URI_SOURCES;
+			case MESSAGES:
+			case MESSAGE_ID:
+				return CONTENT_URI_MESSAGES;
+			default:
+				throw new IllegalArgumentException("Unsupported URI: " + uri);
 		}
 	}	
 	
-	/**
-	 * List all the sources in our database. This is not especially efficient.
-	 * @return
-	 */
-	public HashSet<Long> sourceIdSet( String accountName )
+	@Override
+	public Cursor query( Uri uri, String[] projection, String selection, String[] selectionArgs, String sortOrder )
 	{
-		HashSet<Long> idSet = new HashSet<Long>();
+		SQLiteQueryBuilder sqlBuilder = new SQLiteQueryBuilder();
 		
-		Cursor cursor = db.query(
-				DATABASE_TABLE_SOURCES,
-				new String[] { KEY_ID },
-				KEY_ACCOUNT_NAME + "= ?", new String[] { accountName },
-				null, null, null);
-
-		if( cursor != null )
+		// Choose the table.
+		sqlBuilder.setTables(this.getTableFor(uri));
+		
+		// If it's a single ID matcher, limit to a single 
+		switch( uriMatcher.match(uri) )
 		{
-			while( cursor.moveToNext() )
-			{
-				idSet.add(cursor.getLong(cursor.getColumnIndex(KEY_ID)));
-			}
-			
-			cursor.close();
-		}
-		
-		return idSet;
-	}	
-
-	/**
-	 * Helper function to inflate a NotifrySource object from a database cursor.
-	 * @param cursor
-	 * @return
-	 */
-	private NotifrySource inflateSourceFromCursor( Cursor cursor )
-	{
-		NotifrySource source = new NotifrySource();
-		source.setAccountName(cursor.getString(cursor.getColumnIndex(KEY_ACCOUNT_NAME)));
-		source.setId(cursor.getLong(cursor.getColumnIndex(KEY_ID)));
-		source.setServerEnabled(cursor.getLong(cursor.getColumnIndex(KEY_SERVER_ENABLED)) == 0 ? false : true);
-		source.setLocalEnabled(cursor.getLong(cursor.getColumnIndex(KEY_LOCAL_ENABLED)) == 0 ? false : true);
-		source.setServerId(cursor.getLong(cursor.getColumnIndex(KEY_SERVER_ID)));
-		source.setTitle(cursor.getString(cursor.getColumnIndex(KEY_TITLE)));
-		source.setChangeTimestamp(cursor.getString(cursor.getColumnIndex(KEY_CHANGE_TIMESTAMP)));
-		source.setSourceKey(cursor.getString(cursor.getColumnIndex(KEY_SOURCE_KEY)));
-		
-		return source;
-	}
-
-	/**
-	 * Get a source from an ID.
-	 * @param id The local ID of the source to fetch.
-	 * @return An inflated source object, or NULL if not found.
-	 */
-	public NotifrySource getSourceById( Long id )
-	{
-		NotifrySource source = null;
-
-		if (id != null)
-		{
-			Cursor cursor = db.query(true, DATABASE_TABLE_SOURCES, SOURCE_PROJECTION, KEY_ID + "=" + id, null, null, null, null, null);
-
-			if( cursor != null )
-			{
-				cursor.moveToFirst();
-				if( cursor.getCount() != 0 )
-				{
-					source = this.inflateSourceFromCursor(cursor);
-				}
-				cursor.close();
-			}
+			case ACCOUNT_ID:
+			case SOURCE_ID:
+			case MESSAGE_ID:
+				sqlBuilder.appendWhere(KEY_ID + " = " + uri.getPathSegments().get(1));
+				break;
 		}
 
-		return source;
+		// Perform the query.
+		Cursor cursor = sqlBuilder.query(
+				this.db,
+				projection,
+				selection,
+				selectionArgs,
+				null,
+				null,
+				sortOrder);
+
+		// Tell the cursor to listen for changes.
+		cursor.setNotificationUri(getContext().getContentResolver(), uri);
+		return cursor;
 	}
 	
-	/**
-	 * Get a source from a server ID.
-	 * @param id The server ID of the source to fetch.
-	 * @return An inflated source object, or NULL if not found.
-	 */
-	public NotifrySource getSourceByServerId( Long id )
+	@Override
+	public Uri insert( Uri uri, ContentValues values )
 	{
-		NotifrySource source = null;
+		// Insert into the database...
+		long rowID = this.db.insert(this.getTableFor(uri), "", values);
 
-		if (id != null)
+		// And on success...
+		if( rowID > 0 )
 		{
-			Cursor cursor = db.query(true, DATABASE_TABLE_SOURCES, SOURCE_PROJECTION, KEY_SERVER_ID + "=" + id, null, null, null, null, null);
-
-			if( cursor != null )
-			{
-				cursor.moveToFirst();
-				if( cursor.getCount() != 0 )
-				{
-					source = this.inflateSourceFromCursor(cursor);
-				}
-				cursor.close();
-			}
+			// Create our return URI.
+			Uri _uri = ContentUris.withAppendedId(this.getContentUriFor(uri), rowID);
+			// And notify anyone watching that it's changed.
+			getContext().getContentResolver().notifyChange(_uri, null);
+			return _uri;
 		}
 
-		return source;
-	}	
-	
-	/**
-	 * Save the provided source object into the database.
-	 * @param account
-	 * @return
-	 */
-	public NotifrySource saveSource( NotifrySource source )
-	{
-		ContentValues values = new ContentValues();
-		values.put(KEY_ACCOUNT_NAME, source.getAccountName());
-		values.put(KEY_SERVER_ENABLED, source.getServerEnabled() ? 1 : 0);
-		values.put(KEY_LOCAL_ENABLED, source.getLocalEnabled() ? 1 : 0);
-		values.put(KEY_TITLE, source.getTitle());
-		values.put(KEY_SERVER_ID, source.getServerId());
-		values.put(KEY_CHANGE_TIMESTAMP, source.getChangeTimestamp());
-		values.put(KEY_SOURCE_KEY, source.getSourceKey());
-
-		if( source.getId() == null)
-		{
-			// New object.
-			source.setId(db.insertOrThrow(DATABASE_TABLE_SOURCES, null, values));
-		}
-		else
-		{
-			// Update the existing object.
-			db.update(DATABASE_TABLE_SOURCES, values, KEY_ID + "=" + source.getId(), null);
-		}
-		
-		return source;
+		throw new SQLException("Failed to insert row into " + uri);
 	}
 	
-	/**
-	 * Delete a given source from the database.
-	 * @param source
-	 */
-	public void deleteSource( NotifrySource source )
+	@Override
+	public int update( Uri uri, ContentValues values, String selection, String[] selectionArgs )
 	{
-		Log.d(TAG, "Deleting source " + source.getId());
-		db.delete(DATABASE_TABLE_SOURCES, KEY_ID + "=" + source.getId(), null);
-	}
-	
-	/**
-	 * List all the messages in our database. This is not especially efficient.
-	 * @param source A source to filter by, or NULL for all messages.
-	 * @return
-	 */
-	public ArrayList<NotifryMessage> listMessages( NotifrySource source )
-	{
-		ArrayList<NotifryMessage> result = new ArrayList<NotifryMessage>();
-		
-		String query = "";
-		if( source != null )
-		{
-			query = KEY_SOURCE_ID + "=" + source.getId();
-		}
-
-		Cursor cursor = db.query(
-				DATABASE_TABLE_MESSAGES,
-				MESSAGE_PROJECTION,
-				query,
-				null, null, null, KEY_TIMESTAMP + " DESC");
-
-		if( cursor != null )
-		{
-			while( cursor.moveToNext() )
-			{
-				result.add(this.inflateMessageFromCursor(cursor));
-			}
-			
-			cursor.close();
-		}
-		
-		return result;
-	}
-	
-	/**
-	 * Count the unread messages for a given source.
-	 * @param source A source to filter by, or NULL for all messages.
-	 * @return
-	 */
-	public int countUnreadMessages( NotifrySource source )
-	{
-		String query = KEY_SEEN + " = 0 ";
-		if( source != null )
-		{
-			query += " AND " + KEY_SOURCE_ID + "=" + source.getId();
-		}
-
-		Cursor cursor = db.query(
-				DATABASE_TABLE_MESSAGES,
-				MESSAGE_PROJECTION,
-				query,
-				null, null, null, null);
-
 		int count = 0;
-		
-		if( cursor != null )
-		{
-			count = cursor.getCount();
-			cursor.close();
-		}
-		
+		// Determine the table.
+		String table = this.getTableFor(uri);
+		// Perform the update.
+		count = this.db.update(table, values, selection, selectionArgs);
+		// Notify anyone that we've changed things.
+		getContext().getContentResolver().notifyChange(uri, null);
+		// And return the number of changed rows.
 		return count;
 	}	
-
-	/**
-	 * Helper function to inflate a NotifrySource object from a database cursor.
-	 * @param cursor
-	 * @return
-	 */
-	private NotifryMessage inflateMessageFromCursor( Cursor cursor )
-	{
-		NotifryMessage message = new NotifryMessage();
-		message.setId(cursor.getLong(cursor.getColumnIndex(KEY_ID)));
-		message.setTitle(cursor.getString(cursor.getColumnIndex(KEY_TITLE)));
-		message.setMessage(cursor.getString(cursor.getColumnIndex(KEY_MESSAGE)));
-		message.setUrl(cursor.getString(cursor.getColumnIndex(KEY_URL)));
-		message.setSource(this.getSourceById(cursor.getLong(cursor.getColumnIndex(KEY_SOURCE_ID))));
-		message.setServerId(cursor.getLong(cursor.getColumnIndex(KEY_SERVER_ID)));
-		message.setSeen(cursor.getLong(cursor.getColumnIndex(KEY_SEEN)) == 0 ? false : true);
-		message.setTimestamp(cursor.getString(cursor.getColumnIndex(KEY_TIMESTAMP)));
-
-		return message;
-	}
-
-	/**
-	 * Get a message from an ID.
-	 * @param id The local ID of the message to fetch.
-	 * @return An inflated message object, or NULL if not found.
-	 */
-	public NotifryMessage getMessageById( Long id )
-	{
-		NotifryMessage message = null;
-
-		if (id != null)
-		{
-			Cursor cursor = db.query(true, DATABASE_TABLE_MESSAGES, MESSAGE_PROJECTION, KEY_ID + "=" + id, null, null, null, null, null);
-
-			if( cursor != null )
-			{
-				cursor.moveToFirst();
-				if( cursor.getCount() != 0 )
-				{
-					message = this.inflateMessageFromCursor(cursor);
-				}
-				cursor.close();
-			}
-		}
-
-		return message;
-	}
 	
-	/**
-	 * Save the provided message object into the database.
-	 * @param account
-	 * @return
-	 */
-	public NotifryMessage saveMessage( NotifryMessage message )
+	@Override
+	public int delete( Uri uri, String selection, String[] selectionArgs )
 	{
-		ContentValues values = new ContentValues();
-		values.put(KEY_TITLE, message.getTitle());
-		values.put(KEY_SOURCE_ID, message.getSource().getId());
-		values.put(KEY_SERVER_ID, message.getServerId());
-		values.put(KEY_MESSAGE, message.getMessage());
-		values.put(KEY_URL, message.getUrl());
-		values.put(KEY_TIMESTAMP, message.getTimestamp());
-		values.put(KEY_SEEN, message.getSeen() ? 1 : 0);
-
-		if( message.getId() == null)
-		{
-			// New object.
-			message.setId(db.insertOrThrow(DATABASE_TABLE_MESSAGES, null, values));
-		}
-		else
-		{
-			// Update the existing object.
-			db.update(DATABASE_TABLE_MESSAGES, values, KEY_ID + "=" + message.getId(), null);
-		}
+		int count = 0;
+		// Determine the table.
+		String table = this.getTableFor(uri);
+		// Do the deletion.
+		count = this.db.delete(table, selection, selectionArgs);
 		
-		return message;
+		// And notify anyone that we've changed things.
+		getContext().getContentResolver().notifyChange(uri, null);
+		
+		// Return the number of deleted entries.
+		return count;
 	}
-	
-	/**
-	 * Delete a given message from the database.
-	 * @param source
-	 */
-	public void deleteMessage( NotifryMessage message )
-	{
-		db.delete(DATABASE_TABLE_MESSAGES, KEY_ID + "=" + message.getId(), null);
-	}
-	
-	/**
-	 * Delete all messages for a given source.
-	 * @param source
-	 */
-	public void deleteMessagesBySource( NotifrySource source, boolean onlyRead )
-	{
-		String query = null;
-		if( source != null )
-		{
-			query = KEY_SOURCE_ID + "=" + source.getId();
-		}
-		if( onlyRead )
-		{
-			if( query != null )
-			{
-				query += " AND ";
-			}
-			else
-			{
-				query = "";
-			}
-			
-			query += KEY_SEEN + "= 1";
-		}
-
-		db.delete(DATABASE_TABLE_MESSAGES, query, null);
-	}	
 }

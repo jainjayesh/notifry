@@ -69,14 +69,11 @@ public class NotificationService extends Service
 		Long messageId = intent.getLongExtra("messageId", 0);
 		int unreadMessagesOfType = 0;
 		
-		NotifryDatabaseAdapter database = new NotifryDatabaseAdapter(this);
-		database.open();
-		NotifryMessage message = database.getMessageById(messageId);
+		NotifryMessage message = NotifryMessage.FACTORY.get(this, messageId); 
 		if( message != null )
 		{
-			unreadMessagesOfType = database.countUnreadMessages(message.getSource());
+			unreadMessagesOfType = NotifryMessage.FACTORY.countUnread(this, message.getSource()); 
 		}
-		database.close();
 		
 		// If the message is NULL, then we've been passed an invalid message - return.
 		if( message == null )
@@ -160,7 +157,7 @@ public class NotificationService extends Service
 				}
 			}
 			
-			// Put the notification in the tray. Use the source's ID to identify it.
+			// Put the notification in the tray. Use the source's local ID to identify it.
 			// And this confusion below is because the ID's are Longs. The loss of precision here should not
 			// be an issue, unless you're a particularly keen notifrier.
 			Long sourceId = message.getSource().getId();

@@ -64,10 +64,7 @@ public class ChooseAccount extends ListActivity
 		AccountManager accountManager = AccountManager.get(getApplicationContext());
 
 		// Sync our database. Only on create.
-		NotifryDatabaseAdapter database = new NotifryDatabaseAdapter(this);
-		database.open();
-		database.syncAccountList(accountManager);
-		database.close();
+		NotifryAccount.FACTORY.syncAccountList(this, accountManager);
 
 		// Set the layout, and allow text filtering.
 		setContentView(R.layout.screen_accounts);
@@ -88,10 +85,7 @@ public class ChooseAccount extends ListActivity
 	public void refreshView()
 	{
 		// Refresh our list of accounts.
-		NotifryDatabaseAdapter database = new NotifryDatabaseAdapter(this);
-		database.open();
-		ArrayList<NotifryAccount> accounts = database.listAccounts();
-		database.close();
+		ArrayList<NotifryAccount> accounts = NotifryAccount.FACTORY.listAll(this);
 
 		this.setListAdapter(new AccountArrayAdapter(this, this, R.layout.account_list_row, accounts));		
 	}
@@ -121,10 +115,7 @@ public class ChooseAccount extends ListActivity
 	public void checkedAccount( NotifryAccount account, boolean state )
 	{
 		// Refresh the account object. In case it's changed.
-		NotifryDatabaseAdapter database = new NotifryDatabaseAdapter(this);
-		database.open();
-		NotifryAccount refreshedAccount = database.getAccountById(account.getId());
-		database.close();
+		NotifryAccount refreshedAccount = NotifryAccount.FACTORY.get(this, account.getId()); 
 
 		// Add some metadata to the request so we know how to deal with it
 		// afterwards.
@@ -186,11 +177,8 @@ public class ChooseAccount extends ListActivity
 						// Enable the account.
 						account.setEnabled(true);
 						
-						// Open the database and save it.
-						NotifryDatabaseAdapter database = new NotifryDatabaseAdapter(thisActivity);
-						database.open();
-						database.saveAccount(account);
-						database.close();
+						// Persist it.
+						account.save(thisActivity);
 						
 						refreshView();
 						
@@ -202,11 +190,8 @@ public class ChooseAccount extends ListActivity
 						account.setServerRegistrationId(null);
 						account.setEnabled(false);
 						
-						// Open the database and save it.
-						NotifryDatabaseAdapter database = new NotifryDatabaseAdapter(thisActivity);
-						database.open();
-						database.saveAccount(account);
-						database.close();
+						// Persist it to the database.
+						account.save(thisActivity);
 						
 						refreshView();
 						

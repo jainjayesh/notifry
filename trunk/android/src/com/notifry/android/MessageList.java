@@ -80,10 +80,7 @@ public class MessageList extends ListActivity
 			
 			if( sourceId > 0 )
 			{
-				NotifryDatabaseAdapter database = new NotifryDatabaseAdapter(this);
-				database.open();
-				this.source = database.getSourceById(sourceId);
-				database.close();
+				this.source = NotifrySource.FACTORY.get(this, sourceId); 
 			}
 		}
 
@@ -96,10 +93,7 @@ public class MessageList extends ListActivity
 	public void refreshView()
 	{
 		// Refresh our list of messages.
-		NotifryDatabaseAdapter database = new NotifryDatabaseAdapter(this);
-		database.open();
-		ArrayList<NotifryMessage> messages = database.listMessages(this.getSource());
-		database.close();
+		ArrayList<NotifryMessage> messages = NotifryMessage.FACTORY.list(this, this.getSource()); 
 
 		this.setListAdapter(new MessageArrayAdapter(this, this, R.layout.message_list_row, messages));
 	}
@@ -132,35 +126,11 @@ public class MessageList extends ListActivity
 	public void deleteAll( boolean onlySeen )
 	{
 		// Delete all messages. Optionally, those matching the given source.
-		NotifryDatabaseAdapter database = new NotifryDatabaseAdapter(this);
-		database.open();
-		database.deleteMessagesBySource(this.getSource(), onlySeen);
-		database.close();
+		NotifryMessage.FACTORY.deleteMessagesBySource(this, source, onlySeen);
 		
 		// And refresh!
 		refreshView();
 	}
-
-	/*@Override
-	public boolean onCreateOptionsMenu( Menu menu )
-	{
-		boolean result = super.onCreateOptionsMenu(menu);
-		menu.add(0, ADD_SOURCE, 0, R.string.create_source).setIcon(android.R.drawable.ic_menu_add);
-		return result;
-	}
-
-	@Override
-	public boolean onOptionsItemSelected( MenuItem item )
-	{
-		switch( item.getItemId() )
-		{
-			case ADD_SOURCE:
-				askForSourceName();
-				return true;
-		}
-
-		return super.onOptionsItemSelected(item);
-	}*/
 
 	/**
 	 * Handler for when you click a message.

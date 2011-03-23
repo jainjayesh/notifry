@@ -21,18 +21,23 @@ package com.notifry.android.database;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;
 
+import android.content.ContentValues;
 import android.content.Context;
+import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 
-public class NotifryMessage
+public class NotifryMessage extends ORM<NotifryMessage>
 {
+	public final static NotifryMessage FACTORY = new NotifryMessage(); 
+	
 	private static final String TAG = "Notifry";
-	private Long id;
 	private Long serverId;
 	private NotifrySource source;
 	private String title;
@@ -40,16 +45,6 @@ public class NotifryMessage
 	private String message;
 	private String url;
 	private Boolean seen;
-
-	public Long getId()
-	{
-		return id;
-	}
-
-	public void setId( Long id )
-	{
-		this.id = id;
-	}
 
 	public Long getServerId()
 	{
@@ -96,6 +91,7 @@ public class NotifryMessage
 		try
 		{	
 			// Parse it, and display in LOCAL timezone.
+			// TODO: Move this somewhere else and make it configurable?
 			SimpleDateFormat ISO8601DATEFORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSSSS", Locale.US);
 			ISO8601DATEFORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
 			Date date = ISO8601DATEFORMAT.parse(this.timestamp);
@@ -151,10 +147,7 @@ public class NotifryMessage
 		
 		// Look up the source.
 		Long sourceId = Long.parseLong(extras.getString("source_id"));
-		NotifryDatabaseAdapter database = new NotifryDatabaseAdapter(context);
-		database.open();
-		NotifrySource source = database.getSourceByServerId(sourceId);
-		database.close();
+		NotifrySource source = NotifrySource.FACTORY.getByServerId(context, sourceId);
 		
 		if( source == null )
 		{
@@ -168,5 +161,93 @@ public class NotifryMessage
 		}
 		
 		return incoming;
+	}
+	
+	public ArrayList<NotifryMessage> list( Context context, NotifrySource source )
+	{
+		String query = "";
+		if( source != null )
+		{
+			query = NotifryDatabaseAdapter.KEY_SOURCE_ID + "=" + source.getId();
+		}
+		
+		return this.genericList(context, query, null, NotifryDatabaseAdapter.KEY_TIMESTAMP + " DESC");
+	}
+
+	public int countUnread( Context context, NotifrySource source )
+	{
+		String query = NotifryDatabaseAdapter.KEY_SEEN + " = 0 ";
+		if( source != null )
+		{
+			query += " AND " + NotifryDatabaseAdapter.KEY_SOURCE_ID + "=" + source.getId();
+		}
+		return this.genericCount(context, query, null);
+	}
+	
+	public void deleteMessagesBySource( Context context, NotifrySource source, boolean onlyRead )
+	{
+		String query = null;
+		if( source != null )
+		{
+			query = NotifryDatabaseAdapter.KEY_SOURCE_ID + "=" + source.getId();
+		}
+		if( onlyRead )
+		{
+			if( query != null )
+			{
+				query += " AND ";
+			}
+			else
+			{
+				query = "";
+			}
+			
+			query += NotifryDatabaseAdapter.KEY_SEEN + "= 1";
+		}
+		
+		this.genericDelete(context, query, null);
+	}
+
+	@Override
+	public Uri getContentUri()
+	{
+		return NotifryDatabaseAdapter.CONTENT_URI_MESSAGES;
+	}
+
+	@Override
+	protected ContentValues flatten()
+	{
+		ContentValues values = new ContentValues();
+		values.put(NotifryDatabaseAdapter.KEY_TITLE, this.getTitle());
+		values.put(NotifryDatabaseAdapter.KEY_SOURCE_ID, this.getSource().getId());
+		values.put(NotifryDatabaseAdapter.KEY_SERVER_ID, this.getServerId());
+		values.put(NotifryDatabaseAdapter.KEY_MESSAGE, this.getMessage());
+		values.put(NotifryDatabaseAdapter.KEY_URL, this.getUrl());
+		values.put(NotifryDatabaseAdapter.KEY_TIMESTAMP, this.getTimestamp());
+		values.put(NotifryDatabaseAdapter.KEY_SEEN, this.getSeen() ? 1 : 0);
+		
+		return values;
+	}
+
+	@Override
+	protected NotifryMessage inflate( Context context, Cursor cursor )
+	{
+		NotifryMessage message = new NotifryMessage();
+		message.setId(cursor.getLong(cursor.getColumnIndex(NotifryDatabaseAdapter.KEY_ID)));
+		message.setTitle(cursor.getString(cursor.getColumnIndex(NotifryDatabaseAdapter.KEY_TITLE)));
+		message.setMessage(cursor.getString(cursor.getColumnIndex(NotifryDatabaseAdapter.KEY_MESSAGE)));
+		message.setUrl(cursor.getString(cursor.getColumnIndex(NotifryDatabaseAdapter.KEY_URL)));
+		message.setSource(NotifrySource.FACTORY.get(context, cursor.getLong(cursor.getColumnIndex(NotifryDatabaseAdapter.KEY_SOURCE_ID))));
+		message.setServerId(cursor.getLong(cursor.getColumnIndex(NotifryDatabaseAdapter.KEY_SERVER_ID)));
+		message.setSeen(cursor.getLong(cursor.getColumnIndex(NotifryDatabaseAdapter.KEY_SEEN)) == 0 ? false : true);
+		message.setTimestamp(cursor.getString(cursor.getColumnIndex(NotifryDatabaseAdapter.KEY_TIMESTAMP)));
+
+		return message;
+	}
+
+	@Override
+	protected String[] getProjection()
+	{
+		return NotifryDatabaseAdapter.MESSAGE_PROJECTION;
 	}
 }

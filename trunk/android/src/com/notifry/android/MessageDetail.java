@@ -90,16 +90,13 @@ public class MessageDetail extends Activity
 			// We store it in a private variable to save us having to query the
 			// DB each time.
 			Intent sourceIntent = getIntent();
-			NotifryDatabaseAdapter database = new NotifryDatabaseAdapter(this);
-			database.open();
-			this.message = database.getMessageById(sourceIntent.getLongExtra("messageId", 0));
+			this.message = NotifryMessage.FACTORY.get(this, sourceIntent.getLongExtra("messageId", 0)); 
 			// Change the seen flag if required.
 			if( this.message.getSeen() == false )
 			{
 				this.message.setSeen(true);
-				database.saveMessage(message);
+				this.message.save(this);
 			}
-			database.close();
 		}
 
 		return this.message;

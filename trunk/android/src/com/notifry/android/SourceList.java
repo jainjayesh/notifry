@@ -119,10 +119,7 @@ public class SourceList extends ListActivity
 			// We store it in a private variable to save us having to query the
 			// DB each time.
 			Intent sourceIntent = getIntent();
-			NotifryDatabaseAdapter database = new NotifryDatabaseAdapter(this);
-			database.open();
-			this.account = database.getAccountByName(sourceIntent.getStringExtra("account"));
-			database.close();
+			this.account = NotifryAccount.FACTORY.getByAccountName(this, sourceIntent.getStringExtra("account")); 
 		}
 
 		return this.account;
@@ -134,12 +131,7 @@ public class SourceList extends ListActivity
 	public void refreshView()
 	{
 		// Refresh our list of sources.
-		NotifryAccount account = this.getAccount();
-		NotifryDatabaseAdapter database = new NotifryDatabaseAdapter(this);
-		database.open();
-		//database.debugListSources();
-		ArrayList<NotifrySource> sources = database.listSources(account.getAccountName());
-		database.close();
+		ArrayList<NotifrySource> sources = NotifrySource.FACTORY.listAll(this, this.getAccount().getAccountName()); 
 
 		this.setListAdapter(new SourceArrayAdapter(this, this, R.layout.source_list_row, sources));
 	}
@@ -253,12 +245,9 @@ public class SourceList extends ListActivity
 	{
 		// All we're doing is changing the LOCAL enable flag.
 		// Refresh the source.
-		NotifryDatabaseAdapter database = new NotifryDatabaseAdapter(this);
-		database.open();
-		NotifrySource refreshedSource = database.getSourceById(source.getId());
+		NotifrySource refreshedSource = NotifrySource.FACTORY.get(this, source.getId()); 
 		refreshedSource.setLocalEnabled(state);
-		database.saveSource(refreshedSource);
-		database.close();
+		refreshedSource.save(this);
 		
 		// And refresh our view.
 		refreshView();
@@ -301,10 +290,7 @@ public class SourceList extends ListActivity
 						source.setLocalEnabled(true); // Enabled by default.
 
 						// Open the database and save it.
-						NotifryDatabaseAdapter database = new NotifryDatabaseAdapter(thisActivity);
-						database.open();
-						database.saveSource(source);
-						database.close();
+						source.save(thisActivity);
 
 						refreshView();
 
@@ -314,15 +300,12 @@ public class SourceList extends ListActivity
 					{
 						// We just got a list from the server. Sync it up!
 						JSONArray serverList = response.getJSON().getJSONArray("sources");
-						NotifrySource.syncFromJSONArray(thisActivity, serverList, thisActivity.getAccount().getAccountName());
+						NotifrySource.FACTORY.syncFromJSONArray(thisActivity, serverList, thisActivity.getAccount().getAccountName());
 						
 						// Mark the account as synced.
-						NotifryDatabaseAdapter database = new NotifryDatabaseAdapter(thisActivity);
-						database.open();
-						NotifryAccount account = database.getAccountByName(thisActivity.getAccount().getAccountName());
+						NotifryAccount account = NotifryAccount.FACTORY.getByAccountName(thisActivity, thisActivity.getAccount().getAccountName()); 
 						account.setRequiresSync(false);
-						database.saveAccount(account);
-						database.close();
+						account.save(thisActivity);
 
 						// Force the object to be refreshed next time.
 						thisActivity.account = null;

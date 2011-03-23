@@ -64,10 +64,7 @@ public class C2DMReceiver extends C2DMBaseReceiver
 			Log.d("Notifry", "We've been notifried! " + message.getMessage());
 			
 			// Persist this message to the database.
-			NotifryDatabaseAdapter database = new NotifryDatabaseAdapter(context);
-			database.open();
-			database.saveMessage(message);
-			database.close();
+			message.save(context);
 			
 			// Send a notification to the notification service, which will then
 			// dispatch and handle everything else.
@@ -80,12 +77,9 @@ public class C2DMReceiver extends C2DMBaseReceiver
 			// Server says to refresh our list when we can. Typically means that
 			// a source has been deleted. Make a note of it.
 			Long serverAccountId = Long.parseLong(extras.getString("device_id"));
-			NotifryDatabaseAdapter database = new NotifryDatabaseAdapter(context);
-			database.open();
-			NotifryAccount account = database.getAccountByServerId(serverAccountId);
+			NotifryAccount account = NotifryAccount.FACTORY.getByServerId(context, serverAccountId);
 			account.setRequiresSync(true);
-			database.saveAccount(account);
-			database.close();
+			account.save(context);
 			
 			Log.d(TAG, "Server just asked us to refresh sources list - usually due to deletion.");
 		}
@@ -108,18 +102,19 @@ public class C2DMReceiver extends C2DMBaseReceiver
 		{
 			// Server says we've been deregistered. We should now clear our registration.
 			Long deviceId = Long.parseLong(extras.getString("device_id"));
-			NotifryDatabaseAdapter database = new NotifryDatabaseAdapter(context);
-			database.open();
-			NotifryAccount account = database.getAccountByServerId(deviceId);
+			NotifryAccount account = NotifryAccount.FACTORY.getByServerId(context, deviceId);
 			
-			// Disable it, and clear the registration ID.
-			account.setEnabled(false);
-			account.setServerRegistrationId(null);
-			account.setRequiresSync(true);
-			
-			// Save it back to the database.
-			database.saveAccount(account);
-			database.close();
+			// Check if it's NULL - it's possible we have a desync!
+			if( account != null )
+			{
+				// Disable it, and clear the registration ID.
+				account.setEnabled(false);
+				account.setServerRegistrationId(null);
+				account.setRequiresSync(true);
+				
+				// Save it back to the database.
+				account.save(context);
+			}
 			
 			Log.d(TAG, "Server just asked us to deregister! And should be done now.");
 		}
@@ -127,6 +122,7 @@ public class C2DMReceiver extends C2DMBaseReceiver
 
 	public void onError( Context context, String errorId )
 	{
+		// TODO: Handle this better.
 		Log.e("Notifry", "Error: " + errorId);
 	}
 }

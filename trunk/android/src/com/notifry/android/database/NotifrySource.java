@@ -25,14 +25,17 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.content.ContentValues;
 import android.content.Context;
-import android.util.Log;
+import android.database.Cursor;
+import android.net.Uri;
 
-public class NotifrySource
+public class NotifrySource extends ORM<NotifrySource>
 {
 	private static final String TAG = "Notifry";
 	
-	private Long id = null;
+	public static final NotifrySource FACTORY = new NotifrySource();
+
 	private String accountName = null;
 	private String changeTimestamp = null;
 	private String title = null;
@@ -40,16 +43,6 @@ public class NotifrySource
 	private String sourceKey = null;
 	private Boolean serverEnabled = null;
 	private Boolean localEnabled = null;
-
-	public Long getId()
-	{
-		return id;
-	}
-
-	public void setId( Long id )
-	{
-		this.id = id;
-	}
 
 	public String getAccountName()
 	{
@@ -130,10 +123,18 @@ public class NotifrySource
 		this.serverId = source.getLong("id");
 	}
 	
-	public static ArrayList<NotifrySource> syncFromJSONArray( Context context, JSONArray sourceList, String accountName ) throws JSONException
+	public ArrayList<NotifrySource> listAll( Context context, String accountName )
 	{
-		NotifryDatabaseAdapter database = new NotifryDatabaseAdapter(context);
-		database.open();
+		return NotifrySource.FACTORY.genericList(context, NotifryDatabaseAdapter.KEY_ACCOUNT_NAME + "= ?", new String[] { accountName }, NotifryDatabaseAdapter.KEY_TITLE + " ASC");
+	}
+	
+	public NotifrySource getByServerId( Context context, Long serverId )
+	{
+		return NotifrySource.FACTORY.getOne(context, NotifryDatabaseAdapter.KEY_SERVER_ID + "=" + serverId, null);
+	}
+	
+	public ArrayList<NotifrySource> syncFromJSONArray( Context context, JSONArray sourceList, String accountName ) throws JSONException
+	{
 		ArrayList<NotifrySource> result = new ArrayList<NotifrySource>();
 		HashSet<Long> seenIds = new HashSet<Long>();
 		
@@ -143,7 +144,7 @@ public class NotifrySource
 			JSONObject object = sourceList.getJSONObject(i);
 			Long serverId = object.getLong("id");
 			
-			NotifrySource source = database.getSourceByServerId(serverId);
+			NotifrySource source = NotifrySource.FACTORY.getByServerId(context, serverId);
 			
 			if( source == null )
 			{
@@ -161,25 +162,67 @@ public class NotifrySource
 			}
 			
 			// Save it in the database.
-			database.saveSource(source);
+			source.save(context);
 			
 			seenIds.add(source.getId());
 		}
 		
 		// Now, find out the IDs that exist in our database but were not in our list.
 		// Those have been deleted.
-		seenIds.removeAll(database.sourceIdSet(accountName));
-		
-		// tempSource is a hack to get around having to instantiate the objects.
-		NotifrySource tempSource = new NotifrySource();
+		ArrayList<NotifrySource> allSources = NotifrySource.FACTORY.listAll(context, accountName);
+		for( NotifrySource source: allSources )
+		{
+			seenIds.remove(source.getId());
+		}
+
 		for( Long sourceId: seenIds )
 		{
-			Log.d(TAG, "*** Deleting " + sourceId);
-			tempSource.setId(sourceId);
-			database.deleteSource(tempSource);
+			NotifrySource.FACTORY.deleteById(context, sourceId);
 		}
-		
-		database.close();
+
 		return result;
+	}
+
+	@Override
+	public Uri getContentUri()
+	{
+		return NotifryDatabaseAdapter.CONTENT_URI_SOURCES;
+	}
+
+	@Override
+	protected ContentValues flatten()
+	{
+		ContentValues values = new ContentValues();
+		values.put(NotifryDatabaseAdapter.KEY_ACCOUNT_NAME, this.getAccountName());
+		values.put(NotifryDatabaseAdapter.KEY_SERVER_ENABLED, this.getServerEnabled() ? 1 : 0);
+		values.put(NotifryDatabaseAdapter.KEY_LOCAL_ENABLED, this.getLocalEnabled() ? 1 : 0);
+		values.put(NotifryDatabaseAdapter.KEY_TITLE, this.getTitle());
+		values.put(NotifryDatabaseAdapter.KEY_SERVER_ID, this.getServerId());
+		values.put(NotifryDatabaseAdapter.KEY_CHANGE_TIMESTAMP, this.getChangeTimestamp());
+		values.put(NotifryDatabaseAdapter.KEY_SOURCE_KEY, this.getSourceKey());
+		
+		return values;
+	}
+
+	@Override
+	protected NotifrySource inflate( Context context, Cursor cursor )
+	{
+		NotifrySource source = new NotifrySource();
+		source.setAccountName(cursor.getString(cursor.getColumnIndex(NotifryDatabaseAdapter.KEY_ACCOUNT_NAME)));
+		source.setId(cursor.getLong(cursor.getColumnIndex(NotifryDatabaseAdapter.KEY_ID)));
+		source.setServerEnabled(cursor.getLong(cursor.getColumnIndex(NotifryDatabaseAdapter.KEY_SERVER_ENABLED)) == 0 ? false : true);
+		source.setLocalEnabled(cursor.getLong(cursor.getColumnIndex(NotifryDatabaseAdapter.KEY_LOCAL_ENABLED)) == 0 ? false : true);
+		source.setServerId(cursor.getLong(cursor.getColumnIndex(NotifryDatabaseAdapter.KEY_SERVER_ID)));
+		source.setTitle(cursor.getString(cursor.getColumnIndex(NotifryDatabaseAdapter.KEY_TITLE)));
+		source.setChangeTimestamp(cursor.getString(cursor.getColumnIndex(NotifryDatabaseAdapter.KEY_CHANGE_TIMESTAMP)));
+		source.setSourceKey(cursor.getString(cursor.getColumnIndex(NotifryDatabaseAdapter.KEY_SOURCE_KEY)));
+		
+		return source;
+	}
+
+	@Override
+	protected String[] getProjection()
+	{
+		return NotifryDatabaseAdapter.SOURCE_PROJECTION;
 	}
 }

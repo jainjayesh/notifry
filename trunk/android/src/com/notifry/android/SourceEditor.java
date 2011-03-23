@@ -204,11 +204,8 @@ public class SourceEditor extends Activity
 						// Load the source from the server information. We assume the server is correct.
 						source.fromJSONObject(response.getJSON().getJSONObject("source"));
 	
-						// Open the database and save it.
-						NotifryDatabaseAdapter database = new NotifryDatabaseAdapter(thisActivity);
-						database.open();
-						database.saveSource(source);
-						database.close();
+						// Save it to the database.
+						source.save(thisActivity);
 						
 						Toast.makeText(thisActivity, getString(R.string.source_save_success), Toast.LENGTH_SHORT).show();
 						
@@ -218,10 +215,7 @@ public class SourceEditor extends Activity
 					else if( operation.equals("delete") )
 					{
 						// Delete from local.
-						NotifryDatabaseAdapter database = new NotifryDatabaseAdapter(thisActivity);
-						database.open();
-						database.deleteSource(source);
-						database.close();
+						source.delete(thisActivity);
 
 						// Let the user know we're done.
 						Toast.makeText(thisActivity, getString(R.string.source_delete_success), Toast.LENGTH_SHORT).show();
@@ -258,10 +252,7 @@ public class SourceEditor extends Activity
 			// We store it in a private variable to save us having to query the
 			// DB each time.
 			Intent sourceIntent = getIntent();
-			NotifryDatabaseAdapter database = new NotifryDatabaseAdapter(this);
-			database.open();
-			this.source = database.getSourceById(sourceIntent.getLongExtra("sourceId", 0));
-			database.close();
+			this.source = NotifrySource.FACTORY.get(this, sourceIntent.getLongExtra("sourceId", 0)); 
 		}
 
 		return this.source;
