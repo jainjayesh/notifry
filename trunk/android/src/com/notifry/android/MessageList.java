@@ -40,6 +40,7 @@ public class MessageList extends ListActivity
 {
 	private final static int DELETE_ALL = 1;
 	private final static int DELETE_SEEN = 2;
+	private final static int MARK_ALL_AS_SEEN = 3;
 	private NotifrySource source = null;
 
 	/** Called when the activity is first created. */
@@ -66,6 +67,14 @@ public class MessageList extends ListActivity
 			intentData.putExtra("operation", "update");
 			intentData.putExtra("sourceId", this.getSource().getId());
 			startService(intentData);
+			
+			// Set the title of this activity.
+			setTitle(String.format(getString(R.string.messages_source_title), this.getSource().getTitle()));
+		}
+		else
+		{
+			// Set the title of this activity.
+			setTitle(getString(R.string.messages_all_title));
 		}
 	}
 
@@ -110,6 +119,7 @@ public class MessageList extends ListActivity
 		boolean result = super.onCreateOptionsMenu(menu);
 		menu.add(0, DELETE_ALL, 0, R.string.delete_all).setIcon(android.R.drawable.ic_menu_delete);
 		menu.add(0, DELETE_SEEN, 0, R.string.delete_read).setIcon(android.R.drawable.ic_menu_delete);
+		menu.add(0, MARK_ALL_AS_SEEN, 0, R.string.mark_all_as_seen).setIcon(android.R.drawable.ic_media_play);
 		return result;
 	}
 
@@ -124,6 +134,9 @@ public class MessageList extends ListActivity
 			case DELETE_SEEN:
 				deleteAll(true);
 				return true;
+			case MARK_ALL_AS_SEEN:
+				markAllAsSeen();
+				return true;
 		}
 
 		return super.onOptionsItemSelected(item);
@@ -135,6 +148,12 @@ public class MessageList extends ListActivity
 		NotifryMessage.FACTORY.deleteMessagesBySource(this, source, onlySeen);
 		
 		// And refresh!
+		refreshView();
+	}
+	
+	public void markAllAsSeen()
+	{
+		NotifryMessage.FACTORY.markAllAsSeen(this, this.getSource());
 		refreshView();
 	}
 

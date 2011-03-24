@@ -172,7 +172,7 @@ public class NotificationService extends Service
 				this.notificationManager.notify(message.getSource().getNotificationId(), notification);
 	
 				// If we're speaking, dispatch the message to the speaking service.
-				if( settings.getBoolean(getString(R.string.speakMessage), false) )
+				if( settings.getBoolean(getString(R.string.speakMessage), true) )
 				{
 					Intent intentData = new Intent(getBaseContext(), SpeakService.class);
 					Log.d(TAG, "Speaking text: " + decision.getSpokenMessage());

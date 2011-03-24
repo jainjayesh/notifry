@@ -184,6 +184,20 @@ public class NotifryMessage extends ORM<NotifryMessage>
 		return this.genericCount(context, query, null);
 	}
 	
+	public void markAllAsSeen( Context context, NotifrySource source )
+	{
+		ContentValues values = new ContentValues();
+		values.put(NotifryDatabaseAdapter.KEY_SEEN, 1);
+		
+		String query = null;
+		if( source != null )
+		{
+			query = NotifryDatabaseAdapter.KEY_SOURCE_ID + " = " + source.getId();
+		}
+		
+		context.getContentResolver().update(this.getContentUri(), values, query, null);
+	}
+	
 	public void deleteMessagesBySource( Context context, NotifrySource source, boolean onlyRead )
 	{
 		String query = null;

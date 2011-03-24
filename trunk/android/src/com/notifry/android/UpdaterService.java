@@ -58,6 +58,12 @@ public class UpdaterService extends Service
 	{
 		super.onStart(intent, startId);
 		
+		// Null intent? Weird, but deal with it.
+		if( intent == null )
+		{
+			return;
+		}
+		
 		// Fetch a wakelock if we don't already have one.
 		if( this.wakelock == null )
 		{

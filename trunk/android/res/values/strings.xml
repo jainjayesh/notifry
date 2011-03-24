@@ -95,6 +95,9 @@
     <string name="source_delete_success">Source deleted successfully.</string>
     <string name="source_test_success">Successfully added a test message on the server.</string>
     
+    <string name="messages_all_title">All messages</string>
+    <string name="messages_source_title" formatted="false">Messages - %s</string>
+    
     <string name="need_tts_data_installed">You don\'t have the TTS data installed - redirecting you to the data.</string>
     
     <string name="health_check_placeholder">Health Check information will go here.</string>
@@ -117,6 +120,7 @@
     <string name="settings">Settings</string>
     <string name="save">Save</string>
     <string name="test">Test</string>
+    <string name="mark_all_as_seen">Mark all as Seen</string>
     
     <string name="ifContactEnabled">Enabled</string>
     <string name="ifContactNotEnabled">Not enabled</string>
