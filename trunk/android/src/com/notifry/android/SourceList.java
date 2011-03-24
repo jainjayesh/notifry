@@ -24,7 +24,6 @@ import org.json.JSONArray;
 import org.json.JSONException;
 
 import com.notifry.android.database.NotifryAccount;
-import com.notifry.android.database.NotifryDatabaseAdapter;
 import com.notifry.android.database.NotifrySource;
 import com.notifry.android.remote.BackendRequest;
 import com.notifry.android.remote.BackendResponse;
@@ -312,6 +311,8 @@ public class SourceList extends ListActivity
 						
 						// And refresh.
 						refreshView();
+						
+						Toast.makeText(thisActivity, getString(R.string.refresh_sources_success), Toast.LENGTH_SHORT).show();
 					}
 				}
 				catch( JSONException e )

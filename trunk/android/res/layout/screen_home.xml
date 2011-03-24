@@ -17,6 +17,6 @@
         <Button android:id="@+id/home_recentMessages" android:layout_width="wrap_content" android:layout_weight="1" android:layout_height="wrap_content" android:text="@string/recent_messages" android:onClick="launchRecentMessages"></Button>
     </LinearLayout>
     <LinearLayout android:id="@+id/linearLayout4" android:layout_height="wrap_content" android:layout_width="match_parent">
-        <Button android:text="@string/accounts_and_sources" android:id="@+id/home_accounts" android:layout_width="fill_parent" android:layout_height="wrap_content" android:onClick="launchAccounts"></Button>
+        <Button android:enabled="false" android:text="@string/accounts_and_sources" android:id="@+id/home_accounts" android:layout_width="fill_parent" android:layout_height="wrap_content" android:onClick="launchAccounts"></Button>
     </LinearLayout>
 </LinearLayout>

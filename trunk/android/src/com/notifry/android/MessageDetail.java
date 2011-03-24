@@ -27,8 +27,6 @@ import android.widget.TextView;
 
 public class MessageDetail extends Activity
 {
-	private static final String TAG = "Notifry";
-	private final MessageDetail thisActivity = this;
 	private NotifryMessage message = null;
 
 	/** Called when the activity is first created. */

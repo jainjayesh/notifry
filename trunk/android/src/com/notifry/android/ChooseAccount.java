@@ -29,7 +29,6 @@ import org.json.JSONException;
 
 import com.google.android.c2dm.C2DMessaging;
 import com.notifry.android.database.NotifryAccount;
-import com.notifry.android.database.NotifryDatabaseAdapter;
 import com.notifry.android.remote.BackendRequest;
 import com.notifry.android.remote.BackendResponse;
 
@@ -37,12 +36,13 @@ import android.accounts.AccountManager;
 import android.app.ListActivity;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageManager.NameNotFoundException;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
@@ -53,6 +53,7 @@ import android.widget.Toast;
 
 public class ChooseAccount extends ListActivity
 {
+	private static final int REFRESH_IDS = 1;
 	private static final String TAG = "Notifry";
 	private final ChooseAccount thisActivity = this;
 
@@ -78,6 +79,33 @@ public class ChooseAccount extends ListActivity
 		// When coming back, refresh our list of accounts.
 		refreshView();
 	}
+	
+	@Override
+	public boolean onCreateOptionsMenu( Menu menu )
+	{
+		boolean result = super.onCreateOptionsMenu(menu);
+		menu.add(0, REFRESH_IDS, 0, R.string.refresh_ids).setIcon(android.R.drawable.ic_menu_rotate);
+		return result;
+	}
+
+	@Override
+	public boolean onOptionsItemSelected( MenuItem item )
+	{
+		switch( item.getItemId() )
+		{
+			case REFRESH_IDS:
+				// Dispatch this to the updater service.
+				Intent intentData = new Intent(getBaseContext(), UpdaterService.class);
+				intentData.putExtra("type", "registration");
+				intentData.putExtra("registration", C2DMessaging.getRegistrationId(this));
+				startService(intentData);
+				
+				Toast.makeText(thisActivity, getString(R.string.background_refreshing), Toast.LENGTH_SHORT).show();
+				return true;
+		}
+
+		return super.onOptionsItemSelected(item);
+	}	
 	
 	/**
 	 * Refresh the list of accounts viewed by this activity.
@@ -128,6 +156,7 @@ public class ChooseAccount extends ListActivity
 		{
 			// Enable the account.
 			metadata.put("operation", "register");
+			metadata.put("registration", C2DMessaging.getRegistrationId(this));
 			statusMessage = getString(R.string.registering_with_server);
 		}
 		else
@@ -177,6 +206,12 @@ public class ChooseAccount extends ListActivity
 						// Enable the account.
 						account.setEnabled(true);
 						
+						// We need a refresh.
+						account.setRequiresSync(true);
+						
+						// Store the registration ID.
+						account.setLastC2DMId((String) request.getMeta("registration")); 
+						
 						// Persist it.
 						account.save(thisActivity);
 						
@@ -189,6 +224,7 @@ public class ChooseAccount extends ListActivity
 						// We've deregistered the account.
 						account.setServerRegistrationId(null);
 						account.setEnabled(false);
+						account.setLastC2DMId(null);
 						
 						// Persist it to the database.
 						account.save(thisActivity);

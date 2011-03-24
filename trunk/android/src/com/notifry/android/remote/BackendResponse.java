@@ -83,9 +83,11 @@ public class BackendResponse
 		}
 	}
 
-	public BackendResponse( String error )
+	public BackendResponse( BackendRequest request, String error )
 	{
 		// Another kind of error.
+		this.request = request;
+		this.response = null;
 		this.error = error;
 	}
 

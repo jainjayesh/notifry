@@ -69,6 +69,7 @@ public class NotifryDatabaseAdapter extends ContentProvider
 	public static final String KEY_SERVER_REGISTRATION_ID = "server_registration_id";
 	public static final String KEY_SERVER_ENABLED = "server_enabled";
 	public static final String KEY_LOCAL_ENABLED = "local_enabled";
+	public static final String KEY_LAST_C2DM_ID = "last_c2dm_id";
 	public static final String KEY_TITLE = "title";
 	public static final String KEY_SOURCE_KEY = "source_key";
 	public static final String KEY_SERVER_ID = "server_id";
@@ -80,7 +81,7 @@ public class NotifryDatabaseAdapter extends ContentProvider
 	public static final String KEY_SEEN = "seen";
 	public static final String KEY_REQUIRES_SYNC = "requires_sync";
 	
-	public static final String[] ACCOUNT_PROJECTION = new String[] { KEY_ID, KEY_ACCOUNT_NAME, KEY_ENABLED, KEY_SERVER_REGISTRATION_ID, KEY_REQUIRES_SYNC };
+	public static final String[] ACCOUNT_PROJECTION = new String[] { KEY_ID, KEY_ACCOUNT_NAME, KEY_ENABLED, KEY_SERVER_REGISTRATION_ID, KEY_REQUIRES_SYNC, KEY_LAST_C2DM_ID };
 	public static final String[] SOURCE_PROJECTION = new String[] { KEY_ID, KEY_ACCOUNT_NAME, KEY_CHANGE_TIMESTAMP, KEY_TITLE, KEY_SERVER_ID, KEY_SOURCE_KEY, KEY_SERVER_ENABLED, KEY_LOCAL_ENABLED };
 	public static final String[] MESSAGE_PROJECTION = new String[] { KEY_ID, KEY_SOURCE_ID, KEY_TIMESTAMP, KEY_TITLE, KEY_MESSAGE, KEY_URL, KEY_SERVER_ID, KEY_SEEN };	
 
@@ -90,7 +91,8 @@ public class NotifryDatabaseAdapter extends ContentProvider
 			"account_name text not null, " +
 			"server_registration_id long, " +
 			"enabled integer not null, " +
-			"requires_sync integer not null " +
+			"requires_sync integer not null, " +
+			"last_c2dm_id text " +
 			");";
 
 	private static final String DATABASE_CREATE_SOURCES = "create table sources (_id integer primary key autoincrement, " +

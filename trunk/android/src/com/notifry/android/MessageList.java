@@ -20,7 +20,6 @@ package com.notifry.android;
 
 import java.util.ArrayList;
 
-import com.notifry.android.database.NotifryDatabaseAdapter;
 import com.notifry.android.database.NotifryMessage;
 import com.notifry.android.database.NotifrySource;
 
@@ -29,7 +28,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Typeface;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -42,8 +40,6 @@ public class MessageList extends ListActivity
 {
 	private final static int DELETE_ALL = 1;
 	private final static int DELETE_SEEN = 2;
-	private static final String TAG = "Notifry";
-	private final MessageList thisActivity = this;
 	private NotifrySource source = null;
 
 	/** Called when the activity is first created. */

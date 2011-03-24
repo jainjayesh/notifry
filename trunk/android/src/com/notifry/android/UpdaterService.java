@@ -24,22 +24,24 @@ import java.util.HashMap;
 import org.json.JSONException;
 
 import com.notifry.android.database.NotifryAccount;
-import com.notifry.android.database.NotifryDatabaseAdapter;
 import com.notifry.android.database.NotifrySource;
 import com.notifry.android.remote.BackendRequest;
 import com.notifry.android.remote.BackendResponse;
 
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
+import android.os.PowerManager;
 import android.util.Log;
 
 public class UpdaterService extends Service
 {
 	private static final String TAG = "Notifry";
 	private UpdaterService thisService = this;
+	private PowerManager.WakeLock wakelock = null;
 	
 	@Override
 	public IBinder onBind( Intent arg0 )
@@ -56,6 +58,14 @@ public class UpdaterService extends Service
 	{
 		super.onStart(intent, startId);
 		
+		// Fetch a wakelock if we don't already have one.
+		if( this.wakelock == null )
+		{
+			PowerManager manager = (PowerManager) getSystemService(Context.POWER_SERVICE);
+			this.wakelock = manager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, TAG);
+			this.wakelock.acquire(60000); // Max 60 seconds.
+		}
+		
 		// We need to make some kind of backend request.
 		String type = intent.getExtras().getString("type");
 		
@@ -67,6 +77,7 @@ public class UpdaterService extends Service
 			
 			String newRegistration = intent.getExtras().getString("registration");
 
+			// TODO: Notify the user if this fails.
 			for( NotifryAccount account: accounts )
 			{
 				if( account.getEnabled() )
@@ -74,6 +85,7 @@ public class UpdaterService extends Service
 					HashMap<String, Object> metadata = new HashMap<String, Object>();
 					metadata.put("account", account);
 					metadata.put("operation", "register");
+					metadata.put("registration", newRegistration);
 					account.registerWithBackend(this, newRegistration, true, null, handler, metadata);
 				}
 			}
@@ -161,7 +173,24 @@ public class UpdaterService extends Service
 					}
 					else if( operation.equals("register") )
 					{
-						// Register complete. No action required here.
+						// Register complete. Record the registration key and server ID.
+						NotifryAccount oldAccount = (NotifryAccount) request.getMeta("account");
+						NotifryAccount account = NotifryAccount.FACTORY.get(thisService, oldAccount.getId());
+						
+						// Set the ID.
+						account.setServerRegistrationId(Long.parseLong(response.getJSON().getJSONObject("device").getString("id")));
+						
+						// Enable the account.
+						account.setEnabled(true);
+						
+						// We need a refresh.
+						account.setRequiresSync(true);
+						
+						// Store the registration ID.
+						account.setLastC2DMId((String) request.getMeta("registration"));
+						
+						// Persist.
+						account.save(thisService);
 					}
 				}
 				catch( JSONException e )
@@ -169,6 +198,16 @@ public class UpdaterService extends Service
 					// The response doesn't look like we expected.
 					Log.d(TAG, "Invalid response from server: " + e.getMessage());
 					// And now we've failed. Now what?
+				}
+			}
+			
+			// Release the wakelock. Rather important!
+			if( thisService.wakelock != null )
+			{
+				if( thisService.wakelock.isHeld() )
+				{
+					thisService.wakelock.release();
+					thisService.wakelock = null;
 				}
 			}
 		}

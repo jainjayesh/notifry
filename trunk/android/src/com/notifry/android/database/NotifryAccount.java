@@ -33,7 +33,6 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Handler;
-import android.util.Log;
 
 public class NotifryAccount extends ORM<NotifryAccount>
 {
@@ -43,6 +42,7 @@ public class NotifryAccount extends ORM<NotifryAccount>
 	private Long serverRegistrationId = null;
 	private Boolean enabled = null;
 	private Boolean requiresSync = true;
+	private String lastC2DMId = null;
 
 	public String getAccountName()
 	{
@@ -82,6 +82,16 @@ public class NotifryAccount extends ORM<NotifryAccount>
 	public void setRequiresSync( Boolean requiresSync )
 	{
 		this.requiresSync = requiresSync;
+	}
+
+	public String getLastC2DMId()
+	{
+		return lastC2DMId;
+	}
+
+	public void setLastC2DMId( String lastC2DMId )
+	{
+		this.lastC2DMId = lastC2DMId;
 	}
 
 	/**
@@ -223,7 +233,8 @@ public class NotifryAccount extends ORM<NotifryAccount>
 		values.put(NotifryDatabaseAdapter.KEY_ENABLED, this.getEnabled() ? 1 : 0);
 		values.put(NotifryDatabaseAdapter.KEY_SERVER_REGISTRATION_ID, this.getServerRegistrationId());
 		values.put(NotifryDatabaseAdapter.KEY_REQUIRES_SYNC, this.getRequiresSync() ? 1 : 0);
-		
+		values.put(NotifryDatabaseAdapter.KEY_LAST_C2DM_ID, this.getLastC2DMId());
+
 		return values;
 	}
 
@@ -237,6 +248,7 @@ public class NotifryAccount extends ORM<NotifryAccount>
 		account.setEnabled(cursor.getLong(cursor.getColumnIndex(NotifryDatabaseAdapter.KEY_ENABLED)) == 0 ? false : true);
 		account.setServerRegistrationId(cursor.getLong(cursor.getColumnIndex(NotifryDatabaseAdapter.KEY_SERVER_REGISTRATION_ID)));
 		account.setRequiresSync(cursor.getLong(cursor.getColumnIndex(NotifryDatabaseAdapter.KEY_REQUIRES_SYNC)) == 0 ? false : true);
+		account.setLastC2DMId(cursor.getString(cursor.getColumnIndex(NotifryDatabaseAdapter.KEY_LAST_C2DM_ID)));
 		
 		if( account.getServerRegistrationId() == 0 )
 		{

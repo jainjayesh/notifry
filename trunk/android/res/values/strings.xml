@@ -71,9 +71,12 @@
     <string name="deregistering_with_server">De-registering with server...</string>
     <string name="registering_with_server_complete" formatted="false">Registered %s with the server.</string>
     <string name="deregistering_with_server_complete" formatted="false">De-registered %s with the server.</string>
+    <string name="refresh_ids">Refresh C2DM IDs</string>
+    <string name="background_refreshing">Refreshing C2DM IDs for enabled accounts is now occuring in the background.</string>
     
     <string name="create_source">Create Source</string>
     <string name="refresh_sources_server">Refresh from Server</string>
+    <string name="refresh_sources_success">Successfully refreshed sources list.</string>
     <string name="create_source_message">Enter a title for the new source</string>
     <string name="create_source_server_waiting">Please wait, creating the source on the server...</string>
     <string name="create_source_server_complete">Successfully created the source on the server.</string>
@@ -95,6 +98,12 @@
     <string name="need_tts_data_installed">You don\'t have the TTS data installed - redirecting you to the data.</string>
     
     <string name="health_check_placeholder">Health Check information will go here.</string>
+    <string name="health_check_all_ok">Health check passed.</string>
+    <string name="health_error_no_c2dm_id">We do not have a C2DM ID. Please restart the app.</string>
+    <string name="health_error_c2dm_error">Error getting C2DM ID: </string>
+    <string name="health_error_no_accounts">No accounts registered for use. Select one to be used.</string>
+    <string name="health_error_no_sources" formatted="false">The account %s has no sources. Refresh this from the server if you think this is an error.</string>
+    <string name="health_error_account_wrong_id" formatted="false">The account %s does not have the latest C2DM ID. Refresh it from the accounts screen.</string>
     
     <string name="add_contact">Add Contact</string>
     <string name="add_raw">Add string Contact</string>

@@ -2,7 +2,6 @@ package com.notifry.android;
 
 import org.json.JSONException;
 
-import com.notifry.android.database.NotifryDatabaseAdapter;
 import com.notifry.android.database.NotifrySource;
 import com.notifry.android.remote.BackendRequest;
 import com.notifry.android.remote.BackendResponse;

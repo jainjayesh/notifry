@@ -36,7 +36,6 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.params.HttpClientParams;
 import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpParams;
 
@@ -45,7 +44,6 @@ import android.accounts.AccountManager;
 import android.accounts.AccountManagerFuture;
 import android.accounts.AuthenticatorException;
 import android.accounts.OperationCanceledException;
-import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
@@ -68,19 +66,30 @@ public class BackendClient
 
 	public BackendResponse request( BackendRequest request ) throws Exception
 	{
-		// Add a 'format=json' to the params.
-		request.add("format", "json");
-		
-		HttpResponse res = requestNoRetry(request.getUri(), request.getParams(), false);
-		if( res.getStatusLine().getStatusCode() == 500 )
+		try
 		{
-			res = requestNoRetry(request.getUri(), request.getParams(), true);
+			// Add a 'format=json' to the params.
+			request.add("format", "json");
+			
+			HttpResponse res = requestNoRetry(request.getUri(), request.getParams(), false);
+			if( res.getStatusLine().getStatusCode() == 500 )
+			{
+				res = requestNoRetry(request.getUri(), request.getParams(), true);
+			}
+			
+			// Parse the response.
+			BackendResponse response = new BackendResponse(request, res);
+			
+			return response;
 		}
-		
-		// Parse the response.
-		BackendResponse response = new BackendResponse(request, res);
-		
-		return response;
+		catch( PendingAuthException ex )
+		{
+			// Parse the response.
+			// TODO: This causes the request to fail and need a retry.
+			BackendResponse response = new BackendResponse(request, ex.getMessage() + " - Please try again.");
+
+			return response;
+		}
 	}
 
 	private HttpResponse requestNoRetry( String urlPath, List<NameValuePair> params, boolean newToken ) throws Exception
@@ -143,7 +152,7 @@ public class BackendClient
 		return res;
 	}
 
-	private String getAuthToken( Context context, Account account )
+	private String getAuthToken( Context context, Account account ) throws PendingAuthException
 	{
 		String authToken = null;
 		AccountManager accountManager = AccountManager.get(context);
@@ -161,6 +170,7 @@ public class BackendClient
 				{
 					// User input required
 					context.startActivity(intent);
+					throw new PendingAuthException("Asking user for permission.");
 				}
 			}
 		}
@@ -176,6 +186,7 @@ public class BackendClient
 		{
 			Log.w(TAG, e.getMessage());
 		}
+
 		return authToken;
 	}
 

@@ -143,6 +143,18 @@ public class NotifrySource extends ORM<NotifrySource>
 		return NotifrySource.FACTORY.genericList(context, NotifryDatabaseAdapter.KEY_ACCOUNT_NAME + "= ?", new String[] { accountName }, NotifryDatabaseAdapter.KEY_TITLE + " ASC");
 	}
 	
+	public int countSources( Context context, String accountName )
+	{
+		String query = null;
+		String[] queryParams = null;
+		if( accountName != null )
+		{
+			query = NotifryDatabaseAdapter.KEY_ACCOUNT_NAME + "= ?";
+			queryParams = new String[] { accountName };
+		}
+		return this.genericCount(context, query, queryParams);
+	}	
+	
 	public NotifrySource getByServerId( Context context, Long serverId )
 	{
 		return NotifrySource.FACTORY.getOne(context, NotifryDatabaseAdapter.KEY_SERVER_ID + "=" + serverId, null);

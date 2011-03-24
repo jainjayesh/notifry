@@ -21,12 +21,14 @@ package com.notifry.android;
 import com.google.android.c2dm.C2DMBaseReceiver;
 
 import com.notifry.android.database.NotifryAccount;
-import com.notifry.android.database.NotifryDatabaseAdapter;
 import com.notifry.android.database.NotifryMessage;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.util.Log;
 
 public class C2DMReceiver extends C2DMBaseReceiver
@@ -47,6 +49,16 @@ public class C2DMReceiver extends C2DMBaseReceiver
 		intentData.putExtra("type", "registration");
 		intentData.putExtra("registration", registration);
 		startService(intentData);
+		
+		// Clear any errors we had.
+		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(context);
+		Editor editor = settings.edit();
+		editor.putString("dm_register_error", "");
+		editor.commit();
+		
+		// Update the home screen.
+		Intent updateUIIntent = new Intent(Notifry.UPDATE_INTENT);
+		context.sendBroadcast(updateUIIntent);
 	}
 
 	protected void onMessage( Context context, Intent intent )
@@ -123,7 +135,18 @@ public class C2DMReceiver extends C2DMBaseReceiver
 
 	public void onError( Context context, String errorId )
 	{
-		// TODO: Handle this better.
-		Log.e("Notifry", "Error: " + errorId);
+		// Store this for later.
+		Log.e("Notifry", "Error with registration: " + errorId);
+		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(context);
+		Editor editor = settings.edit();
+		editor.putString("dm_register_error", errorId);
+		editor.commit();
+		
+		// Notify the user.
+		// TODO: Do this.
+		
+		// Update the home screen.
+		Intent updateUIIntent = new Intent(Notifry.UPDATE_INTENT);
+		context.sendBroadcast(updateUIIntent);
 	}
 }

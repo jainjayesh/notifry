@@ -21,7 +21,10 @@ package com.notifry.android;
 import com.google.android.c2dm.C2DMessaging;
 
 import android.app.Activity;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.os.Bundle;
@@ -30,10 +33,13 @@ import android.speech.tts.TextToSpeech;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 
 public class Notifry extends Activity
-{
+{	
+	public final static String UPDATE_INTENT = "com.notifry.android.UpdateUI";
+	
 	@Override
 	public void onCreate( Bundle savedInstanceState )
 	{
@@ -45,27 +51,74 @@ public class Notifry extends Activity
 		Intent checkIntent = new Intent();
 		checkIntent.setAction(TextToSpeech.Engine.ACTION_CHECK_TTS_DATA);
 		startActivityForResult(checkIntent, 0x1010);
+		
+		// Register to get update actions from other threads.
+		registerReceiver(healthCheckReciever, new IntentFilter(UPDATE_INTENT));
 
-        // Register for C2DM. We'll report this to the server later.
-        final String registrationId = C2DMessaging.getRegistrationId(this);
-        if( registrationId != null && !"".equals(registrationId) )
-        {
-                Log.i("Notifry", "Already registered. registrationId is " + registrationId);
-        }
-        else
-        {
-                Log.i("Notifry", "No existing registrationId. Registering.");
-                C2DMessaging.register(this, "notifry@gmail.com");
-        }
+		// Register for C2DM. We'll report this to the server later.
+		final String registrationId = C2DMessaging.getRegistrationId(this);
+		if( registrationId != null && !"".equals(registrationId) )
+		{
+			Log.i("Notifry", "Already registered. registrationId is " + registrationId);
+		}
+		else
+		{
+			Log.i("Notifry", "No existing registrationId. Registering.");
+			C2DMessaging.register(this, "notifry@gmail.com");
+		}
 	}
-	
+
 	public void onResume()
 	{
 		super.onResume();
-		
+
 		// Change the master enable/disable button based on the settings.
-		// This is done in onResume() so it's correct even if you go to the settings and come back.
-		this.changeEnabledLabelFor(findViewById(R.id.home_disableAll));		
+		// This is done in onResume() so it's correct even if you go to the
+		// settings and come back.
+		this.changeEnabledLabelFor(findViewById(R.id.home_disableAll));
+		
+		// Also, do a health check and post the results.
+		this.doHealthCheck();
+	}
+	
+	public void doHealthCheck()
+	{
+		// Peform the health check.
+		HealthCheck check = HealthCheck.performHealthcheck(this);
+		
+		TextView healthCheckArea = (TextView) findViewById(R.id.home_healthCheck);
+		
+		// Format the check text.
+		StringBuilder allText = new StringBuilder();
+		for( String error: check.getErrors() )
+		{
+			allText.append("- ");
+			allText.append(error);
+			allText.append('\n');
+		}
+		for( String error: check.getWarnings() )
+		{
+			allText.append("- ");
+			allText.append(error);
+			allText.append('\n');
+		}
+		
+		if( allText.length() == 0 )
+		{
+			healthCheckArea.setText(getString(R.string.health_check_all_ok));
+		}
+		else
+		{
+			healthCheckArea.setText(allText.toString().trim());
+		}
+		
+		// Enable the accounts button once we have an ID.
+		final String registrationId = C2DMessaging.getRegistrationId(this);
+		if( registrationId != null && !"".equals(registrationId) )
+		{
+			Button accountsButton = (Button) findViewById(R.id.home_accounts);
+			accountsButton.setEnabled(true);
+		}		
 	}
 
 	/**
@@ -121,6 +174,7 @@ public class Notifry extends Activity
 
 	/**
 	 * Onclick handler to launch the settings dialog.
+	 * 
 	 * @param view
 	 */
 	public void launchSettings( View view )
@@ -131,6 +185,7 @@ public class Notifry extends Activity
 
 	/**
 	 * Onclick handler to launch the recent messages dialog.
+	 * 
 	 * @param view
 	 */
 	public void launchRecentMessages( View view )
@@ -141,6 +196,7 @@ public class Notifry extends Activity
 
 	/**
 	 * Onclick handler to launch the account chooser dialog.
+	 * 
 	 * @param view
 	 */
 	public void launchAccounts( View view )
@@ -173,4 +229,13 @@ public class Notifry extends Activity
 			}
 		}
 	}
+	
+	private final BroadcastReceiver healthCheckReciever = new BroadcastReceiver()
+	{
+		@Override
+		public void onReceive( Context context, Intent intent )
+		{
+			doHealthCheck();
+		}
+	};	
 }
