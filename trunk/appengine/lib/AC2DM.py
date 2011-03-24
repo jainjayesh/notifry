@@ -131,6 +131,7 @@ class AC2DM:
 		params['data.type'] = "message";
 		params['data.server_id'] = message.key().id()
 		params['data.source_id'] = message.source.key().id()
+		params['data.device_id'] = device.key().id()
 		params['data.title'] = message.title
 		params['data.message'] = message.message
 		if message.url:
