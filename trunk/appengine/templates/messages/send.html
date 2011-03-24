@@ -1,0 +1,8 @@
+<%inherit file="../layout/layout.html" />
+<h1>Notifry</h1>
+
+% if error:
+	<p>${error}</p>
+% else:
+	<p>Send successfully. Message size is ${size}.</p>
+% endif

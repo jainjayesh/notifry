@@ -15,12 +15,14 @@ urls = (
 	'/messages/', 'messages',
 	'/devices/(.*)', 'devices',
 	'/profile', 'profile',
-	'/notifry', 'notifry'
+	'/notifry', 'notifry',
+	'/page/(.*)', 'page',
 )
 
 # Create the renderer and the initial context.
 renderer = Renderer('templates/')
 renderer.addTemplate('user', users.get_current_user())
+renderer.addTemplate('title', '')
 renderer.addTemplate('dateformat', '%A, %d %B %Y %H:%M UTC')
 
 # Helper function to make sure the user is aware that login is required.
@@ -317,8 +319,7 @@ class sources:
 # Notifry someone.
 class notifry:
 	def GET(self):
-		# For debugging, call POST.
-		# This is an easy way to send a message using get params.
+		# GET does the same thing as POST. Allows for easy testing.
 		return self.POST()
 
 	def POST(self):
@@ -331,7 +332,7 @@ class notifry:
 		if not input.source or not input.message or not input.title:
 			# Fail with an error.
 			renderer.addData('error', 'Missing required parameters - need at least source, message, and title.')
-			return renderer.render('apionly.html')
+			return renderer.render('messages/send.html')
 
 		# Find the source matching the source key.
 		source = UserSource.find_for_key(input.source)
@@ -339,13 +340,13 @@ class notifry:
 		if not source:
 			# No such source.
 			renderer.addData('error', 'No source matches the key ' + str(input.source))
-			return renderer.render('apionly.html')
+			return renderer.render('messages/send.html')
 
 		# If the source is server disabled, let the calling sysadmin know.
 		# TODO: Is this an information leak?
 		if not source.enabled:
 			renderer.addData('error', 'User has this source disabled on the server.')
-			return renderer.render('apionly.html')
+			return renderer.render('messages/send.html')
 
 		# Create the message object.
 		message = UserMessage()
@@ -362,7 +363,7 @@ class notifry:
 		if not message.checksize():
 			# Too big! We've done our best, but...
 			renderer.addData('error', 'Your message is too big. The title and URL were too long and the message could not be trimmed to fit. Maximum size is nearly 1024 bytes.')
-			return renderer.render('apionly.html')
+			return renderer.render('messages/send.html')
 
 		message.put()
 
@@ -370,9 +371,12 @@ class notifry:
 		sender = AC2DM.factory()
 		sender.send_to_all(message)
 
-		renderer.addData('message', message)
+		# Don't return the message - that would leak client information.
+		renderer.addData('success', True)
 		renderer.addData('size', message.getsize())
-		return renderer.render('apionly.html')
+		renderer.addData('truncated', message.wasTruncated)
+		renderer.addTemplate('error', None)
+		return renderer.render('messages/send.html')
 
 # Messages - list of messages in the system.
 class messages:
@@ -419,6 +423,34 @@ class messages:
 			# No source selected.
 			return None
 
+# Static pages.
+class page:
+	def GET(self, page):
+		valid_pages = {
+			'faq': 'pages/faq.html',
+			'api': 'pages/api.html',
+			'privacy': 'pages/privacy.html',
+			'sla': 'pages/sla.html',
+			'gettingstarted': 'pages/gettingstarted.html',
+			'about': 'pages/about.html'
+		}
+
+		if valid_pages.has_key(page):
+			return renderer.render(valid_pages[page])
+		else:
+			raise web.notfound()
+
+# Not found handler.
+def not_found_handler():
+	renderer.addData('error', '404 Not found')
+	return web.notfound(renderer.render('404.html'))
+
+def server_error_handler():
+	renderer.addData('error', '500 Internal Server Error')
+	return web.internalerror(renderer.render('500.html'))
+
 # Initialise and run the application.
 app = web.application(urls, globals())
+app.notfound = not_found_handler
+#app.internalerror = server_error_handler()
 main = app.cgirun()

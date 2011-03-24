@@ -1,0 +1,89 @@
+<%inherit file="../layout/layout.html" />
+<h1>Notifry API</h1>
+
+<p>To send messages to devices, you'll need to use the Notifry API. It's designed to be as simple as possible to send messages.</p>
+
+<p>The API is a simple REST interface that returns JSON (at the moment). The keys below show how it is done. Alternately, 
+scripts already exist to send messages to Notifry, and you can choose one that fits your platform and system.</p>
+
+<h2>Scripts</h2>
+
+<table>
+	<tr>
+		<th>Language</th>
+		<th>Description</th>
+		<th>Link</th>
+	</tr>
+	<tr>
+		<td>PHP</td>
+		<td>A basic command line PHP script that can send messages.</td>
+		<td><a href="http://notifry.googlecode.com/svn/trunk/serverpush/notifry.php">From Google Code</a></td>
+	</tr>
+	<tr>
+		<td>Python</td>
+		<td>A basic command line Python script that can send messages.</td>
+		<td><a href="http://notifry.googlecode.com/svn/trunk/serverpush/notifry.py">From Google Code</a></td>
+	</tr>
+</table>
+
+<h2>API Reference</h2>
+
+<h3>Parameters</h3>
+
+<p>Note: your message shouldn't be more than around 1000 bytes. The server will truncate your message field
+	if it can to limit the message size. It will never truncate the URL. If it can't send the message without truncating
+	the URL, the message will not be sent and you will get an error message. If your message is truncated, the response will
+	have the truncated flag set to true. Notifry is not designed to send long messages.</p>
+
+<table>
+	<tr>
+		<th>Parameter</th>
+		<th>Value</th>
+		<th>Description</th>
+		<th>Required</th>
+	</tr>
+	<tr>
+		<td>format</td>
+		<td>json</td>
+		<td>Determines the format of the response. Only JSON is supported at the moment, so you should always send the string json.</td>
+		<td>Required</td>
+	</tr>
+	<tr>
+		<td>source</td>
+		<td>32 character hash string</td>
+		<td>The source key, given to you by the user. They generate it when they create a source.</td>
+		<td>Required</td>
+	</tr>
+	<tr>
+		<td>title</td>
+		<td>string</td>
+		<td>The string title of this notification. Keep this short and relevant to the message.</td>
+		<td>Required</td>
+	</tr>
+	<tr>
+		<td>message</td>
+		<td>string</td>
+		<td>The body of the message. This can contain a lot more detail of the message.</td>
+		<td>Required</td>
+	</tr>
+	<tr>
+		<td>url</td>
+		<td>string</td>
+		<td>An optional URL to pass along, that would give more information about the message.</td>
+		<td>Optional</td>
+	</tr>
+</table>
+
+<h3>Sending the message</h3>
+
+<p>You can POST or GET the message to:</p>
+
+<pre class="code">https://notifrytest.appspot.com/notifry</pre>
+
+<p>On success, the response will look like this:</p>
+
+<pre class="code">{"success": true, "size": 68, "truncated": false}</pre>
+
+<p>On failure, the error message is returned.</p>
+
+<pre class="code">{"error": "Error message describing why it failed."}</pre>

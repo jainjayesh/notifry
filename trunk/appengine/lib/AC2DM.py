@@ -47,9 +47,8 @@ class AC2DM:
 		params = {}
 		params['collapse_key'] = 'source_' + str(source.key().id())
 		params['registration_id'] = device.deviceKey
-		# Can wait until device wakes up?
-		# TODO: Is this suitable?
-		params['delay_until_idle'] = 1
+		# Don't wait - let the device know now.
+		params['delay_until_idle'] = 0
 
 		params['data.type'] = "sourcechange"
 		params['data.id'] = str(source.key().id())

@@ -13,6 +13,7 @@ urls = (
 
 # Create the renderer and the initial context.
 renderer = Renderer('templates/')
+renderer.addTemplate('title', '')
 renderer.addTemplate('user', users.get_current_user())
 
 # Front page of Admin.
