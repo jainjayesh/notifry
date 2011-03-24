@@ -1,0 +1,9 @@
+#summary How the program and systems are tested.
+
+= Introduction =
+
+The following proceedure is a set of steps to follow to test the majority of the functionality of the system.
+
+= Process =
+
+  * Start with a blank install on the phone.
