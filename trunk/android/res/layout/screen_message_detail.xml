@@ -6,6 +6,6 @@
     <TextView android:text="Title" android:id="@+id/message_detail_title" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textStyle="bold"></TextView>
     <TextView android:text="Timestamp" android:id="@+id/message_detail_timestamp" android:layout_width="wrap_content" android:layout_height="wrap_content"></TextView>
     <TextView android:text="Source" android:id="@+id/message_detail_source" android:layout_width="wrap_content" android:layout_height="wrap_content"></TextView>
-    <TextView android:text="URL" android:id="@+id/message_detail_url" android:layout_width="wrap_content" android:layout_height="wrap_content"></TextView>
+    <TextView android:text="URL" android:id="@+id/message_detail_url" android:layout_width="wrap_content" android:layout_height="wrap_content" android:autoLink="all"></TextView>
     <TextView android:text="Body" android:id="@+id/message_detail_content" android:layout_width="wrap_content" android:layout_height="wrap_content"></TextView>
 </LinearLayout>

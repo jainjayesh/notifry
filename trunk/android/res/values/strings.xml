@@ -52,7 +52,8 @@
     
     <string name="enabled_on_server">Enabled on server</string>
     <string name="enabled_locally">Enabled locally</string>
-    <string name="email_source_key">Email key</string>
+    <string name="email_source_key">Email source key</string>
+    <string name="messages">Messages</string>
     
     <string name="settings_heading">Notifry Settings</string>
     <string name="choose_accounts_heading">Notifry - Choose accounts</string>

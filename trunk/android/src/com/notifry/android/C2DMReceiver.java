@@ -18,6 +18,8 @@
 
 package com.notifry.android;
 
+import org.apache.http.ParseException;
+
 import com.google.android.c2dm.C2DMBaseReceiver;
 
 import com.notifry.android.database.NotifryAccount;
@@ -71,19 +73,35 @@ public class C2DMReceiver extends C2DMBaseReceiver
 		if( type.equals("message") )
 		{
 			// Fetch the message out into a NotifryMessage object.
-			NotifryMessage message = NotifryMessage.fromC2DM(context, extras);
-			
-			Log.d("Notifry", "We've been notifried! " + message.getMessage());
-			
-			// Persist this message to the database.
-			message.save(context);
-			
-			// Send a notification to the notification service, which will then
-			// dispatch and handle everything else.
-			Intent intentData = new Intent(getBaseContext(), NotificationService.class);
-			intentData.putExtra("messageId", message.getId());
-			intentData.putExtra("operation", "notifry");
-			startService(intentData);
+			try
+			{
+				NotifryMessage message = NotifryMessage.fromC2DM(context, extras);
+				
+				Log.d("Notifry", "We've been notifried! " + message.getMessage());
+				
+				// Persist this message to the database.
+				message.save(context);
+				
+				// Send a notification to the notification service, which will then
+				// dispatch and handle everything else.
+				Intent intentData = new Intent(getBaseContext(), NotificationService.class);
+				intentData.putExtra("messageId", message.getId());
+				intentData.putExtra("operation", "notifry");
+				startService(intentData);				
+			}
+			catch( ParseException ex )
+			{
+				// Failed to parse a Long.
+				Log.e(TAG, "Failed to parse a long - malformed message from server: " + ex.getMessage());
+			}
+			catch( NotifryMessage.UnsourceableMessage ex )
+			{
+				// Hmm... a message there was no way to find a source for.
+				// Don't do anything - but do log it.
+				Long accountId = Long.parseLong(extras.getString("device_id"));
+				Long sourceId = Long.parseLong(extras.getString("source_id"));
+				Log.d(TAG, "Unsourceable message: source ID " + sourceId + " device ID " + accountId);
+			}
 		}
 		else if( type.equals("refreshall") )
 		{

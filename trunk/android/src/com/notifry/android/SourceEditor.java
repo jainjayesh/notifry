@@ -174,6 +174,17 @@ public class SourceEditor extends Activity
 		this.startActivity(Intent.createChooser(emailIntent, "Send key via email"));
 	}
 	
+	/**
+	 * View the messages of this source.
+	 * @param view
+	 */
+	public void messages( View view )
+	{
+		Intent intent = new Intent(this, MessageList.class);
+		intent.putExtra("sourceId", this.getSource().getId());
+		startActivity(intent);
+	}
+	
 	private Handler handler = new Handler()
 	{
 		@Override

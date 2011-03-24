@@ -7,12 +7,9 @@
     <CheckBox android:id="@+id/detail_serverenable" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/enabled_on_server"></CheckBox>
     <CheckBox android:id="@+id/detail_localenable" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/enabled_locally"></CheckBox>
     <TextView android:id="@+id/detail_sourcekey" android:layout_width="wrap_content" android:layout_height="wrap_content" android:maxLines="2"></TextView>
-    <LinearLayout android:id="@+id/linearLayout1" android:layout_height="wrap_content" android:layout_width="match_parent">
-        <Button android:id="@+id/detail_save" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/save" android:layout_weight="1" android:onClick="save"></Button>
-        <Button android:id="@+id/detail_emailkey" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/email_source_key" android:layout_weight="1" android:onClick="emailKey"></Button>
-    </LinearLayout>
-    <LinearLayout android:id="@+id/linearLayout2" android:layout_height="wrap_content" android:layout_width="match_parent">
-    	<Button android:id="@+id/detail_test" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/test" android:layout_weight="1" android:onClick="test"></Button>
-    	<Button android:id="@+id/detail_delete" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/delete" android:layout_weight="1" android:onClick="delete"></Button>
-    </LinearLayout>
+	<Button android:id="@+id/detail_save" android:layout_width="fill_parent" android:layout_height="wrap_content" android:text="@string/save" android:onClick="save"></Button>
+	<Button android:id="@+id/detail_emailkey" android:layout_width="fill_parent" android:layout_height="wrap_content" android:text="@string/email_source_key" android:onClick="emailKey"></Button>
+	<Button android:id="@+id/detail_messages" android:layout_width="fill_parent" android:layout_height="wrap_content" android:text="@string/messages" android:onClick="messages"></Button>	
+	<Button android:id="@+id/detail_test" android:layout_width="fill_parent" android:layout_height="wrap_content" android:text="@string/test" android:onClick="test"></Button>
+	<Button android:id="@+id/detail_delete" android:layout_width="fill_parent" android:layout_height="wrap_content" android:text="@string/delete" android:onClick="delete"></Button>
 </LinearLayout>

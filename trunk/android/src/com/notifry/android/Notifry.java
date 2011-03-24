@@ -18,7 +18,10 @@
 
 package com.notifry.android;
 
+import java.util.Date;
+
 import com.google.android.c2dm.C2DMessaging;
+import com.notifry.android.database.NotifryMessage;
 
 import android.app.Activity;
 import android.content.BroadcastReceiver;
@@ -66,6 +69,12 @@ public class Notifry extends Activity
 			Log.i("Notifry", "No existing registrationId. Registering.");
 			C2DMessaging.register(this, "notifry@gmail.com");
 		}
+		
+		// Clean out old messages.
+		// TODO: Do this somewhere else too.
+		Date olderThan = new Date();
+		olderThan.setTime(olderThan.getTime() - 86400 * 1000);
+		NotifryMessage.FACTORY.deleteOlderThan(this, olderThan);
 	}
 
 	public void onResume()

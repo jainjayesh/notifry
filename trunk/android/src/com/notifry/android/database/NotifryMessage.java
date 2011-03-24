@@ -26,8 +26,11 @@ import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;
 
+import com.notifry.android.UpdaterService;
+
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
@@ -135,7 +138,7 @@ public class NotifryMessage extends ORM<NotifryMessage>
 		this.seen = seen;
 	}
 
-	public static NotifryMessage fromC2DM( Context context, Bundle extras )
+	public static NotifryMessage fromC2DM( Context context, Bundle extras ) throws UnsourceableMessage
 	{
 		NotifryMessage incoming = new NotifryMessage();
 		incoming.setMessage(extras.getString("message"));
@@ -152,8 +155,38 @@ public class NotifryMessage extends ORM<NotifryMessage>
 		if( source == null )
 		{
 			// No such source... now what?
-			// TODO: Deal with this.
-			Log.e(TAG, "No such source " + sourceId);
+			// Create a dummy source as a placeholder, then ask the updater service to fetch the rest
+			// when it can.
+			NotifrySource unknownSource = new NotifrySource();
+			unknownSource.setTitle("Unknown Source");
+			unknownSource.setLocalEnabled(true);
+			unknownSource.setServerEnabled(true);
+			unknownSource.setServerId(sourceId);
+			
+			// Find the account for this unknown source.
+			Long accountId = Long.parseLong(extras.getString("device_id"));
+			NotifryAccount account = NotifryAccount.FACTORY.getByServerId(context, accountId);
+			
+			if( account == null )
+			{
+				// Ok, not even that account is known here. We've done all we can - abort!
+				throw FACTORY.new UnsourceableMessage();
+			}
+			
+			unknownSource.setAccountName(account.getAccountName());
+			unknownSource.setSourceKey("UNKNOWN - Refresh for correct key");
+			unknownSource.setChangeTimestamp("");
+			
+			unknownSource.save(context);
+			
+			incoming.setSource(unknownSource);
+			
+			// Fire off the background request to update the source information.
+			Intent intentData = new Intent(context, UpdaterService.class);
+			intentData.putExtra("type", "sourcechange");
+			intentData.putExtra("sourceId", sourceId);
+			intentData.putExtra("deviceId", accountId);
+			context.startService(intentData);
 		}
 		else
 		{
@@ -221,6 +254,17 @@ public class NotifryMessage extends ORM<NotifryMessage>
 		
 		this.genericDelete(context, query, null);
 	}
+	
+	public void deleteOlderThan( Context context, Date date )
+	{
+		// Parse it, and display in LOCAL timezone.
+		SimpleDateFormat ISO8601DATEFORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSSSS", Locale.US);
+		ISO8601DATEFORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
+		String formattedDate = ISO8601DATEFORMAT.format(date);
+		
+		// So, everything older than formattedDate should be removed.
+		this.genericDelete(context, NotifryDatabaseAdapter.KEY_TIMESTAMP + " < ?", new String[] { formattedDate });
+	}	
 
 	@Override
 	public Uri getContentUri()
@@ -263,5 +307,10 @@ public class NotifryMessage extends ORM<NotifryMessage>
 	protected String[] getProjection()
 	{
 		return NotifryDatabaseAdapter.MESSAGE_PROJECTION;
+	}
+	
+	public class UnsourceableMessage extends Exception
+	{
+		private static final long serialVersionUID = 1L;	
 	}
 }
