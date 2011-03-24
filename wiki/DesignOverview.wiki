@@ -18,6 +18,7 @@ The push message should be very short. The schema should be very simple too - th
 Push notifications themselves will be limited to 1024 bytes and contain just this information:
 
   * Timestamp (ISO format, always in UTC)
+  * Title (a short description of the message) (Required).
   * Source (the user defined source name)
   * URL (optional, can be used to link to info about the message)
   * Message (required).
