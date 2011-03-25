@@ -50,7 +50,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class SourceList extends ListActivity
+public class SourceList extends ListActivity implements View.OnClickListener, CompoundButton.OnCheckedChangeListener
 {
 	public final static int ADD_SOURCE = 1;
 	public final static int REFRESH_SERVER = 2;
@@ -235,6 +235,23 @@ public class SourceList extends ListActivity
 		startActivity(intent);
 	}
 	
+	@Override
+	public void onClick( View clickedView )
+	{
+		Long id = (Long) clickedView.getTag();
+		NotifrySource source = NotifrySource.FACTORY.get(this, id);
+		
+		clickSource(source);
+	}	
+	
+	public void onCheckedChanged( CompoundButton buttonView, boolean isChecked )
+	{
+		Long id = (Long) buttonView.getTag();
+		NotifrySource source = NotifrySource.FACTORY.get(this, id);
+		
+		checkedSource(source, isChecked);
+	}	
+	
 	/**
 	 * Handler for when you change a source's enabled status.
 	 * @param source
@@ -361,49 +378,37 @@ public class SourceList extends ListActivity
 				TextView title = (TextView) convertView.findViewById(R.id.source_row_source_name);
 				TextView serverEnabled = (TextView) convertView.findViewById(R.id.source_row_server_enabled);
 				CheckBox enabled = (CheckBox) convertView.findViewById(R.id.source_row_local_enabled);
-				
-				View.OnClickListener clickListener = new View.OnClickListener()
-				{
-					public void onClick( View v )
-					{
-						parentActivity.clickSource(source);
-					}
-				};
+
 				
 				if( title != null )
 				{
 					title.setText(source.getTitle());
 					title.setClickable(true);
+					title.setTag(source.getId());
 
-					title.setOnClickListener(clickListener);
+					title.setOnClickListener(parentActivity);
 				}
 				if( serverEnabled != null )
 				{
 					serverEnabled.setClickable(true);
+					serverEnabled.setTag(source.getId());
 					if( source.getServerEnabled() == false )
 					{
 						serverEnabled.setText(getString(R.string.source_disabled_on_server));
+						serverEnabled.setVisibility(View.VISIBLE);
 					}
 					else
 					{
-						serverEnabled.setText("");
+						serverEnabled.setVisibility(View.GONE);
 					}
-					serverEnabled.setOnClickListener(clickListener);
+					serverEnabled.setOnClickListener(parentActivity);
 				}
 				if( enabled != null )
 				{
 					enabled.setChecked(source.getLocalEnabled());
+					enabled.setTag(source.getId());
 
-					// This doesn't seem memory friendly, but we'll get away
-					// with it because
-					// there won't be many registered sources.
-					enabled.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener()
-					{
-						public void onCheckedChanged( CompoundButton buttonView, boolean isChecked )
-						{
-							parentActivity.checkedSource(source, isChecked);
-						}
-					});
+					enabled.setOnCheckedChangeListener(parentActivity);
 				}
 			}
 

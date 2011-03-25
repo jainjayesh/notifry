@@ -55,7 +55,7 @@ import android.widget.CompoundButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class ChooseAccount extends ListActivity
+public class ChooseAccount extends ListActivity implements CompoundButton.OnCheckedChangeListener, View.OnClickListener 
 {
 	private static final int REFRESH_IDS = 1;
 	private static final String TAG = "Notifry";
@@ -145,7 +145,6 @@ public class ChooseAccount extends ListActivity
 	 */
 	public void clickAccountName( NotifryAccount account )
 	{
-		//Toast.makeText(this, account.getAccountName(), Toast.LENGTH_SHORT).show();
 		// If enabled, launch the sources list for this account.
 		if( account.getEnabled() )
 		{
@@ -265,6 +264,24 @@ public class ChooseAccount extends ListActivity
 			}
 		}
 	};
+	
+	@Override
+	public void onCheckedChanged( CompoundButton checkbox, boolean checked )
+	{
+		Long id = (Long) checkbox.getTag();
+		NotifryAccount account = NotifryAccount.FACTORY.get(this, id);
+		
+		this.checkedAccount(account, checked);
+	}
+
+	@Override
+	public void onClick( View textview )
+	{
+		Long id = (Long) textview.getTag();
+		NotifryAccount account = NotifryAccount.FACTORY.get(this, id);
+		
+		this.clickAccountName(account);
+	}	
 
 	/**
 	 * An array adapter to put accounts into the list view.
@@ -290,6 +307,9 @@ public class ChooseAccount extends ListActivity
 				LayoutInflater inflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 				convertView = inflater.inflate(R.layout.account_list_row, null);
 			}
+			
+			convertView.setClickable(true);
+			convertView.setLongClickable(true);
 
 			// Find the account.
 			final NotifryAccount account = this.accounts.get(position);
@@ -302,33 +322,15 @@ public class ChooseAccount extends ListActivity
 				if( title != null )
 				{
 					title.setText(account.getAccountName());
+					title.setTag(account.getId());
 					title.setClickable(true);
-
-					// This doesn't seem memory friendly, but we'll get away
-					// with it because
-					// there won't be many registered accounts.
-					title.setOnClickListener(new View.OnClickListener()
-					{
-						public void onClick( View v )
-						{
-							parentActivity.clickAccountName(account);
-						}
-					});
+					title.setOnClickListener(parentActivity);
 				}
 				if( enabled != null )
 				{
 					enabled.setChecked(account.getEnabled());
-
-					// This doesn't seem memory friendly, but we'll get away
-					// with it because
-					// there won't be many registered accounts.
-					enabled.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener()
-					{
-						public void onCheckedChanged( CompoundButton buttonView, boolean isChecked )
-						{
-							parentActivity.checkedAccount(account, isChecked);
-						}
-					});
+					enabled.setTag(account.getId());
+					enabled.setOnCheckedChangeListener(parentActivity);
 				}
 			}
 
