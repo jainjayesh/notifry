@@ -63,6 +63,7 @@
     <string name="message_detail_heading">Notifry - Message</string>
     
     <string name="no_accounts">No Google accounts on this phone. You will need at least one to be able to use this program.</string>
+    <string name="accounts_help">The checkbox registers or deregisters that account with the backend server. Then, tap the account name to manage sources.</string>
     
     <string name="no_sources">There are no sources for this account yet. Press menu to add a new one.</string>
     
@@ -122,6 +123,7 @@
     <string name="save">Save</string>
     <string name="test">Test</string>
     <string name="mark_all_as_seen">Mark all as Seen</string>
+    <string name="ok">Ok</string>
     
     <string name="ifContactEnabled">Enabled</string>
     <string name="ifContactNotEnabled">Not enabled</string>

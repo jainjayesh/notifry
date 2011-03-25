@@ -33,12 +33,16 @@ import com.notifry.android.remote.BackendRequest;
 import com.notifry.android.remote.BackendResponse;
 
 import android.accounts.AccountManager;
+import android.app.AlertDialog;
 import android.app.ListActivity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -78,6 +82,23 @@ public class ChooseAccount extends ListActivity
 
 		// When coming back, refresh our list of accounts.
 		refreshView();
+		
+		// Show the help.
+		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
+		if( settings.getBoolean("chooseAccountFirstTime", true) )
+		{
+			// Show first time help.
+			new AlertDialog.Builder(this).
+				setTitle(getString(R.string.accounts_and_sources)).
+				setMessage(getString(R.string.accounts_help)).
+				setPositiveButton(getString(R.string.ok), null).
+				show();
+			
+			// And don't show again.
+			Editor editor = settings.edit();
+			editor.putBoolean("chooseAccountFirstTime", false);
+			editor.commit();
+		}
 	}
 	
 	@Override
