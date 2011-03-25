@@ -61,6 +61,7 @@ class Renderer:
 	def render(self, template_name):
 		# Determine the mode from the parameters.
 		if self.get_mode() == 'html':
+			self.addTemplate('uri', web.url())
 			template = self.template_lookup.get_template(template_name)
 			return template.render(**self.data)
 		elif self.get_mode() == 'json':

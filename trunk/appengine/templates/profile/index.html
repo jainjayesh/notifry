@@ -1,34 +1,62 @@
 <%inherit file="../layout/layout.html" />
-<h1>Notifry</h1>
-
-<p><a href="/messages/">View recent messages</a></p>
+<h2>Sources</h2>
 
 <p><a href="/sources/create">Create new source</a></p>
 
-<ul>
-	% for source in sources:
-		<li>
-			<a href="/sources/edit?id=${source.key().id()}">Edit</a>
-			| <a href="/messages/?sid=${source.key().id()}">Messages</a>
-			| <a href="/sources/test?id=${source.key().id()}">Test</a>
-			| <a href="/sources/delete?id=${source.key().id()}">Delete</a>
-			| <span class="source_title">${source.title|h}</span> -
-			% if source.enabled:
-				<span class="enabled">Enabled</span>
-			% else:
-				<span class="disabled">Disabled</span>
-			% endif
-			- key ${source.externalKey}
-		</li>
-	% endfor
-</ul>
+<table class="details">
+	<thead>
+		<tr>
+			<th>Title</th>
+			<th>Enabled</th>
+			<th>Key</th>
+			<th>Messages</th>
+			<th>Test</th>
+			<th>Delete</th>
+		</tr>
+	</thead>
+	<tbody>
+		% for source in sources:
+			<tr>
+				<td><a href="/sources/edit?id=${source.key().id()}">${source.title|h}</a></td>
+				<td>
+					% if source.enabled:
+						<span class="enabled">Enabled</span>
+					% else:
+						<span class="disabled">Disabled</span>
+					% endif
+				</td>
+				<td><span class="code">${source.externalKey|h}</span></td>
+				<td><a href="/messages/?sid=${source.key().id()}">Messages</a></td>
+				<td><a href="/sources/test?id=${source.key().id()}">Test</a></td>
+				<td><a href="/sources/delete?id=${source.key().id()}">Delete</a></td>
+			</tr>
+		% endfor
+	</tbody>
+</table>
 
-<p>Devices:</p>
+<p>Note: the key above is what you give to your system administrator so they can send messages
+to that source. You can not change the key once the system has generated it, so be careful
+who you share that source with. You can always locally disable the key if needed.</p>
 
-<ul>
-	% for device in devices:
-		<li>
-			<a href="/devices/delete?id=${device.key().id()}">Delete</a>
-			| ${device.deviceNickname|h} (${device.deviceType|h}) - last updated ${device.updated.strftime(dateformat)}</li>
-	% endfor
-</ul>
+<h2>Devices</h2>
+
+<table class="details">
+	<thead>
+		<tr>
+			<th>Type</th>
+			<th>Name</th>
+			<th>Last Update</th>
+			<th>Delete</th>
+		</tr>
+	</thead>
+	<tbody>
+		% for device in devices:
+			<tr>
+				<td>${device.deviceType|h}</td>
+				<td>${device.deviceNickname|h}</td>
+				<td>${device.updated.strftime(dateformat)}</td>
+				<td><a href="/devices/delete?id=${device.key().id()}">Delete</a></td>
+			</tr>
+		% endfor
+	</tbody>
+</table>

@@ -178,7 +178,7 @@ class sources:
 	def GET(self, action):
 		if action == 'create' or action == 'edit':
 			source = self.get_source()
-			renderer.addTemplate('action', action)
+			renderer.addTemplate('action', self.get_pretty_action(action))
 			
 			form = self.get_form()
 			form.fill(source.dict())
@@ -253,7 +253,7 @@ class sources:
 
 			if not form.validates():
 				# Failed to validate. Display the form again.
-				renderer.addTemplate('action', action)
+				renderer.addTemplate('action', self.get_pretty_action(action))
 				renderer.addTemplate('form', form)
 				errors = form.getnotes()
 				renderer.addDataList('errors', errors)
@@ -315,6 +315,9 @@ class sources:
 			web.form.Button('Save')
 		)
 		return source_editor_form()
+
+	def get_pretty_action(self, action):
+		return action[0].upper() + action[1:]
 
 # Notifry someone.
 class notifry:
