@@ -64,7 +64,8 @@ public class NotificationService extends Service
 		String contentTitle = "";
 		String contentText = "";
 
-		unreadMessagesOfType = NotifryMessage.FACTORY.countUnread(this, source); 		
+		unreadMessagesOfType = NotifryMessage.FACTORY.countUnread(this, source);
+		PendingIntent contentIntent = null;
 
 		if( unreadMessagesOfType == 1 && message != null )
 		{
@@ -72,20 +73,24 @@ public class NotificationService extends Service
 			// content to be the message itself.
 			contentTitle = message.getTitle();
 			contentText = message.getMessage();
+			
+			// Go to just the message view.
+			Intent notificationIntent = new Intent(this, MessageDetail.class);
+			notificationIntent.putExtra("messageId", message.getId());
+			contentIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0);				
 		}
 		else
 		{
 			// More than one message. Instead, the title is the source name,
 			// and the content is the number of unseen messages.
-			contentTitle = message.getSource().getTitle();
+			contentTitle = source.getTitle();
 			contentText = String.format("%d unseen messages", unreadMessagesOfType);
+			
+			// Generate the intent to go to that message list.
+			Intent notificationIntent = new Intent(this, MessageList.class);
+			notificationIntent.putExtra("sourceId", source.getId());
+			contentIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0);			
 		}
-
-		// Generate the intent to go to that message list.
-		// TODO: Maybe go to the message if just one message?
-		Intent notificationIntent = new Intent(this, MessageList.class);
-		notificationIntent.putExtra("sourceId", message.getSource().getId());
-		PendingIntent contentIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0);
 
 		// Set the notification data.
 		notification.setLatestEventInfo(context, contentTitle, contentText, contentIntent);
@@ -191,6 +196,12 @@ public class NotificationService extends Service
 				if( NotifryMessage.FACTORY.countUnread(this, source) == 0 )
 				{
 					this.notificationManager.cancel(source.getNotificationId());
+				}
+				else
+				{
+					// Change it to the real number of read messages.
+					Notification notification = setLatestEventInfo(source, null);
+					this.notificationManager.notify(source.getNotificationId(), notification);
 				}
 			}
 		}

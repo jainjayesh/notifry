@@ -23,6 +23,7 @@ import com.notifry.android.database.NotifryMessage;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.TextView;
 
 public class MessageDetail extends Activity
@@ -68,10 +69,12 @@ public class MessageDetail extends Activity
 		TextView url = (TextView) findViewById(R.id.message_detail_url);
 		if( message.getUrl() != null )
 		{
+			url.setVisibility(View.VISIBLE);
 			url.setText(message.getUrl());
 		}
 		else
 		{
+			url.setVisibility(View.GONE);
 			url.setText("No URL provided.");
 		}
 
