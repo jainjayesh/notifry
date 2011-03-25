@@ -65,12 +65,13 @@ public class UpdaterService extends Service
 		}
 		
 		// Fetch a wakelock if we don't already have one.
-		if( this.wakelock == null )
+		// TODO: This is disabled until I can figure out the "under locked" exception.
+		/*if( this.wakelock == null )
 		{
 			PowerManager manager = (PowerManager) getSystemService(Context.POWER_SERVICE);
 			this.wakelock = manager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, TAG);
 			this.wakelock.acquire(60000); // Max 60 seconds.
-		}
+		}*/
 		
 		// We need to make some kind of backend request.
 		String type = intent.getExtras().getString("type");
@@ -208,14 +209,14 @@ public class UpdaterService extends Service
 			}
 			
 			// Release the wakelock. Rather important!
-			if( thisService.wakelock != null )
+			/*if( thisService.wakelock != null )
 			{
 				if( thisService.wakelock.isHeld() )
 				{
 					thisService.wakelock.release();
 					thisService.wakelock = null;
 				}
-			}
+			}*/
 		}
 	};	
 }

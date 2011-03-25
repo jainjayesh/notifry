@@ -197,14 +197,19 @@ public class NotifrySource extends ORM<NotifrySource>
 		// Now, find out the IDs that exist in our database but were not in our list.
 		// Those have been deleted.
 		ArrayList<NotifrySource> allSources = NotifrySource.FACTORY.listAll(context, accountName);
+		HashSet<Long> allIds = new HashSet<Long>();
 		for( NotifrySource source: allSources )
 		{
-			seenIds.remove(source.getId());
+			allIds.add(source.getId());
 		}
+		
+		allIds.removeAll(seenIds);
 
-		for( Long sourceId: seenIds )
+		for( Long sourceId: allIds )
 		{
-			NotifrySource.FACTORY.deleteById(context, sourceId);
+			NotifrySource source = NotifrySource.FACTORY.get(context, sourceId);
+			NotifryMessage.FACTORY.deleteMessagesBySource(context, source, false);
+			source.delete(context);
 		}
 
 		return result;

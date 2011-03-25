@@ -104,7 +104,7 @@
     
     <string name="health_check_placeholder">Health Check information will go here.</string>
     <string name="health_check_all_ok">Health check passed.</string>
-    <string name="health_error_no_c2dm_id">We do not have a C2DM ID. Please restart the app.</string>
+    <string name="health_error_no_c2dm_id">No C2DM ID. Please wait or restart the app.</string>
     <string name="health_error_c2dm_error">Error getting C2DM ID: </string>
     <string name="health_error_no_accounts">No accounts registered for use. Select one to be used.</string>
     <string name="health_error_no_sources" formatted="false">The account %s has no sources. Refresh this from the server if you think this is an error.</string>
