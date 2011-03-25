@@ -45,6 +45,7 @@ who you share that source with. You can always locally disable the key if needed
 		<tr>
 			<th>Type</th>
 			<th>Name</th>
+			<th>Hash</th>
 			<th>Last Update</th>
 			<th>Delete</th>
 		</tr>
@@ -54,6 +55,7 @@ who you share that source with. You can always locally disable the key if needed
 			<tr>
 				<td>${device.deviceType|h}</td>
 				<td>${device.deviceNickname|h}</td>
+				<td>${device.hash()}</td>
 				<td>${device.updated.strftime(dateformat)}</td>
 				<td><a href="/devices/delete?id=${device.key().id()}">Delete</a></td>
 			</tr>

@@ -69,7 +69,7 @@ class AC2DM:
 			# Skip the device if that was the device that originated the request.
 			if device.key().id() == originating_device_id:
 				continue
-			self.notify_source_change(source, device)
+			self.notify_source_delete(source, device)
 
 	def notify_source_delete(self, source, device):
 		params = {}

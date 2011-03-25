@@ -1,3 +1,4 @@
+import hashlib
 from google.appengine.ext import db
 
 class UserDevice(db.Model):
@@ -8,6 +9,10 @@ class UserDevice(db.Model):
 	deviceType = db.StringProperty()
 	deviceVersion = db.StringProperty()
 	deviceNickname = db.StringProperty()
+
+	def hash(self):
+		digest = hashlib.md5(self.deviceKey).hexdigest()
+		return digest[0:8]
 
 	def dict(self):
 		result = {
