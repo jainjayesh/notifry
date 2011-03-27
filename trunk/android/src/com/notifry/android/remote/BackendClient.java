@@ -86,7 +86,7 @@ public class BackendClient
 		{
 			// Parse the response.
 			// TODO: This causes the request to fail and need a retry.
-			BackendResponse response = new BackendResponse(request, ex.getMessage() + " - Please try again.");
+			BackendResponse response = new BackendResponse(request, ex.getMessage());
 
 			return response;
 		}
