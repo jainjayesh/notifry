@@ -2,7 +2,7 @@ from google.appengine.ext import db
 from model.UserSource import UserSource
 import datetime
 
-SIZE_LIMIT = 1024
+SIZE_LIMIT = 512
 
 class UserMessage(db.Model):
 	source = db.ReferenceProperty(UserSource)
