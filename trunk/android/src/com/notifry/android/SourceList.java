@@ -234,8 +234,7 @@ public class SourceList extends ListActivity implements View.OnClickListener, Co
 		intent.putExtra("sourceId", source.getId());
 		startActivity(intent);
 	}
-	
-	@Override
+
 	public void onClick( View clickedView )
 	{
 		Long id = (Long) clickedView.getTag();

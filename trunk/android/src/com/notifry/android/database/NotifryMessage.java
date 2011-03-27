@@ -88,19 +88,26 @@ public class NotifryMessage extends ORM<NotifryMessage>
 	{
 		this.timestamp = timestamp;
 	}
+
+	public static Date parseISO8601String( String isoString ) throws ParseException
+	{
+		SimpleDateFormat ISO8601DATEFORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSSSS", Locale.US);
+		ISO8601DATEFORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));		
+		return ISO8601DATEFORMAT.parse(isoString);
+	}
+
+	public static String formatUTCAsLocal( Date date )
+	{
+		DateFormat formatter = DateFormat.getDateTimeInstance();
+		formatter.setTimeZone(TimeZone.getDefault());
+		return formatter.format(date);		
+	}
 	
 	public String getDisplayTimestamp()
 	{
 		try
 		{	
-			// Parse it, and display in LOCAL timezone.
-			// TODO: Move this somewhere else and make it configurable?
-			SimpleDateFormat ISO8601DATEFORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSSSS", Locale.US);
-			ISO8601DATEFORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
-			Date date = ISO8601DATEFORMAT.parse(this.timestamp);
-			DateFormat formatter = DateFormat.getDateTimeInstance();
-			formatter.setTimeZone(TimeZone.getDefault());
-			return formatter.format(date);
+			return NotifryMessage.formatUTCAsLocal(NotifryMessage.parseISO8601String(this.timestamp));
 		}
 		catch( ParseException e )
 		{
@@ -205,6 +212,22 @@ public class NotifryMessage extends ORM<NotifryMessage>
 		}
 		
 		return this.genericList(context, query, null, NotifryDatabaseAdapter.KEY_TIMESTAMP + " DESC");
+	}
+	
+	public Cursor cursorList( Context context, NotifrySource source )
+	{
+		String query = "";
+		if( source != null )
+		{
+			query = NotifryDatabaseAdapter.KEY_SOURCE_ID + "=" + source.getId();
+		}		
+		
+		return context.getContentResolver().query(
+				this.getContentUri(),
+				new String[] { NotifryDatabaseAdapter.KEY_ID, NotifryDatabaseAdapter.KEY_TITLE, NotifryDatabaseAdapter.KEY_TIMESTAMP, NotifryDatabaseAdapter.KEY_SEEN },
+				query,
+				null,
+				NotifryDatabaseAdapter.KEY_TIMESTAMP + " DESC");
 	}
 
 	public int countUnread( Context context, NotifrySource source )

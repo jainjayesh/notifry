@@ -265,7 +265,6 @@ public class ChooseAccount extends ListActivity implements CompoundButton.OnChec
 		}
 	};
 	
-	@Override
 	public void onCheckedChanged( CompoundButton checkbox, boolean checked )
 	{
 		Long id = (Long) checkbox.getTag();
@@ -274,7 +273,6 @@ public class ChooseAccount extends ListActivity implements CompoundButton.OnChec
 		this.checkedAccount(account, checked);
 	}
 
-	@Override
 	public void onClick( View textview )
 	{
 		Long id = (Long) textview.getTag();

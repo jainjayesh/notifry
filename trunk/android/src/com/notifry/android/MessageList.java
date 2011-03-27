@@ -18,22 +18,22 @@
 
 package com.notifry.android;
 
-import java.util.ArrayList;
+import java.text.ParseException;
 
+import com.notifry.android.database.NotifryDatabaseAdapter;
 import com.notifry.android.database.NotifryMessage;
 import com.notifry.android.database.NotifrySource;
 
 import android.app.ListActivity;
-import android.content.Context;
 import android.content.Intent;
+import android.database.Cursor;
 import android.graphics.Typeface;
 import android.os.Bundle;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
+import android.widget.ListView;
+import android.widget.SimpleCursorAdapter;
 import android.widget.TextView;
 
 public class MessageList extends ListActivity
@@ -48,18 +48,28 @@ public class MessageList extends ListActivity
 	{
 		super.onCreate(savedInstanceState);
 
-		// Set the layout, and allow text filtering.
+		// Set the layout.
 		setContentView(R.layout.screen_recent_messages);
-		getListView().setTextFilterEnabled(true);	
+		
+		// Set up our cursor and list adapter. This automatically updates
+		// as messages are updated and changed.
+		Cursor cursor = NotifryMessage.FACTORY.cursorList(this, this.getSource());
+		SimpleCursorAdapter adapter = new SimpleCursorAdapter(
+				this,
+				R.layout.message_list_row,
+				cursor,
+				new String[] { NotifryDatabaseAdapter.KEY_TITLE, NotifryDatabaseAdapter.KEY_TIMESTAMP, NotifryDatabaseAdapter.KEY_SEEN },
+				new int[] { R.id.message_row_title, R.id.message_row_timestamp });
+		
+		adapter.setViewBinder(new MessageViewBinder());
+		
+		this.setListAdapter(adapter);
 	}
 
 	public void onResume()
 	{
 		super.onResume();
 
-		// When coming back, refresh our list of messages.
-		refreshView();
-		
 		// And tell the notification service to clear the notification.
 		if( this.getSource() != null )
 		{
@@ -102,17 +112,6 @@ public class MessageList extends ListActivity
 		return this.source;
 	}
 
-	/**
-	 * Refresh the list of messages viewed by this activity.
-	 */
-	public void refreshView()
-	{
-		// Refresh our list of messages.
-		ArrayList<NotifryMessage> messages = NotifryMessage.FACTORY.list(this, this.getSource()); 
-
-		this.setListAdapter(new MessageArrayAdapter(this, this, R.layout.message_list_row, messages));
-	}
-	
 	@Override
 	public boolean onCreateOptionsMenu( Menu menu )
 	{
@@ -146,96 +145,60 @@ public class MessageList extends ListActivity
 	{
 		// Delete all messages. Optionally, those matching the given source.
 		NotifryMessage.FACTORY.deleteMessagesBySource(this, source, onlySeen);
-		
-		// And refresh!
-		refreshView();
 	}
 	
 	public void markAllAsSeen()
 	{
 		NotifryMessage.FACTORY.markAllAsSeen(this, this.getSource());
-		refreshView();
 	}
 
 	/**
-	 * Handler for when you click a message.
-	 * 
-	 * @param message
+	 * When an item in the listview is clicked...
 	 */
-	public void clickMessage( NotifryMessage message )
+	protected void onListItemClick( ListView l, View v, int position, long id )
 	{
 		// Launch the message detail.
 		Intent intent = new Intent(getBaseContext(), MessageDetail.class);
-		intent.putExtra("messageId", message.getId());
+		intent.putExtra("messageId", id);
 		startActivity(intent);
 	}
-
+	
 	/**
-	 * An array adapter to put messages into the list view.
-	 * 
+	 * List item view binding class - used to format dates and make the title bold.
 	 * @author daniel
 	 */
-	private class MessageArrayAdapter extends ArrayAdapter<NotifryMessage>
+	private class MessageViewBinder implements SimpleCursorAdapter.ViewBinder
 	{
-		final private MessageList parentActivity;
-		private ArrayList<NotifryMessage> messages;
-
-		public MessageArrayAdapter( MessageList parentActivity, Context context, int textViewResourceId, ArrayList<NotifryMessage> objects )
+		public boolean setViewValue( View view, Cursor cursor, int columnIndex )
 		{
-			super(context, textViewResourceId, objects);
-			this.parentActivity = parentActivity;
-			this.messages = objects;
-		}
-
-		public View getView( int position, View convertView, ViewGroup parent )
-		{
-			// Inflate a view if required.
-			if( convertView == null )
+			// Format the timestamp as local time.
+			if( columnIndex == cursor.getColumnIndex(NotifryDatabaseAdapter.KEY_TIMESTAMP) )
 			{
-				LayoutInflater inflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-				convertView = inflater.inflate(R.layout.message_list_row, null);
-			}
-
-			// Find the message.
-			final NotifryMessage message = this.messages.get(position);
-
-			// And set the values on our row.
-			if( message != null )
-			{
-				TextView title = (TextView) convertView.findViewById(R.id.message_row_title);
-				TextView timestamp = (TextView) convertView.findViewById(R.id.message_row_timestamp);
-				
-				View.OnClickListener clickListener = new View.OnClickListener()
+				TextView timestamp = (TextView) view;
+				try
 				{
-					public void onClick( View v )
-					{
-						parentActivity.clickMessage(message);
-					}
-				};
-				
-				if( title != null )
-				{
-					title.setText(message.getTitle());
-					title.setClickable(true);
-
-					title.setOnClickListener(clickListener);
-					
-					// And if the message is unseen, make the title bold.
-					if( message.getSeen() == false )
-					{
-						title.setTypeface(Typeface.DEFAULT_BOLD);
-					}
+					timestamp.setText(NotifryMessage.formatUTCAsLocal(NotifryMessage.parseISO8601String(cursor.getString(cursor.getColumnIndex(NotifryDatabaseAdapter.KEY_TIMESTAMP)))));
 				}
-				if( timestamp != null )
+				catch( ParseException ex )
 				{
-					timestamp.setText(message.getDisplayTimestamp());
-					timestamp.setClickable(true);
-
-					timestamp.setOnClickListener(clickListener);
-				}				
+					timestamp.setText("UNKNOWN");
+				}
+				return true;
+			}
+			// Make the title bold if it's unseen.
+			if( columnIndex == cursor.getColumnIndex(NotifryDatabaseAdapter.KEY_TITLE) )
+			{
+				TextView title = (TextView) view;
+				title.setText(cursor.getString(cursor.getColumnIndex(NotifryDatabaseAdapter.KEY_TITLE)));
+				
+				if( cursor.getLong(cursor.getColumnIndex(NotifryDatabaseAdapter.KEY_SEEN)) == 0 )
+				{
+					title.setTypeface(Typeface.DEFAULT_BOLD);
+				}
+				return true;
 			}
 
-			return convertView;
+			return false;
 		}
 	}
 }
