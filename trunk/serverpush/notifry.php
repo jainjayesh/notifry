@@ -22,7 +22,7 @@
  */
 
 // Configuration.
-$BACKEND = 'https://notifrytest.appspot.com/notifry';
+$BACKEND = 'https://notifrier.appspot.com/notifry';
 
 // Parse the command line arguments.
 $options = getopt("s:t:m:u:");

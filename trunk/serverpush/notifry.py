@@ -26,7 +26,7 @@ import getopt
 import json
 
 # Configuration.
-BACKEND = 'https://notifrytest.appspot.com/notifry';
+BACKEND = 'https://notifrier.appspot.com/notifry';
 
 def usage():
 	print "Usage: %s -s <source_key> -t Title -m Message [-u url]" % sys.argv[0]
