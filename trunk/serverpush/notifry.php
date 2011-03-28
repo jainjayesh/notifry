@@ -30,6 +30,7 @@ $options = getopt("s:t:m:u:");
 function usage()
 {
 	echo "Usage: ", $_SERVER['argv'][0], " -s <source_key> -t Title -m Message [-u url]\n";
+	echo "If messages is -, read the message from stdin.\n";
 	exit();
 }
 
@@ -48,8 +49,15 @@ if( !isset($options['s']) || !isset($options['m']) || !isset($options['t']) )
 $params = array();
 $params['source'] = $options['s'];
 $params['message'] = $options['m'];
+
+if( $params['message'] == '-' )
+{
+	$params['message'] = file_get_contents('php://stdin');
+}
+
 $params['title'] = $options['t'];
 $params['format'] = 'json';
+
 if( isset($options['u']) )
 {
 	$params['url'] = $options['u'];

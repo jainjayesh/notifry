@@ -30,6 +30,7 @@ BACKEND = 'https://notifrytest.appspot.com/notifry';
 
 def usage():
 	print "Usage: %s -s <source_key> -t Title -m Message [-u url]" % sys.argv[0]
+	print "If message is -, read message from stdin."
 	sys.exit()
 
 # Parse our arguments.
@@ -54,6 +55,10 @@ for key, value in optlist:
 # Not enough arguments?
 if requiredCount != 3:
 	usage()
+
+# Read message from stdin, if required.
+if params['message'] == '-':
+	params['message'] = sys.stdin.read()
 
 # Prepare our request.
 try:
