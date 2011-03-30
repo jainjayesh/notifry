@@ -353,6 +353,7 @@ class notifry:
 
 		# Create the message object.
 		message = UserMessage()
+		message.owner = source.owner
 		message.source = source
 		message.message = input.message
 		message.title = input.title

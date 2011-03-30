@@ -23,6 +23,25 @@ indexes:
   - name: timestamp
     direction: desc
 
+- kind: UserMessage
+  properties:
+  - name: owner
+  - name: timestamp
+    direction: desc
+
+- kind: UserMessage
+  properties:
+  - name: source
+  - name: source.owner
+  - name: timestamp
+    direction: desc
+
+- kind: UserMessage
+  properties:
+  - name: source
+  - name: timestamp
+    direction: desc
+
 - kind: UserSource
   properties:
   - name: owner

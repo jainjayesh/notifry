@@ -5,6 +5,7 @@ import datetime
 SIZE_LIMIT = 512
 
 class UserMessage(db.Model):
+	owner = db.UserProperty()
 	source = db.ReferenceProperty(UserSource)
 	timestamp = db.DateTimeProperty()
 
@@ -86,6 +87,7 @@ class UserMessage(db.Model):
 	@staticmethod
 	def createTest(source, ip):
 		message = UserMessage()
+		message.owner = source.owner
 		message.source = source
 		message.message = "This is a test message."
 		message.title = "Test Message"
