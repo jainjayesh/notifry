@@ -397,6 +397,7 @@ class messages:
 		# List messages, optionally filtered by the source.
 		source = self.get_source()
 		messages = UserMessage.all()
+		messages.filter('owner = ', users.get_current_user())
 		if source:
 			messages.filter('source =', source)
 		messages.order('-timestamp')
