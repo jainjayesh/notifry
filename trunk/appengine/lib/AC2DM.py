@@ -124,7 +124,7 @@ class AC2DM:
 	def send(self, message, device):
 		# Prepare for our request.
 		params = {}
-		params['collapse_key'] = 'testing'
+		params['collapse_key'] = message.hash()
 		params['registration_id'] = device.deviceKey
 		params['delay_until_idle'] = 0
 
