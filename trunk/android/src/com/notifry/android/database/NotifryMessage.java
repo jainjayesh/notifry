@@ -91,8 +91,8 @@ public class NotifryMessage extends ORM<NotifryMessage>
 
 	public static Date parseISO8601String( String isoString ) throws ParseException
 	{
-		SimpleDateFormat ISO8601DATEFORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSSSS", Locale.US);
-		ISO8601DATEFORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));		
+		SimpleDateFormat ISO8601DATEFORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US);
+		ISO8601DATEFORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
 		return ISO8601DATEFORMAT.parse(isoString);
 	}
 
