@@ -102,6 +102,12 @@ public class NotificationService extends Service
 	{
 		super.onStart(intent, startId);
 		
+		// On null intent, give up.
+		if( intent == null )
+		{
+			return;
+		}
+		
 		// Determine our action.
 		String operation = intent.getStringExtra("operation");
 		
