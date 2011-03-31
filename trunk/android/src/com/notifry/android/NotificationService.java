@@ -154,7 +154,7 @@ public class NotificationService extends Service
 					else
 					{
 						// Load the notification and add it.
-						notification.sound = Uri.withAppendedPath(Audio.Media.INTERNAL_CONTENT_URI, tone);
+						notification.sound = Uri.parse(tone);
 					}
 				}
 				if( settings.getBoolean(getString(R.string.vibrateNotify), true) )
