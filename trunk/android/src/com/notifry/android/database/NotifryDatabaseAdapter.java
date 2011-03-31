@@ -265,6 +265,7 @@ public class NotifryDatabaseAdapter extends ContentProvider
 			// Create our return URI.
 			Uri _uri = ContentUris.withAppendedId(this.getContentUriFor(uri), rowID);
 			// And notify anyone watching that it's changed.
+			getContext().getContentResolver().notifyChange(this.getContentUriFor(_uri), null);
 			getContext().getContentResolver().notifyChange(_uri, null);
 			return _uri;
 		}
@@ -281,6 +282,7 @@ public class NotifryDatabaseAdapter extends ContentProvider
 		// Perform the update.
 		count = this.db.update(table, values, selection, selectionArgs);
 		// Notify anyone that we've changed things.
+		getContext().getContentResolver().notifyChange(this.getContentUriFor(uri), null);
 		getContext().getContentResolver().notifyChange(uri, null);
 		// And return the number of changed rows.
 		return count;
@@ -296,6 +298,7 @@ public class NotifryDatabaseAdapter extends ContentProvider
 		count = this.db.delete(table, selection, selectionArgs);
 		
 		// And notify anyone that we've changed things.
+		getContext().getContentResolver().notifyChange(this.getContentUriFor(uri), null);
 		getContext().getContentResolver().notifyChange(uri, null);
 		
 		// Return the number of deleted entries.

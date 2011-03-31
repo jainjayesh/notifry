@@ -29,6 +29,7 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Typeface;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -51,9 +52,15 @@ public class MessageList extends ListActivity
 		// Set the layout.
 		setContentView(R.layout.screen_recent_messages);
 		
+		refreshView();
+	}
+	
+	public void refreshView()
+	{
 		// Set up our cursor and list adapter. This automatically updates
 		// as messages are updated and changed.
 		Cursor cursor = NotifryMessage.FACTORY.cursorList(this, this.getSource());
+		this.startManagingCursor(cursor);
 		SimpleCursorAdapter adapter = new SimpleCursorAdapter(
 				this,
 				R.layout.message_list_row,
@@ -63,23 +70,32 @@ public class MessageList extends ListActivity
 		
 		adapter.setViewBinder(new MessageViewBinder());
 		
-		this.setListAdapter(adapter);
+		this.setListAdapter(adapter);		
 	}
-
-	public void onResume()
+	
+	public void updateNotifications()
 	{
-		super.onResume();
-
-		// And tell the notification service to clear the notification.
 		if( this.getSource() != null )
 		{
 			Intent intentData = new Intent(getBaseContext(), NotificationService.class);
 			intentData.putExtra("operation", "update");
 			intentData.putExtra("sourceId", this.getSource().getId());
 			startService(intentData);
-			
+		}
+	}
+
+	public void onResume()
+	{
+		super.onResume();
+		
+		//refreshView();
+
+		// And tell the notification service to clear the notification.
+		if( this.getSource() != null )
+		{	
 			// Set the title of this activity.
 			setTitle(String.format(getString(R.string.messages_source_title), this.getSource().getTitle()));
+			updateNotifications();
 		}
 		else
 		{
@@ -145,11 +161,13 @@ public class MessageList extends ListActivity
 	{
 		// Delete all messages. Optionally, those matching the given source.
 		NotifryMessage.FACTORY.deleteMessagesBySource(this, source, onlySeen);
+		updateNotifications();
 	}
 	
 	public void markAllAsSeen()
 	{
 		NotifryMessage.FACTORY.markAllAsSeen(this, this.getSource());
+		updateNotifications();
 	}
 
 	/**
