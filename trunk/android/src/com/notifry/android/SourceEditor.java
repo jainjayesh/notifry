@@ -10,6 +10,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -35,6 +36,15 @@ public class SourceEditor extends Activity
 		setContentView(R.layout.screen_sourcedetail);
 	}
 	
+	public void onConfigurationChanged( Configuration newConfig )
+	{
+		super.onConfigurationChanged(newConfig);
+		setContentView(R.layout.screen_sourcedetail);
+		
+		// TODO: This wipes changes made before the rotation...
+		this.loadFromSource(this.getSource());
+	}
+
 	public void onResume()
 	{
 		super.onResume();

@@ -39,6 +39,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
+import android.content.res.Configuration;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -74,6 +75,12 @@ public class ChooseAccount extends ListActivity implements CompoundButton.OnChec
 		// Set the layout, and allow text filtering.
 		setContentView(R.layout.screen_accounts);
 		getListView().setTextFilterEnabled(true);
+	}
+	
+	public void onConfigurationChanged( Configuration newConfig )
+	{
+		super.onConfigurationChanged(newConfig);
+		setContentView(R.layout.screen_accounts);
 	}
 
 	public void onResume()

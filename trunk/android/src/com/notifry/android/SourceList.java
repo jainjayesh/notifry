@@ -33,6 +33,7 @@ import android.app.ListActivity;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -66,6 +67,12 @@ public class SourceList extends ListActivity implements View.OnClickListener, Co
 		// Set the layout, and allow text filtering.
 		setContentView(R.layout.screen_sources);
 		getListView().setTextFilterEnabled(true);		
+	}
+	
+	public void onConfigurationChanged( Configuration newConfig )
+	{
+		super.onConfigurationChanged(newConfig);
+		setContentView(R.layout.screen_sources);
 	}
 
 	public void onResume()
