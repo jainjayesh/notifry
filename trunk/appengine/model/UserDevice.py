@@ -39,3 +39,15 @@ class UserDevice(db.Model):
 		devices.order("-updated")
 
 		return devices
+
+	@staticmethod
+	def device_by_key(owner, key, type = 'android'):
+		devices = UserDevice.all()
+		devices.filter('deviceKey = ', key)
+		devices.filter('owner = ', owner)
+		devices.order("-updated")
+
+		if devices.count(5) > 0:
+			return devices[0]
+		else:
+			return None

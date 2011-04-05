@@ -141,6 +141,16 @@ class devices:
 			# If ID supplied, find and update that ID.
 			device = self.get_device()
 
+			# Is it a new device? Double check that the key isn't already
+			# attached to another record (with the same owner!)
+			if not device.dict().has_key('id'):
+				# Attempt to find another device with the same key.
+				same_key = UserDevice.device_by_key(users.get_current_user(), input.devicekey, input.devicetype)
+
+				# If found, use that instead.
+				if same_key:
+					device = same_key
+
 			device.updated = datetime.datetime.now()
 			device.owner = users.get_current_user()
 			device.deviceKey = input.devicekey

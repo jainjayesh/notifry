@@ -12,6 +12,13 @@ indexes:
 
 - kind: UserDevice
   properties:
+  - name: deviceKey
+  - name: owner
+  - name: updated
+    direction: desc
+
+- kind: UserDevice
+  properties:
   - name: owner
   - name: updated
     direction: desc
