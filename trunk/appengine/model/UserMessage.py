@@ -1,6 +1,7 @@
 from google.appengine.ext import db
 from model.UserSource import UserSource
 import datetime
+import hashlib
 
 SIZE_LIMIT = 512
 
