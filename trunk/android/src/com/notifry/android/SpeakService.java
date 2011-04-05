@@ -18,6 +18,7 @@
 
 package com.notifry.android;
 
+import java.util.HashMap;
 import java.util.Vector;
 
 import android.speech.tts.TextToSpeech;
@@ -29,6 +30,7 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.media.AudioManager;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
@@ -51,6 +53,7 @@ public class SpeakService extends Service implements SensorEventListener, TextTo
 	private boolean shakeSensingOn = false;
 	private SpeakService alternateThis = this;
 	private int shakeThreshold = 1500;
+	private HashMap<String, String> parameters = new HashMap<String, String>();
 
 	@Override
 	public IBinder onBind( Intent arg0 )
@@ -60,6 +63,9 @@ public class SpeakService extends Service implements SensorEventListener, TextTo
 
 	public void onInit( int status )
 	{
+		// Prepare parameters.
+		this.parameters.put(TextToSpeech.Engine.KEY_PARAM_STREAM, String.valueOf(AudioManager.STREAM_NOTIFICATION));
+		
 		// Ready.
 		// Log.d("Notifry", "TTS init complete...");
 		if( status == TextToSpeech.SUCCESS )
@@ -72,7 +78,7 @@ public class SpeakService extends Service implements SensorEventListener, TextTo
 				for( String message : queue )
 				{
 					// Log.d("Notifry", "Speaking queued message: " + message);
-					tts.speak(message, TextToSpeech.QUEUE_ADD, null);
+					tts.speak(message, TextToSpeech.QUEUE_ADD, this.parameters);
 				}
 
 				queue.clear();
@@ -98,7 +104,7 @@ public class SpeakService extends Service implements SensorEventListener, TextTo
 				}
 				else
 				{
-					tts.speak((String) msg.obj, TextToSpeech.QUEUE_ADD, null);
+					tts.speak((String) msg.obj, TextToSpeech.QUEUE_ADD, parameters);
 				}
 			}
 		}
@@ -230,7 +236,7 @@ public class SpeakService extends Service implements SensorEventListener, TextTo
 				else
 				{
 					// Log.d("Notifry", "Initialized, reading out...");
-					this.tts.speak(text, TextToSpeech.QUEUE_ADD, null);
+					this.tts.speak(text, TextToSpeech.QUEUE_ADD, this.parameters);
 				}
 			}
 		}
