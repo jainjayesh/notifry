@@ -272,7 +272,7 @@ class sources:
 				# Validated - proceed.
 				source.updated = datetime.datetime.now()
 				source.title = form.title.get_value()
-				source.description = form.description.get_value()
+				#source.description = form.description.get_value()
 				source.enabled = False
 				source.owner = users.get_current_user()
 				if form.enabled.get_value():
