@@ -1,7 +1,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
 	android:layout_width="fill_parent" android:layout_height="?android:attr/listPreferredItemHeight"
 	android:padding="6dip">
-	<CheckBox android:id="@+id/account_row_account_enabled" android:layout_width="wrap_content" android:layout_height="wrap_content"></CheckBox>
-	<ImageView android:id="@+id/account_row_account_next" android:layout_width="wrap_content" android:layout_height="wrap_content" />
-	<TextView android:id="@+id/account_row_account_name" android:layout_width="fill_parent" android:layout_height="fill_parent" android:gravity="center_vertical" />
+	<CheckBox android:id="@+id/account_row_account_enabled" android:layout_width="wrap_content" android:layout_weight="1" android:layout_height="wrap_content"></CheckBox>
+	<TextView android:id="@+id/account_row_account_name" android:layout_width="wrap_content" android:layout_weight="20" android:layout_height="fill_parent" android:gravity="center_vertical" />
+	<ImageView android:id="@+id/account_row_account_next" android:layout_width="wrap_content" android:layout_weight="1" android:layout_height="wrap_content" />
 </LinearLayout>
