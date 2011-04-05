@@ -247,9 +247,9 @@ ul.header_nav_main li
 	margin-bottom: 20px;
 }
 
-ul.header_nav_main li a:link, div.member_nav_container a:link,
-ul.header_nav_main li a:visited, div.member_nav_container a:visited,
-ul.header_nav_main li a:active, div.member_nav_container a:active
+ul.header_nav_main li a:link, div.member_nav_container a:link, div.member_navigation_nologin a:link,
+ul.header_nav_main li a:visited, div.member_nav_container a:visited, div.member_navigation_nologin a:visited,
+ul.header_nav_main li a:active, div.member_nav_container a:active, div.member_navigation_nologin a:active
 {
 	color: #fdbc3c;
 	font-weight: bold;
@@ -310,6 +310,40 @@ div.member_name
 div.member_navigation
 {
 	color: #ffba41;
+}
+
+div.member_navigation_nologin
+{
+	float: right;
+	background-color: #c83813;
+	margin-top: 23px;
+	color: #792109;
+	width: 300px;
+	font-weight: bold;
+	text-align: center;
+
+	-moz-border-radius: 3px;
+	-webkit-border-radius: 3px;
+	border-radius: 3px;
+
+	-moz-box-shadow: 0px 2px 8px #000000; /* FF3.5+ */
+	-webkit-box-shadow: 0px 2px 8px #000000; /* Saf3.0+, Chrome */
+	box-shadow: 0px 2px 8px #000000; /* Opera 10.5, IE9, Chrome 10+ */
+
+	background-color: #de4718;
+	background-image: -moz-linear-gradient(top, #de4718, #c43513);
+	background-image: -o-linear-gradient(top, #de4718, #c43513);
+	background-image: -webkit-gradient(linear,left top,left bottom,color-stop(0, #de4718),color-stop(1, #c43513));
+	background-image: -webkit-linear-gradient(#de4718, #c43513);
+	background-image: linear-gradient(top, #de4718, #c43513);
+	filter: progid:DXImageTransform.Microsoft.gradient(startColorStr='#de4718', EndColorStr='#c43513');
+}
+
+div.member_navigation_nologin a.login
+{
+	display: block;
+	padding-top: 13px;
+	padding-bottom: 13px;
 }
 
 h1

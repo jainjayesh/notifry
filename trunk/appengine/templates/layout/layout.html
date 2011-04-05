@@ -49,19 +49,20 @@ class="active"\
 		<div id="header_nav_row2">
 			<img src="/static/images/theme/inner_header_logo.png" width="588" height="154" alt="Notifry" />
 
-			<div class="member_nav_container">
 				% if user:
-				<div class="member_name">Hello ${user.nickname()}</div>
+					<div class="member_nav_container">
+						<div class="member_name">Hello ${user.nickname()}</div>
+						<div class="member_navigation">
+							<a ${isactive("/profile")} href="/profile">Profile</a> |
+							<a ${isactive("/messages/")} href="/messages/">Messages</a> |
+							<a href="/logout">Logout</a>
+						</div>
+					</div>
+				% else:
+					<div class="member_navigation_nologin">
+						<a href="/login" class="login">Login</a>
+					</div>
 				% endif
-				<div class="member_navigation">
-					% if user:
-						<a ${isactive("/profile")} href="/profile">Profile</a> |
-						<a ${isactive("/messages/")} href="/messages/">Messages</a> |
-						<a href="/logout">Logout</a>
-					% else:
-						<a href="/login">Login</a>
-					% endif
-				</div>
 			</div>
 		</div>
     </header>
