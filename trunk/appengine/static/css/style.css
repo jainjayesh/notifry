@@ -293,10 +293,6 @@ div.member_nav_container
 	-webkit-box-shadow: 0px 2px 8px #000000; /* Saf3.0+, Chrome */
 	box-shadow: 0px 2px 8px #000000; /* Opera 10.5, IE9, Chrome 10+ */
 
-	#de4718
-	#c43513
-
-
 	background-color: #de4718;
 	background-image: -moz-linear-gradient(top, #de4718, #c43513);
 	background-image: -o-linear-gradient(top, #de4718, #c43513);
@@ -388,6 +384,11 @@ table.details td
 {
 	color: #f0a015;
 	font-weight: bold;
+}
+
+.source_key
+{
+	font-family: monospace;
 }
 
 .source_title
