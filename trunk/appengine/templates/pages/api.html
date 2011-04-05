@@ -26,6 +26,43 @@ scripts already exist to send messages to Notifry, and you can choose one that f
 	</tr>
 </table>
 
+<h2>Nagios integration</h2>
+
+<p>If you have Nagios, you can easily integrate Notifry to send notifications.</p>
+
+<ol>
+	<li>Download one of the scripts above and put it somewhere on the server.</li>
+	<li>Make sure the script is executable.</li>
+	<li>Make sure the script runs - the Python script requires 2.6, and the PHP script requires 5.2 (with the curl module installed).</li>
+	<li>Add the following commands to your Nagios configuration, replacing the script path as appropriate. Also, you can customize the message to your liking.
+	<pre class="code">
+define command{
+        command_name    notify-host-by-notifry
+        command_line    /usr/bin/printf "%b" "Info: $HOSTOUTPUT$\n\nDate/Time: $LONGDATETIME$\n" | /etc/nagios3/notifry.py -s $CONTACTADDRESS1$ -t "$HOSTNAME$ is $HOSTSTATE$" -m -
+        }
+
+define command{
+        command_name    notify-service-by-notifry
+        command_line    /usr/bin/printf "%b" "Info: $SERVICEOUTPUT$\nDate/Time: $LONGDATETIME$" | /etc/nagios3/notifry.py -s "$CONTACTADDRESS1$" -t "$SERVICEDESC$ on $HOSTALIAS$ is $SERVICESTATE$" -m -
+        }
+	</pre>
+	</li>
+	<li>Modify the contacts to add the notification commands, and use address1 as the source key for that user. If you are already using address1 for something else, use another address field and change the commands above.
+	<pre class="code">
+define contact{
+        ...
+        service_notification_commands   notify-service-by-email,notify-service-by-notifry
+        host_notification_commands      notify-host-by-email,notify-host-by-notifry
+        ...
+        address1                        aabbccddeeff00112233445566778899
+        }
+	</pre>
+	</li>
+	<li>Test your configuration.</li>
+</ol>
+
+<p>&nbsp;</p>
+
 <h2>API Reference</h2>
 
 <h3>Parameters</h3>
