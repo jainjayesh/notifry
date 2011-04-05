@@ -53,6 +53,7 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -324,6 +325,7 @@ public class ChooseAccount extends ListActivity implements CompoundButton.OnChec
 			{
 				TextView title = (TextView) convertView.findViewById(R.id.account_row_account_name);
 				CheckBox enabled = (CheckBox) convertView.findViewById(R.id.account_row_account_enabled);
+				ImageView nextView = (ImageView) convertView.findViewById(R.id.account_row_account_next);
 				if( title != null )
 				{
 					title.setText(account.getAccountName());
@@ -336,6 +338,21 @@ public class ChooseAccount extends ListActivity implements CompoundButton.OnChec
 					enabled.setChecked(account.getEnabled());
 					enabled.setTag(account.getId());
 					enabled.setOnCheckedChangeListener(parentActivity);
+				}
+				if( nextView != null )
+				{
+					if( account.getEnabled() )
+					{
+						nextView.setImageResource(android.R.drawable.ic_menu_agenda);
+						nextView.setClickable(true);
+						nextView.setTag(account.getId());
+						nextView.setOnClickListener(parentActivity);
+						nextView.setVisibility(View.VISIBLE);
+					}
+					else
+					{
+						nextView.setVisibility(View.GONE);
+					}
 				}
 			}
 
