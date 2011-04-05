@@ -23,11 +23,14 @@ import com.notifry.android.database.NotifryMessage;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
 
 public class MessageDetail extends Activity
 {
+	private final static int BACK_TO_LIST = 1;
 	private NotifryMessage message = null;
 
 	/** Called when the activity is first created. */
@@ -81,6 +84,29 @@ public class MessageDetail extends Activity
 		TextView content = (TextView) findViewById(R.id.message_detail_content);
 		content.setText(message.getMessage());		
 	}
+	
+	@Override
+	public boolean onCreateOptionsMenu( Menu menu )
+	{
+		boolean result = super.onCreateOptionsMenu(menu);
+		menu.add(0, BACK_TO_LIST, 0, R.string.message_list).setIcon(android.R.drawable.ic_menu_agenda);
+		return result;
+	}
+
+	@Override
+	public boolean onOptionsItemSelected( MenuItem item )
+	{
+		switch( item.getItemId() )
+		{
+			case BACK_TO_LIST:
+				Intent intent = new Intent(this, MessageList.class);
+				intent.putExtra("sourceId", getMessage().getSource().getId());
+				startActivity(intent);
+				return true;
+		}
+
+		return super.onOptionsItemSelected(item);
+	}	
 
 	/**
 	 * Fetch the message.

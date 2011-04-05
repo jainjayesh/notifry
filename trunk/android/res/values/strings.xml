@@ -124,6 +124,7 @@
     <string name="test">Test</string>
     <string name="mark_all_as_seen">Mark all as Seen</string>
     <string name="ok">Ok</string>
+    <string name="message_list">Message List</string>
     
     <string name="ifContactEnabled">Enabled</string>
     <string name="ifContactNotEnabled">Not enabled</string>
