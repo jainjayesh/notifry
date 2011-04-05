@@ -310,11 +310,12 @@ class sources:
 		source_editor_form = web.form.Form(
 			web.form.Hidden('id'),
 			web.form.Textbox('title', web.form.notnull, description = 'Title:'),
-			web.form.Textarea('description', description = 'Description:'),
+			#web.form.Textarea('description', description = 'Description:'),
 			web.form.Checkbox('enabled', description = 'Enabled:'),
 			web.form.Button('Save')
 		)
-		return source_editor_form()
+		form = source_editor_form()
+		return form
 
 	def get_pretty_action(self, action):
 		return action[0].upper() + action[1:]

@@ -1,7 +1,5 @@
 <%inherit file="../layout/layout.html" />
-<h2>Sources</h2>
-
-<p><a href="/sources/create">Create new source</a></p>
+<h2>Sources <span class="inline_button"><a href="/sources/create">+ create new source</a></span></h2>
 
 <table class="details">
 	<thead>
@@ -15,14 +13,14 @@
 		</tr>
 	</thead>
 	<tbody>
-		% for source in sources:
-			<tr>
+		% for i, source in enumerate(sources):
+			<tr class="${i%2 and 'odd' or 'even'}">
 				<td><a href="/sources/edit?id=${source.key().id()}">${source.title|h}</a></td>
 				<td>
 					% if source.enabled:
 						<span class="enabled">Enabled</span>
 					% else:
-						<span class="disabled">Disabled</span>
+						<span class="disabled">DISABLED</span>
 					% endif
 				</td>
 				<td><span class="code">${source.externalKey|h}</span></td>
@@ -34,7 +32,8 @@
 	</tbody>
 </table>
 
-<p>Note: the key above is what you give to your system administrator so they can send messages
+<p class="important_note"><span class="important_note_title">PLEASE NOTE...</span>
+the key above is what you give to your system administrator so they can send messages
 to that source. You can not change the key once the system has generated it, so be careful
 who you share that source with. You can always locally disable the key if needed.</p>
 
@@ -51,8 +50,8 @@ who you share that source with. You can always locally disable the key if needed
 		</tr>
 	</thead>
 	<tbody>
-		% for device in devices:
-			<tr>
+		% for i, device in enumerate(devices):
+			<tr class="${i%2 and 'odd' or 'even'}">
 				<td>${device.deviceType|h}</td>
 				<td>${device.deviceNickname|h}</td>
 				<td>${device.hash()}</td>

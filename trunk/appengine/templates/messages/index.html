@@ -29,19 +29,19 @@
 		</tr>
 	</thead>
 	<tbody>
-		% for message in messages:
-			<tr class="message_header_row">
+		% for i, message in enumerate(messages):
+			<tr class="message_header_row ${i%2 and 'odd' or 'even'}">
 				<td>${message.timestamp.strftime(dateformat)}</td>
 				<td>${message.title|h}</td>
 				<td>${message.source.title|h}</td>
 				<td>${message.getsize()}</td>
 			</tr>
 			% if message.url:
-			<tr class="message_data_row">
+			<tr class="message_url_row ${i%2 and 'odd' or 'even'}">
 				<td colspan="4"><a href="${message.url|h}">${message.url|h}</a></td>
 			</tr>
 			% endif
-			<tr class="message_data_row">
+			<tr class="message_content_row ${i%2 and 'odd' or 'even'}">
 				<td colspan="4">
 					${message.message|h}
 				</td>

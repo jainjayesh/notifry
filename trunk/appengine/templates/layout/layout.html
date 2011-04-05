@@ -35,25 +35,35 @@ class="active"\
 
   <div id="container">
     <header>
-		<ul class="header_nav_left">
-			<li ${isactive("/")}><a href="/">HOME</a></li>
-			<li ${isactive("/page/about")}><a href="/page/about">ABOUT</a></li>
-			<li ${isactive("/page/gettingstarted")}><a href="/page/gettingstarted">GETTING STARTED</a></li>
-			<li ${isactive("/page/api")}><a href="/page/api">API</a></li>
-			<li ${isactive("/page/privacy")}><a href="/page/privacy">PRIVACY</a></li>
-			<li ${isactive("/page/sla")}><a href="/page/sla">SLA</a></li>
-		</ul>
+		<div id="header_nav_row1">
+			<ul class="header_nav_main">
+				<li ${isactive("/")}><a href="/">HOME</a></li>
+				<li ${isactive("/page/about")}><a href="/page/about">ABOUT</a></li>
+				<li ${isactive("/page/gettingstarted")}><a href="/page/gettingstarted">GETTING STARTED</a></li>
+				<li ${isactive("/page/api")}><a href="/page/api">API</a></li>
+				<li ${isactive("/page/privacy")}><a href="/page/privacy">PRIVACY</a></li>
+				<li ${isactive("/page/sla")}><a href="/page/sla">SLA</a></li>
+			</ul>
+		</div>
 
-		<ul class="header_nav_right">
-			% if user:
-				<li>${user.nickname()}</li>
-				<li ${isactive("/profile")}><a href="/profile">Profile</a></li>
-				<li ${isactive("/messages/")}><a href="/messages/">Messages</a></li>
-				<li><a href="/logout">Logout</a></li>
-			% else:
-				<li><a href="/login">Login</a></li>
-			% endif
-		</ul>
+		<div id="header_nav_row2">
+			<img src="/static/images/theme/inner_header_logo.png" width="588" height="154" alt="Notifry" />
+
+			<div class="member_nav_container">
+				% if user:
+				<div class="member_name">Hello ${user.nickname()}</div>
+				% endif
+				<div class="member_navigation">
+					% if user:
+						<a ${isactive("/profile")} href="/profile">Profile</a> |
+						<a ${isactive("/messages/")} href="/messages/">Messages</a> |
+						<a href="/logout">Logout</a>
+					% else:
+						<a href="/login">Login</a>
+					% endif
+				</div>
+			</div>
+		</div>
     </header>
     <div id="main" role="main">
 		<div id="main_inner">
@@ -62,7 +72,7 @@ class="active"\
     </div>
     <footer>
 		<div class="footer_pretty_bar"></div>
-		<div class="footer_content">&copy; 2011 Daniel Foote and the Notifry Team</div>
+		<div class="footer_content">&copy; 2011 Notifry Team</div>
 		<div class="clearfix"></div>
     </footer>
   </div> <!--! end of #container -->
