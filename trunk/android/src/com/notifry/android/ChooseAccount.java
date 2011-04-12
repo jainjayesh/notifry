@@ -343,7 +343,7 @@ public class ChooseAccount extends ListActivity implements CompoundButton.OnChec
 				{
 					if( account.getEnabled() )
 					{
-						nextView.setImageResource(android.R.drawable.ic_menu_agenda);
+						nextView.setImageResource(R.drawable.arrow_next);
 						nextView.setClickable(true);
 						nextView.setTag(account.getId());
 						nextView.setOnClickListener(parentActivity);

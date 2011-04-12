@@ -43,6 +43,11 @@ public class NotifrySource extends ORM<NotifrySource>
 	private String sourceKey = null;
 	private Boolean serverEnabled = null;
 	private Boolean localEnabled = null;
+	private Boolean useGlobalNotification = true;
+	private Boolean vibrate = false;
+	private Boolean ringtone = false;
+	private String customRingtone = "";
+	private Boolean ledFlash = false;
 	
 	/**
 	 * Get the notification ID.
@@ -127,6 +132,56 @@ public class NotifrySource extends ORM<NotifrySource>
 	public void setLocalEnabled( Boolean localEnabled )
 	{
 		this.localEnabled = localEnabled;
+	}
+
+	public Boolean getUseGlobalNotification()
+	{
+		return useGlobalNotification;
+	}
+
+	public void setUseGlobalNotification( Boolean useGlobalNotification )
+	{
+		this.useGlobalNotification = useGlobalNotification;
+	}
+
+	public Boolean getVibrate()
+	{
+		return vibrate;
+	}
+
+	public void setVibrate( Boolean vibrate )
+	{
+		this.vibrate = vibrate;
+	}
+
+	public Boolean getRingtone()
+	{
+		return ringtone;
+	}
+
+	public void setRingtone( Boolean ringtone )
+	{
+		this.ringtone = ringtone;
+	}
+
+	public String getCustomRingtone()
+	{
+		return customRingtone;
+	}
+
+	public void setCustomRingtone( String customRingtone )
+	{
+		this.customRingtone = customRingtone;
+	}
+
+	public Boolean getLedFlash()
+	{
+		return ledFlash;
+	}
+
+	public void setLedFlash( Boolean ledFlash )
+	{
+		this.ledFlash = ledFlash;
 	}
 
 	public void fromJSONObject( JSONObject source ) throws JSONException
@@ -232,7 +287,11 @@ public class NotifrySource extends ORM<NotifrySource>
 		values.put(NotifryDatabaseAdapter.KEY_SERVER_ID, this.getServerId());
 		values.put(NotifryDatabaseAdapter.KEY_CHANGE_TIMESTAMP, this.getChangeTimestamp());
 		values.put(NotifryDatabaseAdapter.KEY_SOURCE_KEY, this.getSourceKey());
-		
+		values.put(NotifryDatabaseAdapter.KEY_USE_GLOBAL_NOTIFICATION, this.getUseGlobalNotification() ? 1 : 0);
+		values.put(NotifryDatabaseAdapter.KEY_VIBRATE, this.getVibrate() ? 1 : 0);
+		values.put(NotifryDatabaseAdapter.KEY_RINGTONE, this.getRingtone() ? 1 : 0);
+		values.put(NotifryDatabaseAdapter.KEY_CUSTOM_RINGTONE, this.getCustomRingtone());
+		values.put(NotifryDatabaseAdapter.KEY_LED_FLASH, this.getLedFlash() ? 1 : 0);
 		return values;
 	}
 
@@ -248,6 +307,12 @@ public class NotifrySource extends ORM<NotifrySource>
 		source.setTitle(cursor.getString(cursor.getColumnIndex(NotifryDatabaseAdapter.KEY_TITLE)));
 		source.setChangeTimestamp(cursor.getString(cursor.getColumnIndex(NotifryDatabaseAdapter.KEY_CHANGE_TIMESTAMP)));
 		source.setSourceKey(cursor.getString(cursor.getColumnIndex(NotifryDatabaseAdapter.KEY_SOURCE_KEY)));
+		
+		source.setUseGlobalNotification(cursor.getLong(cursor.getColumnIndex(NotifryDatabaseAdapter.KEY_USE_GLOBAL_NOTIFICATION)) == 0 ? false : true);
+		source.setVibrate(cursor.getLong(cursor.getColumnIndex(NotifryDatabaseAdapter.KEY_VIBRATE)) == 0 ? false : true);
+		source.setRingtone(cursor.getLong(cursor.getColumnIndex(NotifryDatabaseAdapter.KEY_RINGTONE)) == 0 ? false : true);
+		source.setLedFlash(cursor.getLong(cursor.getColumnIndex(NotifryDatabaseAdapter.KEY_LED_FLASH)) == 0 ? false : true);
+		source.setCustomRingtone(cursor.getString(cursor.getColumnIndex(NotifryDatabaseAdapter.KEY_CUSTOM_RINGTONE)));	
 		
 		return source;
 	}

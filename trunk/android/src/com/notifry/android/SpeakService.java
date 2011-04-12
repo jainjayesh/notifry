@@ -140,6 +140,12 @@ public class SpeakService extends Service implements SensorEventListener, TextTo
 	public void onStart( final Intent intent, int startId )
 	{
 		super.onStart(intent, startId);
+
+		// Deal with the weird null intent issue.
+		if( intent == null )
+		{
+			return;
+		}
 		
 		if( temporaryDisable )
 		{
