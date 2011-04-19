@@ -26,44 +26,19 @@
   <script src="/static/js/modernizr-1.7.min.js"></script>
 
 </head>
-<%def name="isactive(checkuri)">\
-% if uri == checkuri:
-class="active"\
-% endif
-</%def>
+<%namespace name="header" file="header.html"/>
 <body>
 
   <div id="container">
     <header>
 		<div id="header_nav_row1">
-			<ul class="header_nav_main">
-				<li ${isactive("/")}><a href="/">HOME</a></li>
-				<li ${isactive("/page/about")}><a href="/page/about">ABOUT</a></li>
-				<li ${isactive("/page/gettingstarted")}><a href="/page/gettingstarted">GETTING STARTED</a></li>
-				<li ${isactive("/page/api")}><a href="/page/api">API</a></li>
-				<li ${isactive("/page/privacy")}><a href="/page/privacy">PRIVACY</a></li>
-				<li ${isactive("/page/sla")}><a href="/page/sla">SLA</a></li>
-			</ul>
+			${header.mainNav()}
 		</div>
 
 		<div id="header_nav_row2">
 			<img src="/static/images/theme/inner_header_logo.png" width="588" height="154" alt="Notifry" />
 
-				% if user:
-					<div class="member_nav_container">
-						<div class="member_name">Hello ${user.nickname()}</div>
-						<div class="member_navigation">
-							<a ${isactive("/profile")} href="/profile">Profile</a> |
-							<a ${isactive("/messages/")} href="/messages/">Messages</a> |
-							<a href="/logout">Logout</a>
-						</div>
-					</div>
-				% else:
-					<div class="member_navigation_nologin">
-						<a href="/login" class="login">Login</a>
-					</div>
-				% endif
-			</div>
+			${header.loginBox()}
 		</div>
     </header>
     <div id="main" role="main">

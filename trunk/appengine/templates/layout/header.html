@@ -1,0 +1,33 @@
+<%def name="isactive(checkuri)">\
+% if uri == checkuri:
+class="active"\
+% endif
+</%def>
+
+<%def name="mainNav()">
+	<ul class="header_nav_main">
+		<li ${isactive("/")}><a href="/">HOME</a></li>
+		<li ${isactive("/page/about")}><a href="/page/about">ABOUT</a></li>
+		<li ${isactive("/page/gettingstarted")}><a href="/page/gettingstarted">GETTING STARTED</a></li>
+		<li ${isactive("/page/api")}><a href="/page/api">API</a></li>
+		<li ${isactive("/page/privacy")}><a href="/page/privacy">PRIVACY</a></li>
+		<li ${isactive("/page/sla")}><a href="/page/sla">SLA</a></li>
+	</ul>
+</%def>
+
+<%def name="loginBox()">
+	% if user:
+		<div class="member_nav_container">
+			<div class="member_name">Hello ${user.nickname()}</div>
+			<div class="member_navigation">
+				<a ${isactive("/profile")} href="/profile">Profile</a> |
+				<a ${isactive("/messages/")} href="/messages/">Messages</a> |
+				<a href="/logout">Logout</a>
+			</div>
+		</div>
+	% else:
+		<div class="member_navigation_nologin">
+			<a href="/login" class="login">Login</a>
+		</div>
+	% endif
+</%def>
