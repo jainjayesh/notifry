@@ -43,7 +43,7 @@
 			% endif
 			<tr class="message_content_row ${i%2 and 'odd' or 'even'}">
 				<td colspan="4">
-					${message.message|h}
+					<pre>${message.message|h}</pre>
 				</td>
 			</tr>
 		% endfor
