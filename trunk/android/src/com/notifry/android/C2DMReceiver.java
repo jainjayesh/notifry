@@ -87,7 +87,7 @@ public class C2DMReceiver extends C2DMBaseReceiver
 				Intent intentData = new Intent(getBaseContext(), NotificationService.class);
 				intentData.putExtra("messageId", message.getId());
 				intentData.putExtra("operation", "notifry");
-				startService(intentData);				
+				startService(intentData);
 			}
 			catch( ParseException ex )
 			{

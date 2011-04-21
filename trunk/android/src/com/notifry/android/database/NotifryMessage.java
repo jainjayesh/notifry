@@ -34,6 +34,7 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Base64;
 import android.util.Log;
 
 public class NotifryMessage extends ORM<NotifryMessage>
@@ -144,13 +145,26 @@ public class NotifryMessage extends ORM<NotifryMessage>
 	{
 		this.seen = seen;
 	}
+	
+	public static String decode( String input )
+	{
+		if( input != null )
+		{
+			byte[] result = Base64.decode(input, Base64.DEFAULT);
+			return new String(result);
+		}
+		else
+		{
+			return null;
+		}
+	}
 
 	public static NotifryMessage fromC2DM( Context context, Bundle extras ) throws UnsourceableMessage
 	{
 		NotifryMessage incoming = new NotifryMessage();
-		incoming.setMessage(extras.getString("message"));
-		incoming.setTitle(extras.getString("title"));
-		incoming.setUrl(extras.getString("url"));	
+		incoming.setMessage(NotifryMessage.decode(extras.getString("message")));
+		incoming.setTitle(NotifryMessage.decode(extras.getString("title")));
+		incoming.setUrl(NotifryMessage.decode(extras.getString("url")));	
 		incoming.setServerId(Long.parseLong(extras.getString("server_id")));
 		incoming.setTimestamp(extras.getString("timestamp"));
 		incoming.setSeen(false);

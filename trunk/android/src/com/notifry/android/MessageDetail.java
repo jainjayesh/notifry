@@ -82,7 +82,7 @@ public class MessageDetail extends Activity
 		}
 
 		TextView content = (TextView) findViewById(R.id.message_detail_content);
-		content.setText(message.getMessage());		
+		content.setText(message.getMessage());
 	}
 	
 	@Override
