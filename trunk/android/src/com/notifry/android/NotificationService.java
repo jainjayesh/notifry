@@ -31,13 +31,12 @@ import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
-import android.provider.MediaStore.Audio;
 import android.util.Log;
 
 public class NotificationService extends Service
 {
 	private static final String TAG = "Notifry";
-	private NotificationManager notificationManager;
+	private NotificationManager notificationManager = null;
 
 	@Override
 	public IBinder onBind( Intent arg0 )
@@ -97,6 +96,56 @@ public class NotificationService extends Service
 		
 		return notification;
 	}
+	
+	public boolean globalOrOverrideBoolean( int setting, SharedPreferences preferences, NotifrySource source, boolean defaultValue )
+	{
+		if( source.getUseGlobalNotification() )
+		{
+			// Use the global setting for this notification.
+			return preferences.getBoolean(getString(setting), defaultValue);
+		}
+		else
+		{
+			// Determine the setting, and then return the appropriate setting.
+			if( R.string.playRingtone == setting )
+			{
+				return source.getRingtone();
+			}
+			else if( R.string.vibrateNotify == setting )
+			{
+				return source.getVibrate();
+			}
+			else if( R.string.ledFlash == setting )
+			{
+				return source.getLedFlash();
+			}
+			else if( R.string.speakMessage == setting )
+			{
+				return source.getSpeakMessage();
+			}
+		}
+
+		return defaultValue;
+	}
+	
+	public String globalOrOverrideString( int setting, SharedPreferences preferences, NotifrySource source, String defaultValue )
+	{
+		if( source.getUseGlobalNotification() )
+		{		
+			// Use the global setting for this notification.
+			return preferences.getString(getString(setting), defaultValue);
+		}
+		else
+		{
+			// Determine the setting, and then return the appropriate setting.
+			if( R.string.choosenNotification == setting )
+			{
+				return source.getCustomRingtone();
+			}
+		}
+
+		return defaultValue;
+	}	
 
 	public void onStart( Intent intent, int startId )
 	{
@@ -142,9 +191,9 @@ public class NotificationService extends Service
 				Notification notification = this.setLatestEventInfo(message.getSource(), message);
 				
 				// Now, other notification methods.
-				if( settings.getBoolean(getString(R.string.playRingtone), true) )
+				if( globalOrOverrideBoolean(R.string.playRingtone, settings, message.getSource(), true) )
 				{
-					String tone = settings.getString(getString(R.string.choosenNotification), "");
+					String tone = globalOrOverrideString(R.string.choosenNotification, settings, message.getSource(), "");
 					Log.d(TAG, "Notification selected by user: " + tone);
 					if( tone.equals("") )
 					{
@@ -157,11 +206,11 @@ public class NotificationService extends Service
 						notification.sound = Uri.parse(tone);
 					}
 				}
-				if( settings.getBoolean(getString(R.string.vibrateNotify), true) )
+				if( globalOrOverrideBoolean(R.string.vibrateNotify, settings, message.getSource(), true) )
 				{
 					notification.defaults |= Notification.DEFAULT_VIBRATE;
 				}
-				if( settings.getBoolean(getString(R.string.ledFlash), true) )
+				if( globalOrOverrideBoolean(R.string.ledFlash, settings, message.getSource(), true) )
 				{
 					if( settings.getBoolean(getString(R.string.fastLedFlash), false) )
 					{
@@ -183,7 +232,7 @@ public class NotificationService extends Service
 				this.notificationManager.notify(message.getSource().getNotificationId(), notification);
 	
 				// If we're speaking, dispatch the message to the speaking service.
-				if( settings.getBoolean(getString(R.string.speakMessage), true) )
+				if( globalOrOverrideBoolean(R.string.speakMessage, settings, message.getSource(), true) )
 				{
 					Intent intentData = new Intent(getBaseContext(), SpeakService.class);
 					Log.d(TAG, "Speaking text: " + decision.getSpokenMessage());

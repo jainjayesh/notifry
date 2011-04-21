@@ -1,0 +1,18 @@
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+	<EditTextPreference android:persistent="true" android:key="source_title" android:title="@string/source_editor_title"></EditTextPreference>
+	<CheckBoxPreference android:persistent="true" android:title="@string/enabled_on_server" android:key="source_server_enable" android:summary="@string/enabled_on_server_summary"/>
+	<CheckBoxPreference android:persistent="true" android:title="@string/enabled_locally" android:key="source_local_enable" android:summary="@string/enabled_locally_summary" />
+	<Preference android:persistent="false" android:key="source_key" android:title="@string/source_key_heading" android:enabled="true" android:selectable="true"/>	
+	<PreferenceScreen android:persistent="false" android:enabled="true" android:selectable="true" android:summary="@string/source_notification_settings_summary" android:title="@string/notification_settings">
+		<CheckBoxPreference android:persistent="true" android:title="@string/source_global_notifications" android:key="source_global" android:summary="@string/source_global_notifications_summary" android:defaultValue="true"/>	
+		<CheckBoxPreference android:persistent="true" android:title="@string/play_ringtone" android:key="source_ringtone" android:summary="@string/play_ringtone_summary" android:defaultValue="true"/>
+		<RingtonePreference android:persistent="true" android:title="@string/choose_notification_tone" android:key="source_customringtone" android:summary="@string/choose_notification_tone_summary" android:ringtoneType="notification" />
+		<CheckBoxPreference android:persistent="true" android:title="@string/vibrate" android:key="source_vibrate" android:summary="@string/vibrate_summary" />
+		<CheckBoxPreference android:persistent="true" android:title="@string/led_flash" android:key="source_ledflash" android:summary="@string/led_flash_summary" />
+		<CheckBoxPreference android:persistent="true" android:title="@string/speak_message" android:key="source_speakmessage" android:summary="@string/speak_message_summary" />
+	</PreferenceScreen>
+	<Preference android:persistent="false" android:key="source_messages" android:summary="@string/source_message_summary" android:title="@string/messages" android:enabled="true" android:selectable="true"/>
+	<Preference android:persistent="false" android:key="source_test" android:summary="@string/source_test_summary" android:title="@string/test" android:enabled="true" android:selectable="true"/>
+	<Preference android:persistent="false" android:key="source_email" android:summary="@string/source_email_key_summary" android:title="@string/source_email_key" android:enabled="true" android:selectable="true"/>	
+	<Preference android:persistent="false" android:key="source_delete" android:summary="@string/source_delete_summary" android:title="@string/delete" android:enabled="true" android:selectable="true"/>		
+</PreferenceScreen>

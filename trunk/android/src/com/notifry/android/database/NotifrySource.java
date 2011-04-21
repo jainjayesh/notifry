@@ -48,6 +48,7 @@ public class NotifrySource extends ORM<NotifrySource>
 	private Boolean ringtone = false;
 	private String customRingtone = "";
 	private Boolean ledFlash = false;
+	private Boolean speakMessage = false;
 	
 	/**
 	 * Get the notification ID.
@@ -184,6 +185,16 @@ public class NotifrySource extends ORM<NotifrySource>
 		this.ledFlash = ledFlash;
 	}
 
+	public Boolean getSpeakMessage()
+	{
+		return speakMessage;
+	}
+
+	public void setSpeakMessage( Boolean speakMessage )
+	{
+		this.speakMessage = speakMessage;
+	}
+
 	public void fromJSONObject( JSONObject source ) throws JSONException
 	{
 		this.changeTimestamp = source.getString("updated");
@@ -292,6 +303,7 @@ public class NotifrySource extends ORM<NotifrySource>
 		values.put(NotifryDatabaseAdapter.KEY_RINGTONE, this.getRingtone() ? 1 : 0);
 		values.put(NotifryDatabaseAdapter.KEY_CUSTOM_RINGTONE, this.getCustomRingtone());
 		values.put(NotifryDatabaseAdapter.KEY_LED_FLASH, this.getLedFlash() ? 1 : 0);
+		values.put(NotifryDatabaseAdapter.KEY_SPEAK_MESSAGE, this.getSpeakMessage() ? 1 : 0);
 		return values;
 	}
 
@@ -312,7 +324,8 @@ public class NotifrySource extends ORM<NotifrySource>
 		source.setVibrate(cursor.getLong(cursor.getColumnIndex(NotifryDatabaseAdapter.KEY_VIBRATE)) == 0 ? false : true);
 		source.setRingtone(cursor.getLong(cursor.getColumnIndex(NotifryDatabaseAdapter.KEY_RINGTONE)) == 0 ? false : true);
 		source.setLedFlash(cursor.getLong(cursor.getColumnIndex(NotifryDatabaseAdapter.KEY_LED_FLASH)) == 0 ? false : true);
-		source.setCustomRingtone(cursor.getString(cursor.getColumnIndex(NotifryDatabaseAdapter.KEY_CUSTOM_RINGTONE)));	
+		source.setCustomRingtone(cursor.getString(cursor.getColumnIndex(NotifryDatabaseAdapter.KEY_CUSTOM_RINGTONE)));
+		source.setSpeakMessage(cursor.getLong(cursor.getColumnIndex(NotifryDatabaseAdapter.KEY_SPEAK_MESSAGE)) == 0 ? false : true);
 		
 		return source;
 	}

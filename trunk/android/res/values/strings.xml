@@ -51,7 +51,9 @@
     <string name="accounts_and_sources">Accounts and sources</string>
     
     <string name="enabled_on_server">Enabled on server</string>
+    <string name="enabled_on_server_summary">When off, the server will not attempt to deliver the message.</string>
     <string name="enabled_locally">Enabled locally</string>
+    <string name="enabled_locally_summary">When off, the device will receive the message but do nothing else.</string>
     <string name="email_source_key">Email source key</string>
     <string name="messages">Messages</string>
     
@@ -90,12 +92,22 @@
     <string name="source_saving_to_server">Saving the source to the server...</string>
     <string name="source_deleting_from_server">Deleting the source from the server...</string>
     <string name="source_testing_with_server">Asking server to send test message...</string>
-    <string name="source_key_heading">Source key:</string>
+    <string name="source_key_heading">Source key</string>
     <string name="source_key_email_subject">My Notifry source key</string>
     <string name="source_key_email_body">The notifry source key you will need is %s - Thanks!</string>
     <string name="source_save_success">Source saved successfully.</string>
     <string name="source_delete_success">Source deleted successfully.</string>
     <string name="source_test_success">Successfully added a test message on the server.</string>
+    
+    <string name="source_editor_title">Title</string>
+    <string name="source_notification_settings_summary">Change notifications for this source.</string>
+    <string name="source_test_summary">Test this source via the server.</string>
+    <string name="source_message_summary">View the recent messages for this source.</string>
+    <string name="source_delete_summary">Delete this source.</string>
+    <string name="source_global_notifications">Use default settings</string>
+    <string name="source_global_notifications_summary">Use the default settings from the main settings for Notifry.</string>
+    <string name="source_email_key">Email source key</string>
+    <string name="source_email_key_summary">Send the source key by email to someone.</string>
     
     <string name="messages_all_title">All messages</string>
     <string name="messages_source_title" formatted="false">Messages - %s</string>

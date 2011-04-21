@@ -85,9 +85,10 @@ public class NotifryDatabaseAdapter extends ContentProvider
 	public static final String KEY_RINGTONE = "ringtone";
 	public static final String KEY_CUSTOM_RINGTONE = "custom_ringtone";
 	public static final String KEY_LED_FLASH = "led_flash";
+	public static final String KEY_SPEAK_MESSAGE = "speak_message";
 	
 	public static final String[] ACCOUNT_PROJECTION = new String[] { KEY_ID, KEY_ACCOUNT_NAME, KEY_ENABLED, KEY_SERVER_REGISTRATION_ID, KEY_REQUIRES_SYNC, KEY_LAST_C2DM_ID };
-	public static final String[] SOURCE_PROJECTION = new String[] { KEY_ID, KEY_ACCOUNT_NAME, KEY_CHANGE_TIMESTAMP, KEY_TITLE, KEY_SERVER_ID, KEY_SOURCE_KEY, KEY_SERVER_ENABLED, KEY_LOCAL_ENABLED, KEY_USE_GLOBAL_NOTIFICATION, KEY_VIBRATE, KEY_RINGTONE, KEY_CUSTOM_RINGTONE, KEY_LED_FLASH };
+	public static final String[] SOURCE_PROJECTION = new String[] { KEY_ID, KEY_ACCOUNT_NAME, KEY_CHANGE_TIMESTAMP, KEY_TITLE, KEY_SERVER_ID, KEY_SOURCE_KEY, KEY_SERVER_ENABLED, KEY_LOCAL_ENABLED, KEY_USE_GLOBAL_NOTIFICATION, KEY_VIBRATE, KEY_RINGTONE, KEY_CUSTOM_RINGTONE, KEY_LED_FLASH, KEY_SPEAK_MESSAGE };
 	public static final String[] MESSAGE_PROJECTION = new String[] { KEY_ID, KEY_SOURCE_ID, KEY_TIMESTAMP, KEY_TITLE, KEY_MESSAGE, KEY_URL, KEY_SERVER_ID, KEY_SEEN };	
 
 	private SQLiteDatabase db;
@@ -112,7 +113,8 @@ public class NotifryDatabaseAdapter extends ContentProvider
 			"vibrate integer not null, " +
 			"ringtone integer not null, " +
 			"custom_ringtone text not null, " +
-			"led_flash integer not null " +
+			"led_flash integer not null, " +
+			"speak_message integer not null " +
 			");";
 
 	private static final String DATABASE_CREATE_MESSAGES = "create table messages (_id integer primary key autoincrement, " +
@@ -130,7 +132,7 @@ public class NotifryDatabaseAdapter extends ContentProvider
 	private static final String DATABASE_TABLE_SOURCES = "sources";
 	private static final String DATABASE_TABLE_MESSAGES = "messages";
 
-	private static final int DATABASE_VERSION = 2;
+	private static final int DATABASE_VERSION = 3;
 
 	/**
 	 * Database helper class to create and manage the schema.
@@ -153,9 +155,10 @@ public class NotifryDatabaseAdapter extends ContentProvider
 		@Override
 		public void onUpgrade( SQLiteDatabase db, int oldVersion, int newVersion )
 		{
-			// Upgrading from v1 (during BETA) to v2.
-			if( oldVersion == 1 && newVersion == 2 )
+			// Upgrading from v1 (during BETA) to v3.
+			if( oldVersion < 3 )
 			{
+				db.execSQL("ALTER TABLE sources ADD COLUMN speak_message integer not null default 0;");
 				db.execSQL("ALTER TABLE sources ADD COLUMN use_global_notification integer not null default 1;");
 				db.execSQL("ALTER TABLE sources ADD COLUMN vibrate integer not null default 0;");
 				db.execSQL("ALTER TABLE sources ADD COLUMN ringtone integer not null default 0;");
