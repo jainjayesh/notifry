@@ -83,12 +83,30 @@ public class HealthCheck
 		boolean hasBackend = false;
 		ArrayList<NotifryAccount> accounts = NotifryAccount.FACTORY.listAll(context);
 		HashMap<String, Integer> sourceCounts = new HashMap<String, Integer>();
+		HashMap<String, Integer> sourceServerDisabledCounts = new HashMap<String, Integer>();
+		HashMap<String, Integer> sourceLocalDisabledCounts = new HashMap<String, Integer>();
 		for( NotifryAccount account: accounts )
 		{
 			if( account.getEnabled() )
 			{
 				hasBackend = true;
-				sourceCounts.put(account.getAccountName(), NotifrySource.FACTORY.countSources(context, account.getAccountName()));
+				ArrayList<NotifrySource> sources = NotifrySource.FACTORY.listAll(context, account.getAccountName());
+				sourceCounts.put(account.getAccountName(), sources.size());
+				
+				sourceServerDisabledCounts.put(account.getAccountName(), 0);
+				sourceLocalDisabledCounts.put(account.getAccountName(), 0);
+				
+				for( NotifrySource source: sources )
+				{
+					if( !source.getServerEnabled() )
+					{
+						sourceServerDisabledCounts.put(account.getAccountName(), sourceServerDisabledCounts.get(account.getAccountName()) + 1);
+					}
+					if( !source.getLocalEnabled() )
+					{
+						sourceLocalDisabledCounts.put(account.getAccountName(), sourceLocalDisabledCounts.get(account.getAccountName()) + 1);
+					}
+				}
 				
 				// Does the key differ from what we last told the server?
 				if( !account.getLastC2DMId().equals(registrationId) )
@@ -113,6 +131,26 @@ public class HealthCheck
 					String rawString = context.getString(R.string.health_error_no_sources);
 					check.addWarning(String.format(rawString, accountName));
 				}
+				if( sourceServerDisabledCounts.containsKey(accountName) && sourceServerDisabledCounts.get(accountName) > 0 )
+				{
+					String plural = "";
+					if( sourceServerDisabledCounts.get(accountName) > 1 )
+					{
+						plural = "s";
+					}
+					String rawString = context.getString(R.string.health_error_disabled_server_sources);
+					check.addWarning(String.format(rawString, accountName, sourceServerDisabledCounts.get(accountName), plural));					
+				}
+				if( sourceLocalDisabledCounts.containsKey(accountName) && sourceLocalDisabledCounts.get(accountName) > 0 )
+				{
+					String plural = "";
+					if( sourceLocalDisabledCounts.get(accountName) > 1 )
+					{
+						plural = "s";
+					}					
+					String rawString = context.getString(R.string.health_error_disabled_local_sources);
+					check.addWarning(String.format(rawString, accountName, sourceLocalDisabledCounts.get(accountName), plural));					
+				}				
 			}
 		}
 

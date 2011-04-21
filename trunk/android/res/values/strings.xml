@@ -120,6 +120,8 @@
     <string name="health_error_c2dm_error">Error getting C2DM ID: </string>
     <string name="health_error_no_accounts">No accounts registered for use. Select one to be used.</string>
     <string name="health_error_no_sources" formatted="false">The account %s has no sources. Refresh this from the server if you think this is an error.</string>
+    <string name="health_error_disabled_server_sources" formatted="false">The account %s has %d server disabled source%s.</string>
+    <string name="health_error_disabled_local_sources" formatted="false">The account %s has %d local disabled source%s.</string>
     <string name="health_error_account_wrong_id" formatted="false">The account %s does not have the latest C2DM ID. Refresh it from the accounts screen.</string>
     
     <string name="add_contact">Add Contact</string>
