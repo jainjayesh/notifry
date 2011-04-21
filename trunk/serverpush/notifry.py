@@ -75,4 +75,4 @@ try:
 		print "Message sent OK. Size: %d." % contents['size']
 
 except urllib2.URLError, ex:
-	print "Failed to make request to the server: " + str(ex.reason)
+	print "Failed to make request to the server: " + str(ex)
