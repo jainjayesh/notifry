@@ -2,6 +2,7 @@
 import datetime
 import logging
 import urllib
+import base64
 from model.UserDevice import UserDevice
 from model.AC2DMAuthToken import AC2DMAuthToken
 from google.appengine.api.urlfetch import fetch
@@ -121,6 +122,9 @@ class AC2DM:
 		message.lastDeliveryAttempt = datetime.datetime.now()
 		message.put()
 
+	def encode(self, input):
+		return base64.b64encode(unicode(input).encode('utf-8'))
+
 	def send(self, message, device):
 		# Prepare for our request.
 		params = {}
@@ -132,10 +136,10 @@ class AC2DM:
 		params['data.server_id'] = message.key().id()
 		params['data.source_id'] = message.source.key().id()
 		params['data.device_id'] = device.key().id()
-		params['data.title'] = message.title
-		params['data.message'] = message.message
+		params['data.title'] = self.encode(message.title)
+		params['data.message'] = self.encode(message.message)
 		if message.url:
-			params['data.url'] = message.url
+			params['data.url'] = self.encode(message.url)
 		params['data.timestamp'] = message.timestamp.isoformat()
 
 		result = self.send_to_google(params)

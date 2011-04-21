@@ -42,7 +42,8 @@ class UserMessage(db.Model):
 		return result
 
 	def hash(self):
-		digest = hashlib.md5(self.title + self.message + str(self.url)).hexdigest()
+		input = unicode(self.title) + unicode(self.message) + unicode(self.url)
+		digest = hashlib.md5(input.encode('ascii', 'xmlcharrefreplace')).hexdigest()
 		return digest[0:8]
 
 	def getsize(self):
