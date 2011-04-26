@@ -21,11 +21,14 @@ package com.notifry.android;
 import com.notifry.android.database.NotifryMessage;
 
 import android.content.Context;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 
 public class NotifyDecision
 {
 	private Boolean shouldNotify;
 	private NotifryMessage message;
+	private String outputMessage;
 
 	public Boolean getShouldNotify()
 	{
@@ -47,9 +50,14 @@ public class NotifyDecision
 		this.message = message;
 	}
 	
-	public String getSpokenMessage()
+	public String getOutputMessage()
 	{
-		return this.message.getTitle() + ". " + this.message.getMessage();
+		return outputMessage;
+	}
+
+	public void setOutputMessage( String outputMessage )
+	{
+		this.outputMessage = outputMessage;
 	}
 
 	/**
@@ -63,8 +71,36 @@ public class NotifyDecision
 	{
 		NotifyDecision decision = new NotifyDecision();
 		decision.setShouldNotify(message.getSource().getLocalEnabled());
+		
+		// Set the message that should be spoken.
 		decision.setMessage(message);
 
+		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(context);
+		String format = settings.getString("speakFormat", "%t. %m");
+		
+		StringBuffer buffer = new StringBuffer(format);
+		formatString(buffer, "%t", message.getTitle());
+		formatString(buffer, "%m", message.getMessage());
+		formatString(buffer, "%s", message.getSource().getTitle());
+		formatString(buffer, "%a", message.getSource().getAccountName());
+		formatString(buffer, "%%", "%");
+		decision.setOutputMessage(buffer.toString());
+
 		return decision;
+	}
+	
+	/**
+	 * Replace a keyword with a value every time it appears in the buffer.
+	 * @param buffer
+	 * @param keyword
+	 * @param value
+	 */
+	private static void formatString( StringBuffer buffer, String keyword, String value )
+	{
+		int position = -1;
+		while( (position = buffer.indexOf(keyword)) != -1 )
+		{
+			buffer.replace(position, position + keyword.length(), value);
+		}
 	}
 }

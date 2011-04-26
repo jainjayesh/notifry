@@ -14,6 +14,7 @@
 		<EditTextPreference android:persistent="true" android:key="@string/delayReadingTime" android:summary="@string/delay_readout_summary" android:title="@string/delay_readout" android:digits="0123456789" android:maxLength="2"></EditTextPreference>
 		<CheckBoxPreference android:persistent="true" android:title="@string/shakestop" android:defaultValue="false" android:summary="@string/shakestop_summary" android:key="@string/shakeToStop"/>	
 		<EditTextPreference android:persistent="true" android:key="@string/shakeThreshold" android:summary="@string/shakethreshhold_summary" android:title="@string/shakethreshhold" android:digits="0123456789" android:maxLength="4"></EditTextPreference>
-		<EditTextPreference android:persistent="true" android:key="@string/shakeWaitTime" android:summary="@string/shakewaittime_summary" android:title="@string/shakewaittime" android:digits="0123456789" android:maxLength="2"></EditTextPreference>		
+		<EditTextPreference android:persistent="true" android:key="@string/shakeWaitTime" android:summary="@string/shakewaittime_summary" android:title="@string/shakewaittime" android:digits="0123456789" android:maxLength="2"></EditTextPreference>
+		<EditTextPreference android:persistent="true" android:key="@string/speakFormat" android:summary="@string/speakformat_summary" android:title="@string/speakformat" android:defaultValue="%t. %m"></EditTextPreference>		
 	</PreferenceScreen>
 </PreferenceScreen>

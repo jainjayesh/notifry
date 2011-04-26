@@ -32,6 +32,8 @@
     <string name="shakethreshhold_summary">Currently %d, default 1500.</string>
     <string name="shakewaittime">Shake Wait Time</string>
     <string name="shakewaittime_summary">Wait %d seconds for a shake event.</string>
+    <string name="speakformat">TTS Output format</string>
+    <string name="speakformat_summary" formatted="false">%s is source, %m is message, %t is title, %a is account. Default %t %m.</string>
     <string name="notification_settings">Notification settings</string>
     <string name="notification_settings_summary">Change how notifications are delivered.</string>
     <string name="play_ringtone">Play ringtone</string>
@@ -162,6 +164,7 @@
     <string name="ledFlash">ledFlash</string>
     <string name="fastLedFlash">fastLedFlash</string>
     <string name="speakMessage">speakMessage</string>
+    <string name="speakFormat">speakFormat</string>
     <string name="preferencesName">SpeakMessageServicePrefs</string>
     
     <string name="notts">You do not have the TTS library installed - Speak Message Service can not read out your messages until you install it.</string>

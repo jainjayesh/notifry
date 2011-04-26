@@ -235,8 +235,8 @@ public class NotificationService extends Service
 				if( globalOrOverrideBoolean(R.string.speakMessage, settings, message.getSource(), true) )
 				{
 					Intent intentData = new Intent(getBaseContext(), SpeakService.class);
-					Log.d(TAG, "Speaking text: " + decision.getSpokenMessage());
-					intentData.putExtra("text", decision.getSpokenMessage());
+					Log.d(TAG, "Speaking text: " + decision.getOutputMessage());
+					intentData.putExtra("text", decision.getOutputMessage());
 					startService(intentData);
 				}
 			}
