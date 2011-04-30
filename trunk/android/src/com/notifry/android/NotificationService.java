@@ -64,7 +64,6 @@ public class NotificationService extends Service
 		String contentText = "";
 
 		unreadMessagesOfType = NotifryMessage.FACTORY.countUnread(this, source);
-		PendingIntent contentIntent = null;
 
 		if( unreadMessagesOfType == 1 && message != null )
 		{
@@ -72,24 +71,19 @@ public class NotificationService extends Service
 			// content to be the message itself.
 			contentTitle = message.getTitle();
 			contentText = message.getMessage();
-			
-			// Go to just the message view.
-			Intent notificationIntent = new Intent(this, MessageDetail.class);
-			notificationIntent.putExtra("messageId", message.getId());
-			contentIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0);				
 		}
 		else
 		{
 			// More than one message. Instead, the title is the source name,
 			// and the content is the number of unseen messages.
 			contentTitle = source.getTitle();
-			contentText = String.format("%d unseen messages", unreadMessagesOfType);
-			
-			// Generate the intent to go to that message list.
-			Intent notificationIntent = new Intent(this, MessageList.class);
-			notificationIntent.putExtra("sourceId", source.getId());
-			contentIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0);			
+			contentText = String.format("%d unseen messages", unreadMessagesOfType);		
 		}
+		
+		// Generate the intent to go to that message list.
+		Intent notificationIntent = new Intent(this, MessageList.class);
+		notificationIntent.putExtra("sourceId", source.getId());
+		PendingIntent contentIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0);		
 
 		// Set the notification data.
 		notification.setLatestEventInfo(context, contentTitle, contentText, contentIntent);
