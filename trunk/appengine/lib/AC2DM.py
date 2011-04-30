@@ -169,9 +169,9 @@ class AC2DM:
 		else:
 			# Failed to send. Log the error message.
 			message.put()
-			errorMessage = 'Unable to send message ' + message.key().id() + ' to Google: Status code ' + str(result.status_code) + ' body ' + result.content
+			errorMessage = 'Unable to send message ' + str(message.key().id()) + ' to Google: Status code ' + str(result.status_code) + ' body ' + result.content
 			logging.error(errorMessage)
 
-			# During BETA testing, send me an email when this fails.
-			mail.send_mail(sender="Daniel Foote <freefoote@gmail.com>", to="Daniel Foote <freefoote@gmail.com>", subject="Error sending message", body=errorMessage)
+			# Send an email when it fails. This should not contain any private data.
+			mail.send_mail(sender="Notifry <notifry@gmail.com>", to="Notifry <notifry@gmail.com>", subject="Error sending message", body=errorMessage)
 			return False
