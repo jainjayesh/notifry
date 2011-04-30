@@ -213,8 +213,12 @@ public class MessageList extends ListActivity
 				{
 					title.setTypeface(Typeface.DEFAULT_BOLD);
 				}
+				else
+				{
+					title.setTypeface(Typeface.DEFAULT);
+				}
 				return true;
-			}
+			}	
 
 			return false;
 		}
