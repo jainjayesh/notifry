@@ -2,26 +2,33 @@
 <h1>Privacy Policy and information</h1>
 
 <p>We store only the data we need to store. Once you sign in, we have access to your email
-	address and possibly an name. But no other data. We will never use your email address
+	address and possibly a name. But no other data. We will never use your email address
 	for any purpose other than letting you know of an issue with your account.</p>
+
+<p>The service is not intended to be used to send any sensitive data to users. If you choose to use
+	the service in this manner, then you accept all responsibility for that choice.</p>
 
 <p>Messages sent via the service are stored for up to 24 hours. At this time,
 	they are permanently deleted from the servers. The messages are not recoverable
-	after the deletion.</p>
+	after the deletion. Notifry is not intended to be a historical record for
+	notifications; it is designed with the policy that the notifications are transient
+	and you should use your own systems for auditing any notifications sent.</p>
 
-<p>We will not look at your personal data. The only exception to this is during the BETA,
-	where the system may email developers with error messages given by backend systems
-	so we can debug the issue. The email may contain the contents of the message,
-	but this is not the intention of these email notifications.</p>
+<p>We will not look at your personal data. The only exception to this is if an error occurs
+	delivering your message to Google's servers, which will result in an error email being
+	sent to the developer. Whilst attempts are made to not include personal data, they
+	may inadvertently contain personal data, but this will not be kept any long than
+	necessary, nor shared with any parties.</p>
 
 <p>Any person knowing the source key for your source can send you notifications. Source
 	keys can not be changed or regenerated. Sources can be deleted or disabled by
-	users if they wish.</p>
+	users if they wish, to stop messages being sent to them.</p>
 
 <p>When sending notifications to the server, as little information as possible is sent
-	back to the sender - the sender can never figure out which user a source belongs to.</p>
+	back to the sender. The sender is only sent a flag indicating success, the calculated
+	size of the message, and if the message was truncated.</p>
 
 <p>Sources that are disabled on the server level will not allow messages to be sent to them.
 	The server will send an error message to the sender to let them know that the source
 	has been disabled. Please be aware that this information is given to the sender, which
-	may not be desirable but is a fair balance between the users and the system administrators.</p>
+	may not be desirable but is a fair balance between the users and the message senders.</p>

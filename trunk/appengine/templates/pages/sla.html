@@ -1,13 +1,18 @@
 <%inherit file="../layout/layout.html" />
 <h1>Service Level Agreement</h1>
 
+<p class="important_note"><span class="important_note_title">You should not use Notifry for any mission critical systems.</span> Any use
+	in mission critical systems is at your own risk, and no responsibility will be taken for any damage, missing notifications, or
+	failure to respond.</p>
+
 <p>Notifry is a free service. As such, there is no guarantee that the service will
 	work at any given time, as many different technologies and systems are involved,
-	and any interuption in that chain will stop the system from working.</p>
+	and any interuption in that chain will stop the system from working. For example,
+	the Google App Engine backend could exhaust its assigned resources, or the C2DM
+	APIs could exceed their limits.</p>
 
 <p>Notifry will make the best effort to deliver your message, but we can not
 	be held accountable for any failure to notify a user via the service.</p>
 
-<p>You <b>should not use notifry</b> for any mission critical systems. The only
-	exception to this rule is when you have a backup system of some kind that
-	will attempt to notify you in another way, but this is still at your own risk.</p>
+<p>It is recommended to back up any Notifry system with an alternate notification system,
+	such as SMS or email, depending on your desired urgency level.</p>

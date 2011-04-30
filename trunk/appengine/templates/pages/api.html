@@ -6,7 +6,7 @@
 <p>The API is a simple REST interface that returns JSON (at the moment). The keys below show how it is done. Alternately, 
 scripts already exist to send messages to Notifry, and you can choose one that fits your platform and system.</p>
 
-<h2>Scripts</h2>
+<h2>Standalone Scripts</h2>
 
 <table class="details">
 	<tr>
@@ -33,7 +33,7 @@ scripts already exist to send messages to Notifry, and you can choose one that f
 <ol>
 	<li>Download one of the scripts above and put it somewhere on the server.</li>
 	<li>Make sure the script is executable.</li>
-	<li>Make sure the script runs - the Python script requires 2.6, and the PHP script requires 5.2 (with the curl module installed).</li>
+	<li>Make sure the script runs - the Python script requires 2.6 or greater, and the PHP script requires 5.2 or greater (with the curl module installed).</li>
 	<li>Add the following commands to your Nagios configuration, replacing the script path as appropriate. Also, you can customize the message to your liking.
 	<pre class="code">
 define command{
@@ -67,10 +67,10 @@ define contact{
 
 <h3>Parameters</h3>
 
-<p>Note: your message shouldn't be more than around 500 bytes. The server will truncate your message field
-	if it can to limit the message size. It will never truncate the URL. If it can't send the message without truncating
-	the URL, the message will not be sent and you will get an error message. If your message is truncated, the response will
-	have the truncated flag set to true. Notifry is not designed to send long messages.</p>
+<p class="important_note"><span class="important_note_title">Note:</span> the total message shouldn't be more than around 500 bytes.
+	The server will truncate your message field if it can to limit the message size. It will never truncate the URL or title.
+	If it can't send the message without truncating the URL and title, the message will not be sent and you will get an error message.
+	If your message is truncated, the response will have the truncated flag set to true. Notifry is not designed to send long messages.</p>
 
 <table class="details">
 	<tr>

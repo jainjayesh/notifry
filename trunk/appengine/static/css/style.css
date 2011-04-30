@@ -100,7 +100,6 @@ sub { bottom: -0.25em; }
 pre {
   /* www.pathf.com/blogs/2008/05/formatting-quoted-code-in-blog-posts-css21-white-space-pre-wrap/ */
   white-space: pre; white-space: pre-wrap; word-wrap: break-word;
-  padding: 15px;
 }
 
 textarea { overflow: auto; } /* www.sitepoint.com/blogs/2010/08/20/ie-remove-textarea-scrollbars/ */
@@ -357,7 +356,8 @@ h2
 {
 	color: #444444;
 	font-size: 1.9em;
-	padding-bottom: 18px;
+	padding-bottom: 10px;
+	padding-top: 5px;
 }
 
 h3
@@ -451,6 +451,7 @@ form span.error
 	font-family: monospace;
 	background-color: #efefef;
 	margin-bottom: 5px;
+	padding: 10px;
 }
 
 tr.message_header_row
@@ -499,7 +500,7 @@ p.important_note
 	padding-bottom: 25px;
 	padding-right: 20px;
 	padding-top: 25px;
-	margin-bottom: 40px;
+	margin-bottom: 10px;
 	font-weight: bold;
 }
 
@@ -509,6 +510,10 @@ span.important_note_title
 	font-size: 1.2em;
 }
 
+p
+{
+	text-align: justify;
+}
 
 
 
