@@ -18,6 +18,10 @@
 #
 #
 # This script sends the notification to the backend server for the given source.
+# Return codes:
+# 0 - Success
+# 1 - HTTP error
+# 2 - Backend error
 
 import urllib
 import urllib2
@@ -71,8 +75,10 @@ try:
 
 	if contents.has_key('error'):
 		print "Server did not accept our message: %s" % contents['error']
+		sys.exit(2)
 	else:
 		print "Message sent OK. Size: %d." % contents['size']
 
 except urllib2.URLError, ex:
 	print "Failed to make request to the server: " + str(ex)
+	sys.exit(1)

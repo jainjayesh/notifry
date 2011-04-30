@@ -19,6 +19,10 @@
  *
  *
  * This script sends the notification to the backend server for the given source.
+ * Return codes:
+ * 0 - Success
+ * 1 - HTTP error
+ * 2 - Backend error
  */
 
 // Configuration.
@@ -93,6 +97,8 @@ if( $page !== FALSE )
 		if( isset($decoded['error']) )
 		{
 			echo "Server did not accept our message: ", $decoded['error'], "\n";
+			curl_close($c);
+			exit(2);
 		}
 		else
 		{
@@ -103,6 +109,8 @@ if( $page !== FALSE )
 else
 {
 	echo "HTTP error: ", curl_error($c), "\n";
+	curl_close($c);
+	exit(1);
 }
 
 curl_close($c);
