@@ -121,7 +121,17 @@ public class MessageDetail extends Activity
 			// We store it in a private variable to save us having to query the
 			// DB each time.
 			Intent sourceIntent = getIntent();
-			this.message = NotifryMessage.FACTORY.get(this, sourceIntent.getLongExtra("messageId", 0)); 
+			this.message = NotifryMessage.FACTORY.get(this, sourceIntent.getLongExtra("messageId", 0));
+			
+			if( this.message == null )
+			{
+				// Ie, we tried to load it but it's been deleted.
+				// This can happen if you're going backwards through the
+				// activity stack and a later activity was used to delete all messages.
+				// In this case, just exit this activity.
+				this.finish();
+			}
+
 			// Change the seen flag if required.
 			if( this.message.getSeen() == false )
 			{
