@@ -1,0 +1,22 @@
+table.adminTable
+{
+	width: 100%;
+}
+table.adminTable th
+{
+	
+}
+table.adminTable td
+{
+	border-top: 1px solid black;
+}
+
+table.adminTable td.number
+{
+	text-align: center;
+}
+
+table.adminTable td.rowLabel
+{
+	text-align: right;
+}

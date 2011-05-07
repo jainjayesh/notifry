@@ -1,0 +1,25 @@
+<%inherit file="../layout/layout.html" />
+<h1>Notifry Counters</h1>
+
+<table class="adminTable">
+	<tr>
+		<th>Time</th>
+		% for i, type in enumerate(counters['types']):
+			<th>${type|h}</th>
+		% endfor
+	</tr>
+	<tr>
+		<td class="rowLabel">Totals</td>
+		% for i, type in enumerate(counters['types']):
+			<td class="number">${counters['totals'][type]}</td>
+		% endfor
+	</tr>
+	% for i, bucket in enumerate(counters['buckets']):
+		<tr>
+			<td class="rowLabel">${bucket|h}</td>
+			% for i, type in enumerate(counters['types']):
+				<td class="number">${counters['data'][bucket][type]}</td>
+			% endfor
+		</tr>
+	% endfor
+</table>

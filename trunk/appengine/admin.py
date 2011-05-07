@@ -17,14 +17,17 @@
 import web
 from google.appengine.api import users
 from lib.Renderer import Renderer
+from lib.AC2DM import AC2DM
 from model.AC2DMAuthToken import AC2DMAuthToken
 from model.AC2DMAuthToken import AC2DMTokenException
+from model.GeneralCounterShard import GeneralCounterShard
 import datetime
 
 urls = (
 	'/admin/', 'index',
 	'/admin/token/(.*)', 'token',
-	'/admin/createtoken/', 'createtoken'
+	'/admin/createtoken/', 'createtoken',
+	'/admin/stats/(.*)', 'stats'
 )
 
 # Create the renderer and the initial context.
@@ -36,6 +39,18 @@ renderer.addTemplate('user', users.get_current_user())
 class index:
 	def GET(self):
 		return renderer.render('admin/index.html')
+
+class stats:
+	def GET(self, name):
+		if name == '':
+			# Stats index.
+			return renderer.render('admin/stats/index.html')
+		if name == 'counters':
+			# Counters.
+			summary = AC2DM.get_counter_summary()
+			summary['buckets'].reverse()
+			renderer.addData('counters', summary)
+			return renderer.render('admin/stats/counters.html')
 
 # Tokens list.
 class token:
