@@ -26,6 +26,7 @@ from model.UserMessage import UserMessage
 from model.UserDevices import UserDevices
 from model.UserSources import UserSources
 from model.UserMessages import UserMessages
+from model.SourcePointer import SourcePointer
 import datetime
 
 urls = (
@@ -197,7 +198,7 @@ class migrate:
 				device_collections_user[collection_key] = UserDevices.get_user_device_collection(device.owner)
 			device_collections_user[collection_key].add_device(device)
 
-		for key, collection in device_collections_user:
+		for key, collection in device_collections_user.iteritems():
 			collection.put()
 
 		# PHASE 2: Put messages into collections.
@@ -208,7 +209,7 @@ class migrate:
 				message_collections_user[collection_key] = UserMessages.get_user_message_collection(message.owner)
 			message_collections_user[collection_key].add_message(message)
 
-		for key, collection in message_collections_user:
+		for key, collection in message_collections_user.iteritems():
 			collection.put()
 
 		# PHASE 3: Put sources into collections. Also create pointers as we go.
@@ -220,7 +221,7 @@ class migrate:
 			source_collections_user[collection_key].add_source(source)
 			SourcePointer.persist(source)
 
-		for key, collection in source_collections_user:
+		for key, collection in source_collections_user.iteritems():
 			collection.put()
 
 		# And complete.

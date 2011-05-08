@@ -88,10 +88,12 @@ class profile:
 
 		# List all their sources.
 		sources = UserSources.get_user_sources(users.get_current_user())
+		sources = sorted(sources, key=lambda source: source.title)
 		renderer.addDataList('sources', sources)
 
 		# List all their devices.
 		devices = UserDevices.get_user_devices(users.get_current_user())
+		devices = sorted(devices, key=lambda device: device.updated)
 		renderer.addDataList('devices', devices)
 
 		return renderer.render('profile/index.html')
@@ -463,6 +465,7 @@ class messages:
 
 		# List all their sources.
 		sources = UserSources.get_user_sources(users.get_current_user())
+		sources = sorted(sources, key=lambda source: source.title)
 		renderer.addData('sources', sources)
 
 		# List messages, optionally filtered by the source.
@@ -471,6 +474,9 @@ class messages:
 			messages = UserMessages.get_user_messages_for_source(source)
 		else:
 			messages = UserMessages.get_user_messages(users.get_current_user())
+
+		messages = sorted(messages, key=lambda message: message.timestamp)
+		messages.reverse()
 
 		renderer.addData('filtersource', source)
 		renderer.addData('messages', messages)
