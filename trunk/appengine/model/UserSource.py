@@ -36,7 +36,7 @@ class UserSource(db.Model):
 			'created': self.created,
 			'updated': self.updated,
 			'description': self.description,
-			'externalKey': self.externalKey,
+			'key': self.externalKey,
 			'enabled': self.enabled
 		}
 
