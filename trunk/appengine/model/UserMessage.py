@@ -95,20 +95,8 @@ class UserMessage(db.Model):
 		return True
 
 	@staticmethod
-	def deleteForSource(source):
-		messages = UserMessage.all(keys_only=True)
-		messages.filter('source = ', source)
-		db.delete(messages)
-
-	@staticmethod
-	def deleteOlderThan(date):
-		messages = UserMessage.all(keys_only=True)
-		messages.filter('timestamp <', date)
-		db.delete(messages)
-
-	@staticmethod
-	def createTest(source, ip):
-		message = UserMessage()
+	def create_test(source, ip, collection):
+		message = UserMessage(parent=collection)
 		message.owner = source.owner
 		message.source = source
 		message.message = "This is a test message."

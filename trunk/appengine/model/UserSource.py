@@ -58,8 +58,8 @@ class UserSource(db.Model):
 		ac2dm.notify_all_source_delete(self, originating_device_id)
 
 	@staticmethod
-	def database_key(owner, key):
-		return "source:%s:%s" % (owner.nickname(), key)
+	def database_key(key):
+		return "source:%s" % key
 
 	@staticmethod
 	def generate_key():
@@ -68,10 +68,10 @@ class UserSource(db.Model):
 		return digest
 
 	@staticmethod
-	def factory(collection):
+	def factory(owner):
 		raw_key = UserSource.generate_key()
-		return UserSource(key_name=UserSource.database_key(collection.owner, raw_key), parent=collection, owner=collection.owner, externalKey=raw_key)
+		return UserSource(key_name=UserSource.database_key(raw_key), owner=owner, externalKey=raw_key)
 
 	@staticmethod
-	def get_source(collection, key):
-		return UserSource.get_by_key_name(UserSource.database_key(collection.owner.nickname(), key), collection)
+	def get_source(key):
+		return UserSource.get_by_key_name(UserSource.database_key(key))

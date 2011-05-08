@@ -22,6 +22,7 @@ from model.UserDevice import UserDevice
 from model.UserMessage import UserMessage
 from model.UserDevices import UserDevices
 from model.UserSources import UserSources
+from model.UserMessages import UserMessages
 import datetime
 from lib.AC2DM import AC2DM
 
@@ -84,12 +85,10 @@ class profile:
 		login_required()
 
 		# List all their sources.
-		sources = UserSource.all()
-		sources.filter('owner = ', users.get_current_user())
-		sources.order('title')
+		sources = UserSources.get_user_sources(users.get_current_user())
+		renderer.addDataList('sources', sources)
 
-		renderer.addData('sources', sources)
-
+		# List all their devices.
 		devices = UserDevices.get_user_device_collection(users.get_current_user())
 		renderer.addDataList('devices', devices.get_devices())
 
@@ -257,7 +256,10 @@ class sources:
 			# Send a test message to the source.
 			source = self.get_source()
 
-			message = UserMessage.createTest(source, web.ctx.ip)
+			message_collection = UserMessages.get_user_message_collection(users.get_current_user())
+			message = UserMessage.create_test(source, web.ctx.ip, message_collection)
+			message_collection.add_message(message)
+			message_collection.put()
 
 			sender = AC2DM.factory()
 			sender.send_to_all(message)
@@ -266,7 +268,9 @@ class sources:
 			return renderer.render('sources/test.html')
 		elif action == 'delete':
 			source = self.get_source()
-			UserMessage.deleteForSource(source)
+			message_collection = UserMessages.get_user_message_collection(source.owner)
+			message_collection.delete_for_source(source)
+			message_collection.put()
 
 			# Notify devices that something changed.
 			# Also, if given a device, exclude that device from
@@ -326,10 +330,9 @@ class sources:
 	def get_source(self):
 		# Helper function to get the source object from the URL.
 		input = web.input(key=None)
-		source_collection = UserSources.get_user_source_collection(users.get_current_user())
 		if input.key:
 			# Load source by ID.
-			source = UserSource.get_by_key_name(UserSource.database_key(source_collection.owner, input.key), source_collection)
+			source = UserSource.get_by_key_name(UserSource.database_key(input.key))
 			if not source:
 				# It does not exist.
 				raise web.notfound()
@@ -342,7 +345,7 @@ class sources:
 			return source
 		else:
 			# New source.
-			source = UserSource.factory(source_collection)
+			source = UserSource.factory(users.get_current_user())
 			return source
 
 	def get_form(self):
@@ -379,7 +382,7 @@ class notifry:
 			return renderer.render('messages/send.html')
 
 		# Find the source matching the source key.
-		source = UserSource.find_for_key(input.source)
+		source = UserSource.get_source(input.source)
 
 		if not source:
 			# No such source.
@@ -387,13 +390,13 @@ class notifry:
 			return renderer.render('messages/send.html')
 
 		# If the source is server disabled, let the calling sysadmin know.
-		# TODO: Is this an information leak?
 		if not source.enabled:
 			renderer.addData('error', 'User has this source disabled on the server.')
 			return renderer.render('messages/send.html')
 
 		# Create the message object.
-		message = UserMessage()
+		message_collection = UserMessages.get_user_message_collection(source.owner)
+		message = UserMessage(parent=message_collection)
 		message.owner = source.owner
 		message.source = source
 		message.message = input.message
@@ -407,10 +410,12 @@ class notifry:
 
 		if not message.checksize():
 			# Too big! We've done our best, but...
-			renderer.addData('error', 'Your message is too big. The title and URL were too long and the message could not be trimmed to fit. Maximum size is nearly 1024 bytes.')
+			renderer.addData('error', 'Your message is too big. The title and URL were too long and the message could not be trimmed to fit. Maximum size is nearly 500 bytes.')
 			return renderer.render('messages/send.html')
 
 		message.put()
+		message_collection.add_message(message)
+		message_collection.put()
 
 		# Now that it's saved, send it to Google.
 		sender = AC2DM.factory()
@@ -430,19 +435,15 @@ class messages:
 		login_required()
 
 		# List all their sources.
-		sources = UserSource.all()
-		sources.filter('owner = ', users.get_current_user())
-		sources.order('title')
-
+		sources = UserSources.get_user_sources(users.get_current_user())
 		renderer.addData('sources', sources)
 
 		# List messages, optionally filtered by the source.
 		source = self.get_source()
-		messages = UserMessage.all()
-		messages.filter('owner = ', users.get_current_user())
 		if source:
-			messages.filter('source =', source)
-		messages.order('-timestamp')
+			messages = UserMessages.get_user_messages_for_source(source)
+		else:
+			messages = UserMessages.get_user_messages(users.get_current_user())
 
 		renderer.addData('filtersource', source)
 		renderer.addData('messages', messages)
@@ -451,10 +452,10 @@ class messages:
 
 	def get_source(self):
 		# Helper function to get the source object from the URL.
-		input = web.input(sid=None)
-		if input.sid:
+		input = web.input(key=None)
+		if input.key:
 			# Load source by ID.
-			source = UserSource.get_by_id(long(input.sid))
+			source = UserSource.get_by_key_name(UserSource.database_key(input.key))
 			if not source:
 				# It does not exist.
 				raise web.notfound()

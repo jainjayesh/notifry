@@ -5,15 +5,15 @@
 <p class="important_note">Please note that all times displayed are in UTC.</p>
 
 <form method="get" action="">
-	Filter by source: <select name="sid">
+	Filter by source: <select name="key">
 		<option value="">All sources</option>
 		% for source in sources:
 			<%
 			selected = ""
-			if filtersource and filtersource.key().id() == source.key().id():
+			if filtersource and filtersource.externalKey == source.externalKey:
 				selected = 'selected="selected"'
 			%>
-			<option value="${source.key().id()|h}" ${selected}>${source.title|h}</option>
+			<option value="${source.externalKey|h}" ${selected}>${source.title|h}</option>
 		% endfor
 	</select>
 	<input type="submit" value="Filter" />

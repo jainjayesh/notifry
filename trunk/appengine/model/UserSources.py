@@ -29,7 +29,7 @@ class UserSources(db.Model):
 		}
 
 		try:
-			result['id'] =  self.key().id()
+			result['key'] =  self.key().name()
 		except db.NotSavedError, ex:
 			# Not saved yet, so it has no ID.
 			pass
@@ -37,7 +37,7 @@ class UserSources(db.Model):
 		return result
 
 	def get_sources(self):
-		return UserSource.get_by_key_name(self.sources, self)
+		return UserSource.get_by_key_name(self.sources)
 
 	def add_source(self, source):
 		name = source.key().name()

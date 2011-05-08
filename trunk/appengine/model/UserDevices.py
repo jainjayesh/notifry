@@ -29,7 +29,7 @@ class UserDevices(db.Model):
 		}
 
 		try:
-			result['id'] =  self.key().id()
+			result['key'] =  self.key().name()
 		except db.NotSavedError, ex:
 			# Not saved yet, so it has no ID.
 			pass
