@@ -16,55 +16,49 @@
 
 from google.appengine.ext import db
 from model.UserSource import UserSource
+from model.UserSources import UserSources
 
-class UserSources(db.Model):
-	sources = db.ListProperty(int)
+class SourcePointer(db.Model):
 	owner = db.UserProperty()
+	sourceId = db.IntegerProperty()
+	externalKey = db.StringProperty()
 
 	def dict(self):
 		result = {
-			'type' : 'sources',
+			'type' : 'pointer',
 			'owner': self.owner,
-			'sources': self.get_sources()
+			'sourceId': self.sourceId,
+			'externalKey': self.externalKey
 		}
 
 		try:
 			result['key'] =  self.key().name()
 		except db.NotSavedError, ex:
-			# Not saved yet, so it has no ID.
+			# Not saved yet, so it has no name.
 			pass
 
 		return result
 
-	def get_sources(self):
-		return UserSource.get_by_id(self.sources, self)
+	@staticmethod
+	def persist(source):
+		return SourcePointer.get_or_insert(source.externalKey, owner = source.owner, sourceId = source.key().id(), externalKey = source.externalKey)
 
-	def add_source(self, source):
-		id = source.key().id()
-		if self.sources:
-			if not id in self.sources:
-				self.sources.append(id)
+	@staticmethod
+	def remove(source):
+		pointer = SourcePointer.get_pointer(source.externalKey)
+		if pointer:
+			pointer.delete()
+
+	@staticmethod
+	def get_pointer(key):
+		return SourcePointer.get_by_key_name(key)
+
+	@staticmethod
+	def get_source(key):
+		pointer = SourcePointer.get_pointer(key)
+		if pointer:
+			source_collection = UserSources.get_user_source_collection(pointer.owner)
+			source = UserSource.get_by_id(pointer.sourceId, source_collection)
+			return source
 		else:
-			self.sources = []
-			self.sources.append(id)
-
-	def remove_source(self, source):
-		if self.sources:
-			try:
-				self.sources.remove(source.key().id())
-			except ValueError, ex:
-				# We don't have that source in the list.
-				pass
-
-	@staticmethod
-	def key_for(owner):
-		return "sources:%s" % owner.nickname()
-
-	@staticmethod
-	def get_user_source_collection(owner):
-		return UserSources.get_or_insert(UserSources.key_for(owner), owner=owner)
-
-	@staticmethod
-	def get_user_sources(owner):
-		collection = UserSources.get_user_source_collection(owner)
-		return collection.get_sources()
+			return None

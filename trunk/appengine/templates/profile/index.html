@@ -15,7 +15,7 @@
 	<tbody>
 		% for i, source in enumerate(sources):
 			<tr class="${i%2 and 'odd' or 'even'}">
-				<td><a href="/sources/edit?key=${source.externalKey}">${source.title|h}</a></td>
+				<td><a href="/sources/edit?id=${source.key().id()}">${source.title|h}</a></td>
 				<td>
 					% if source.enabled:
 						<span class="enabled">Enabled</span>
@@ -24,9 +24,9 @@
 					% endif
 				</td>
 				<td><span class="source_key">${source.externalKey|h}</span></td>
-				<td><a href="/messages/?key=${source.externalKey}">Messages</a></td>
-				<td><a href="/sources/test?key=${source.externalKey}">Test</a></td>
-				<td><a href="/sources/delete?key=${source.externalKey}">Delete</a></td>
+				<td><a href="/messages/?sid=${source.key().id()}">Messages</a></td>
+				<td><a href="/sources/test?id=${source.key().id()}">Test</a></td>
+				<td><a href="/sources/delete?id=${source.key().id()}">Delete</a></td>
 			</tr>
 		% endfor
 	</tbody>

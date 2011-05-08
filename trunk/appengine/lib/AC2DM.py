@@ -70,8 +70,7 @@ class AC2DM:
 		params['delay_until_idle'] = 0
 
 		params['data.type'] = "sourcechange"
-		params['data.id'] = str(source.legacyId)
-		params['data.key'] = source.externalKey
+		params['data.id'] = source.key().id()
 		params['data.device_id'] = str(device.key().id())
 
 		result = self.send_to_google(params)
@@ -156,8 +155,7 @@ class AC2DM:
 
 		params['data.type'] = "message";
 		params['data.server_id'] = message.key().id()
-		params['data.source_id'] = str(source.legacyId)
-		params['data.source_key'] = source.externalKey
+		params['data.source_id'] = source.key().id()
 		params['data.device_id'] = device.key().id()
 		params['data.title'] = self.encode(message.title)
 		params['data.message'] = self.encode(message.message)

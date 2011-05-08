@@ -16,17 +16,20 @@
 
 import datetime
 from model.UserMessages import UserMessages
+from google.appengine.ext import db
 
 # The deferred function to actually delete messages per collection.
 def delete_messages_for_collection(collection_key):
 	# Load the collection.
 	older_than = datetime.datetime.now() - datetime.timedelta(1)
 	collection = UserMessages.get(collection_key)
-	# For each message, check the timestamp.
-	for message in collection.get_messages():
-		if message:
-			# And delete if older than the given timestamp.
-			if message.timestamp < older_than:
-				collection.remove_message(message)
-				message.delete()
-		collection.put()
+	def transaction(check_collection):
+		# For each message, check the timestamp.
+		for message in check_collection.get_messages():
+			if message:
+				# And delete if older than the given timestamp.
+				if message.timestamp < older_than:
+					check_collection.remove_message(message)
+					message.delete()
+			check_collection.put()
+	db.run_in_transaction(transaction, collection)

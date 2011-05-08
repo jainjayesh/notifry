@@ -23,8 +23,10 @@ from model.UserMessage import UserMessage
 from model.UserDevices import UserDevices
 from model.UserSources import UserSources
 from model.UserMessages import UserMessages
+from model.SourcePointer import SourcePointer
 import datetime
 from lib.AC2DM import AC2DM
+from google.appengine.ext import db
 
 urls = (
 	'/', 'index',
@@ -89,8 +91,8 @@ class profile:
 		renderer.addDataList('sources', sources)
 
 		# List all their devices.
-		devices = UserDevices.get_user_device_collection(users.get_current_user())
-		renderer.addDataList('devices', devices.get_devices())
+		devices = UserDevices.get_user_devices(users.get_current_user())
+		renderer.addDataList('devices', devices)
 
 		return renderer.render('profile/index.html')
 
@@ -111,8 +113,7 @@ class devices:
 			return renderer.render('device/delete.html')
 		else:
 			# List devices.
-			devices = UserDevices.get_user_device_collection(users.get_current_user())
-			renderer.addDataList('devices', devices.get_devices())
+			renderer.addDataList('devices', devices.get_user_devices(users.get_current_user()))
 			return renderer.render('apionly.html')
 
 	def POST(self, action):
@@ -128,18 +129,22 @@ class devices:
 
 			# Now delete it.
 			devices = UserDevices.get_user_device_collection(users.get_current_user())
-			devices.remove_device(device)
-			device.delete()
-			devices.put()
+			def transaction(devices, device):
+				devices.remove_device(device)
+				device.delete()
+				devices.put()
+			db.run_in_transaction(transaction, devices, device)
 	
 			renderer.addData('success', True)
 			return renderer.render('device/deletecomplete.html')
 		elif action == 'deregister':
 			device = self.get_device()
 			devices = UserDevices.get_user_device_collection(users.get_current_user())
-			devices.remove_device(device)
-			device.delete()
-			devices.put()
+			def transaction(devices, device):
+				devices.remove_device(device)
+				device.delete()
+				devices.put()
+			db.run_in_transaction(transaction, devices, device)
 			renderer.addData('success', True)
 			return renderer.render('apionly.html')
 		elif action == 'register':
@@ -181,10 +186,11 @@ class devices:
 			device.deviceVersion = input.deviceversion
 			device.deviceNickname = input.nickname
 
-			device.put()
-
-			devices.add_device(device)
-			devices.put()
+			def transaction(devices, device):
+				device.put()
+				devices.add_device(device)
+				devices.put()
+			db.run_in_transaction(transaction, devices, device)
 			
 			renderer.addData('device', device)
 			return renderer.render('apionly.html')
@@ -256,10 +262,16 @@ class sources:
 			# Send a test message to the source.
 			source = self.get_source()
 
+			# Fix up the source pointer. Useful if it's broken somehow.
+			SourcePointer.persist(source)
+
+			# Now create the test message.
 			message_collection = UserMessages.get_user_message_collection(users.get_current_user())
 			message = UserMessage.create_test(source, web.ctx.ip, message_collection)
-			message_collection.add_message(message)
-			message_collection.put()
+			def transaction(message_collection, message):
+				message_collection.add_message(message)
+				message_collection.put()
+			db.run_in_transaction(transaction, message_collection, message)
 
 			sender = AC2DM.factory()
 			sender.send_to_all(message)
@@ -270,7 +282,6 @@ class sources:
 			source = self.get_source()
 			message_collection = UserMessages.get_user_message_collection(source.owner)
 			message_collection.delete_for_source(source)
-			message_collection.put()
 
 			# Notify devices that something changed.
 			# Also, if given a device, exclude that device from
@@ -278,9 +289,16 @@ class sources:
 			input = web.input(device = None)
 			source.notify_delete(input.device)
 			source_collection = UserSources.get_user_source_collection(users.get_current_user())
-			source_collection.remove_source(source)
-			source_collection.put()
-			source.delete()
+			def transaction(source_collection, source):
+				source_collection.remove_source(source)
+				source.delete()
+				source_collection.put()
+			db.run_in_transaction(transaction, source_collection, source)
+
+			# Remove the pointer. If this fails, it's not a big issue, as it's
+			# checked anyway before use.
+			SourcePointer.remove(source)
+
 			renderer.addData('success', True)
 			return renderer.render('sources/deletecomplete.html')
 		else:
@@ -306,12 +324,17 @@ class sources:
 				source.owner = users.get_current_user()
 				if form.enabled.get_value():
 					source.enabled = True
-				source.put()
-
+				
 				# Place into source collection.
 				source_collection = UserSources.get_user_source_collection(users.get_current_user())
-				source_collection.add_source(source)
-				source_collection.put()
+				def transaction(source_collection, source):
+					source.put()
+					source_collection.add_source(source)
+					source_collection.put()
+				db.run_in_transaction(transaction, source_collection, source)
+
+				# Set up the source pointer.
+				SourcePointer.persist(source)
 
 				# Notify devices that something changed.
 				# Also, if given a device, exclude that device from
@@ -329,10 +352,11 @@ class sources:
 
 	def get_source(self):
 		# Helper function to get the source object from the URL.
-		input = web.input(key=None)
-		if input.key:
+		input = web.input(id=None)
+		collection = UserSources.get_user_source_collection(users.get_current_user())
+		if input.id:
 			# Load source by ID.
-			source = UserSource.get_by_key_name(UserSource.database_key(input.key))
+			source = UserSource.get_by_id(long(input.id), collection)
 			if not source:
 				# It does not exist.
 				raise web.notfound()
@@ -345,13 +369,13 @@ class sources:
 			return source
 		else:
 			# New source.
-			source = UserSource.factory(users.get_current_user())
+			source = UserSource.factory(collection)
 			return source
 
 	def get_form(self):
 		# Source editor form.
 		source_editor_form = web.form.Form(
-			web.form.Hidden('key'),
+			web.form.Hidden('id'),
 			web.form.Textbox('title', web.form.notnull, description = 'Title:'),
 			#web.form.Textarea('description', description = 'Description:'),
 			web.form.Checkbox('enabled', description = 'Enabled:'),
@@ -382,7 +406,7 @@ class notifry:
 			return renderer.render('messages/send.html')
 
 		# Find the source matching the source key.
-		source = UserSource.get_source(input.source)
+		source = SourcePointer.get_source(input.source)
 
 		if not source:
 			# No such source.
@@ -413,9 +437,12 @@ class notifry:
 			renderer.addData('error', 'Your message is too big. The title and URL were too long and the message could not be trimmed to fit. Maximum size is nearly 500 bytes.')
 			return renderer.render('messages/send.html')
 
-		message.put()
-		message_collection.add_message(message)
-		message_collection.put()
+		def transaction(message, message_collection):
+			message.put()
+			message_collection.add_message(message)
+			message_collection.put()
+
+		db.run_in_transaction(transaction, message, message_collection)
 
 		# Now that it's saved, send it to Google.
 		sender = AC2DM.factory()
@@ -452,10 +479,11 @@ class messages:
 
 	def get_source(self):
 		# Helper function to get the source object from the URL.
-		input = web.input(key=None)
-		if input.key:
+		input = web.input(sid=None)
+		if input.sid:
 			# Load source by ID.
-			source = UserSource.get_by_key_name(UserSource.database_key(input.key))
+			source_collection = UserSources.get_user_source_collection(users.get_current_user())
+			source = UserSource.get_by_id(long(input.sid), source_collection)
 			if not source:
 				# It does not exist.
 				raise web.notfound()

@@ -37,12 +37,15 @@ class UserSource(db.Model):
 			'created': self.created,
 			'updated': self.updated,
 			'description': self.description,
-			'enabled': self.enabled,
-			'legacyId': self.legacyId
+			'externalKey': self.externalKey,
+			'enabled': self.enabled
 		}
 
-		if self.is_saved():
-			result['key'] =  self.externalKey
+		try:
+			result['id'] =  self.key().id()
+		except db.NotSavedError, ex:
+			# Not saved yet, so it has no ID.
+			pass
 
 		return result
 
@@ -58,20 +61,12 @@ class UserSource(db.Model):
 		ac2dm.notify_all_source_delete(self, originating_device_id)
 
 	@staticmethod
-	def database_key(key):
-		return "source:%s" % key
-
-	@staticmethod
 	def generate_key():
 		random_key = str(str(datetime.datetime.now()) + str(random.random()) + str(random.random())) + "salt for good measure and a healthy heart"
 		digest = hashlib.md5(random_key).hexdigest()
 		return digest
 
 	@staticmethod
-	def factory(owner):
+	def factory(collection):
 		raw_key = UserSource.generate_key()
-		return UserSource(key_name=UserSource.database_key(raw_key), owner=owner, externalKey=raw_key)
-
-	@staticmethod
-	def get_source(key):
-		return UserSource.get_by_key_name(UserSource.database_key(key))
+		return UserSource(parent=collection, owner=collection.owner, externalKey=raw_key)

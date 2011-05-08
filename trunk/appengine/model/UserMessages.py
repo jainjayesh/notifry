@@ -65,9 +65,12 @@ class UserMessages(db.Model):
 
 	def delete_for_source(self, source):
 		messages = self.get_messages_for_source(source)
-		db.delete(messages)
-		for message in messages:
-			self.remove_message(message)
+		def transaction(collection, messages):
+			db.delete(messages)
+			for message in messages:
+				collection.remove_message(message)
+			collection.put()
+		db.run_in_transaction(transaction, self, messages)
 
 	@staticmethod
 	def key_for(owner):
