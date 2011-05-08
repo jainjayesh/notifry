@@ -20,6 +20,8 @@ from lib.Renderer import Renderer
 from model.UserSource import UserSource
 from model.UserDevice import UserDevice
 from model.UserMessage import UserMessage
+from model.UserDevices import UserDevices
+from model.UserSources import UserSources
 import datetime
 from lib.AC2DM import AC2DM
 
@@ -88,12 +90,8 @@ class profile:
 
 		renderer.addData('sources', sources)
 
-		# List all their devices.
-		devices = UserDevice.all()
-		devices.filter('owner = ', users.get_current_user())
-		devices.order('-updated')
-
-		renderer.addData('devices', devices)
+		devices = UserDevices.get_user_device_collection(users.get_current_user())
+		renderer.addDataList('devices', devices.get_devices())
 
 		return renderer.render('profile/index.html')
 
@@ -114,7 +112,8 @@ class devices:
 			return renderer.render('device/delete.html')
 		else:
 			# List devices.
-			renderer.addDataList('devices', UserDevice.devices_for(users.get_current_user()))
+			devices = UserDevices.get_user_device_collection(users.get_current_user())
+			renderer.addDataList('devices', devices.get_devices())
 			return renderer.render('apionly.html')
 
 	def POST(self, action):
@@ -129,12 +128,19 @@ class devices:
 			ac2dm.notify_device_delete(device)
 
 			# Now delete it.
+			devices = UserDevices.get_user_device_collection(users.get_current_user())
+			devices.remove_device(device)
 			device.delete()
+			devices.put()
+	
 			renderer.addData('success', True)
 			return renderer.render('device/deletecomplete.html')
 		elif action == 'deregister':
 			device = self.get_device()
+			devices = UserDevices.get_user_device_collection(users.get_current_user())
+			devices.remove_device(device)
 			device.delete()
+			devices.put()
 			renderer.addData('success', True)
 			return renderer.render('apionly.html')
 		elif action == 'register':
@@ -154,6 +160,9 @@ class devices:
 				renderer.addData('error', 'Only Android devices are supported at the moment, sorry.')
 				return renderer.render('apionly.html')
 
+			# Get the users's device collection.
+			devices = UserDevices.get_user_device_collection(users.get_current_user())
+
 			# If ID supplied, find and update that ID.
 			device = self.get_device()
 
@@ -161,11 +170,10 @@ class devices:
 			# attached to another record (with the same owner!)
 			if not device.dict().has_key('id'):
 				# Attempt to find another device with the same key.
-				same_key = UserDevice.device_by_key(users.get_current_user(), input.devicekey, input.devicetype)
-
-				# If found, use that instead.
-				if same_key:
-					device = same_key
+				for existingDevice in devices.get_devices():
+					if existingDevice.deviceKey == input.devicekey:
+						# Found one - update that object instead.
+						device = existingDevice
 
 			device.updated = datetime.datetime.now()
 			device.owner = users.get_current_user()
@@ -175,6 +183,10 @@ class devices:
 			device.deviceNickname = input.nickname
 
 			device.put()
+
+			devices.add_device(device)
+			devices.put()
+			
 			renderer.addData('device', device)
 			return renderer.render('apionly.html')
 
@@ -182,10 +194,11 @@ class devices:
 		# If ID supplied, find and update that ID.
 		input = web.input(id = None)
 
-		device = UserDevice()
+		devices = UserDevices.get_user_device_collection(users.get_current_user())
+		device = UserDevice(parent=devices)
 		if input.id and long(input.id) > 0:
 			# Load device from ID.
-			device = UserDevice.get_by_id(long(input.id))
+			device = UserDevice.get_by_id(long(input.id), devices)
 
 			if not device:
 				# Invalid ID. 404.
@@ -227,19 +240,13 @@ class sources:
 		else:
 			# List. Not fully supported - see the profile instead.
 			# Although - handy for API's.
-			sources = UserSource.all()
-			sources.filter('owner = ', users.get_current_user())
-			sources.order('title')
-
+			sources = UserSources.get_user_sources(users.get_current_user())
 			renderer.addDataList('sources', sources)
 			return renderer.render('sources/list.html')
 
 	def POST(self, action):
 		if action == 'list':
-			sources = UserSource.all()
-			sources.filter('owner = ', users.get_current_user())
-			sources.order('title')
-
+			sources = UserSources.get_user_sources(users.get_current_user())
 			renderer.addDataList('sources', sources)
 			return renderer.render('sources/list.html')
 		elif action == 'get':
@@ -266,7 +273,9 @@ class sources:
 			# the notification.
 			input = web.input(device = None)
 			source.notify_delete(input.device)
-
+			source_collection = UserSources.get_user_source_collection(users.get_current_user())
+			source_collection.remove_source(source)
+			source_collection.put()
 			source.delete()
 			renderer.addData('success', True)
 			return renderer.render('sources/deletecomplete.html')
@@ -295,6 +304,11 @@ class sources:
 					source.enabled = True
 				source.put()
 
+				# Place into source collection.
+				source_collection = UserSources.get_user_source_collection(users.get_current_user())
+				source_collection.add_source(source)
+				source_collection.put()
+
 				# Notify devices that something changed.
 				# Also, if given a device, exclude that device from
 				# the notification.
@@ -311,10 +325,11 @@ class sources:
 
 	def get_source(self):
 		# Helper function to get the source object from the URL.
-		input = web.input(id=None)
-		if input.id:
+		input = web.input(key=None)
+		source_collection = UserSources.get_user_source_collection(users.get_current_user())
+		if input.key:
 			# Load source by ID.
-			source = UserSource.get_by_id(long(input.id))
+			source = UserSource.get_by_key_name(UserSource.database_key(source_collection.owner, input.key), source_collection)
 			if not source:
 				# It does not exist.
 				raise web.notfound()
@@ -327,14 +342,13 @@ class sources:
 			return source
 		else:
 			# New source.
-			source = UserSource()
-			source.new_object()
+			source = UserSource.factory(source_collection)
 			return source
 
 	def get_form(self):
 		# Source editor form.
 		source_editor_form = web.form.Form(
-			web.form.Hidden('id'),
+			web.form.Hidden('key'),
 			web.form.Textbox('title', web.form.notnull, description = 'Title:'),
 			#web.form.Textarea('description', description = 'Description:'),
 			web.form.Checkbox('enabled', description = 'Enabled:'),

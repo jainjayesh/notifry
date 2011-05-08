@@ -6,9 +6,9 @@
 <ul>
 	% for source in sources:
 		<li>
-			<a href="/sources/edit?id=${source.key().id()}">${source.title|h}</a>
+			<a href="/sources/edit?key=${source.key().name()}">${source.title|h}</a>
 			| key ${source.externalKey}
-			| <a href="/sources/test?id=${source.key().id()}">Test</a>
+			| <a href="/sources/test?key=${source.key().name()}">Test</a>
 		</li>
 	% endfor
 </ul>

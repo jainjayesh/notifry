@@ -28,14 +28,7 @@ class UserSource(db.Model):
 	description = db.StringProperty(multiline=True)
 	externalKey = db.StringProperty()
 	enabled = db.BooleanProperty()
-
-	def new_object(self):
-		self.generate_key()
-
-	def generate_key(self):
-		random_key = str(random.random()) + str(datetime.datetime.now()) + str(random.random()) + "salt for good measure and a healthy heart"
-		digest = hashlib.md5(random_key).hexdigest()
-		self.externalKey = digest
+	legacyId = db.IntegerProperty()
 
 	def dict(self):
 		result = {
@@ -45,14 +38,11 @@ class UserSource(db.Model):
 			'updated': self.updated,
 			'description': self.description,
 			'enabled': self.enabled,
-			'key': self.externalKey
+			'legacyId': self.legacyId
 		}
 
-		try:
-			result['id'] =  self.key().id()
-		except db.NotSavedError, ex:
-			# Not saved yet, so it has no ID.
-			pass
+		if self.is_saved():
+			result['key'] =  self.externalKey
 
 		return result
 
@@ -68,11 +58,20 @@ class UserSource(db.Model):
 		ac2dm.notify_all_source_delete(self, originating_device_id)
 
 	@staticmethod
-	def find_for_key(key):
-		query = UserSource.all()
-		query.filter('externalKey =', key)
+	def database_key(owner, key):
+		return "source:%s:%s" % (owner.nickname(), key)
 
-		if query.count(5) > 0:
-			return query[0]
-		else:
-			return None
+	@staticmethod
+	def generate_key():
+		random_key = str(str(datetime.datetime.now()) + str(random.random()) + str(random.random())) + "salt for good measure and a healthy heart"
+		digest = hashlib.md5(random_key).hexdigest()
+		return digest
+
+	@staticmethod
+	def factory(collection):
+		raw_key = UserSource.generate_key()
+		return UserSource(key_name=UserSource.database_key(collection.owner, raw_key), parent=collection, owner=collection.owner, externalKey=raw_key)
+
+	@staticmethod
+	def get_source(collection, key):
+		return UserSource.get_by_key_name(UserSource.database_key(collection.owner.nickname(), key), collection)

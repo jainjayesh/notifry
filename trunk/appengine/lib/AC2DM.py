@@ -19,7 +19,7 @@ import datetime
 import logging
 import urllib
 import base64
-from model.UserDevice import UserDevice
+from model.UserDevices import UserDevices
 from model.AC2DMAuthToken import AC2DMAuthToken
 from google.appengine.api.urlfetch import fetch
 from google.appengine.api import mail
@@ -55,7 +55,7 @@ class AC2DM:
 		return result
 
 	def notify_all_source_change(self, source, originating_device_id):
-		devices = UserDevice.devices_for(source.owner)
+		devices = UserDevices.get_user_devices(source.owner)
 		for device in devices:
 			# Skip the device if that was the device that originated the request.
 			if device.key().id() == originating_device_id:
@@ -84,7 +84,7 @@ class AC2DM:
 			return False
 
 	def notify_all_source_delete(self, source, originating_device_id):
-		devices = UserDevice.devices_for(source.owner)
+		devices = UserDevices.get_user_devices(source.owner)
 		for device in devices:
 			# Skip the device if that was the device that originated the request.
 			if device.key().id() == originating_device_id:
@@ -134,7 +134,7 @@ class AC2DM:
 			return False
 
 	def send_to_all(self, message):
-		devices = UserDevice.devices_for(message.source.owner)
+		devices = UserDevices.get_user_devices(message.owner)
 
 		for device in devices:
 			self.send(message, device)
