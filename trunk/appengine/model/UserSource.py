@@ -28,7 +28,6 @@ class UserSource(db.Model):
 	description = db.StringProperty(multiline=True)
 	externalKey = db.StringProperty()
 	enabled = db.BooleanProperty()
-	legacyId = db.IntegerProperty()
 
 	def dict(self):
 		result = {
