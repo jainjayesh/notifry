@@ -109,8 +109,13 @@ public class C2DMReceiver extends C2DMBaseReceiver
 			// a source has been deleted. Make a note of it.
 			Long serverAccountId = Long.parseLong(extras.getString("device_id"));
 			NotifryAccount account = NotifryAccount.FACTORY.getByServerId(context, serverAccountId);
-			account.setRequiresSync(true);
-			account.save(context);
+			
+			// Assuming it was found...
+			if( account != null )
+			{
+				account.setRequiresSync(true);
+				account.save(context);
+			}
 			
 			Log.d(TAG, "Server just asked us to refresh sources list - usually due to deletion.");
 		}

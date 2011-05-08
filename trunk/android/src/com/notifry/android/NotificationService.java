@@ -82,7 +82,6 @@ public class NotificationService extends Service
 		
 		// Generate the intent to go to that message list.
 		Intent notificationIntent = new Intent(this, MessageList.class);
-		notificationIntent.putExtra("sourceId", source.getId());
 		PendingIntent contentIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0);		
 
 		// Set the notification data.
