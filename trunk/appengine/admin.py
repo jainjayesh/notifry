@@ -20,14 +20,20 @@ from lib.Renderer import Renderer
 from lib.AC2DM import AC2DM
 from model.AC2DMAuthToken import AC2DMAuthToken
 from model.AC2DMAuthToken import AC2DMTokenException
-from model.GeneralCounterShard import GeneralCounterShard
+from model.UserDevice import UserDevice
+from model.UserSource import UserSource
+from model.UserMessage import UserMessage
+from model.UserDevices import UserDevices
+from model.UserSources import UserSources
+from model.UserMessages import UserMessages
 import datetime
 
 urls = (
 	'/admin/', 'index',
 	'/admin/token/(.*)', 'token',
 	'/admin/createtoken/', 'createtoken',
-	'/admin/stats/(.*)', 'stats'
+	'/admin/stats/(.*)', 'stats',
+	'/admin/migrate', 'migrate'
 )
 
 # Create the renderer and the initial context.
@@ -178,6 +184,47 @@ class createtoken:
 			web.form.Button('Login')
 		)
 		return login_form()
+
+class migrate:
+	def GET(self):
+		# Migrate the old version to the new version. This is heavy,
+		# but only a handful of users need this.
+		# PHASE 1: Put devices into collections.
+		device_collections_user = {}
+		for device in UserDevice.all():
+			collection_key = device.owner.nickname()
+			if not device_collections_user.has_key(collection_key):
+				device_collections_user[collection_key] = UserDevices.get_user_device_collection(device.owner)
+			device_collections_user[collection_key].add_device(device)
+
+		for key, collection in device_collections_user:
+			collection.put()
+
+		# PHASE 2: Put messages into collections.
+		message_collections_user = {}
+		for message in UserMessage.all():
+			collection_key = message.owner.nickname()
+			if not message_collections_user.has_key(collection_key):
+				message_collections_user[collection_key] = UserMessages.get_user_message_collection(message.owner)
+			message_collections_user[collection_key].add_message(message)
+
+		for key, collection in message_collections_user:
+			collection.put()
+
+		# PHASE 3: Put sources into collections. Also create pointers as we go.
+		source_collections_user = {}
+		for source in UserSource.all():
+			collection_key = source.owner.nickname()
+			if not source_collections_user.has_key(collection_key):
+				source_collections_user[collection_key] = UserSources.get_user_source_collection(source.owner)
+			source_collections_user[collection_key].add_source(source)
+			SourcePointer.persist(source)
+
+		for key, collection in source_collections_user:
+			collection.put()
+
+		# And complete.
+		return renderer.render('apionly.html')
 
 # Initialise and run the application.
 app = web.application(urls, globals())
