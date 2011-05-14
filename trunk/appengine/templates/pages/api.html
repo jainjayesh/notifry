@@ -88,7 +88,7 @@ define contact{
 	<tr class="even">
 		<td>source</td>
 		<td>32 character hash string</td>
-		<td>The source key, given to you by the user. They generate it when they create a source.</td>
+		<td>The source key, given to you by the user. They generate it when they create a source. You can supply up to 10 sources at a time separated by a comma, or a single source.</td>
 		<td>Required</td>
 	</tr>
 	<tr class="odd">
@@ -100,8 +100,8 @@ define contact{
 	<tr class="even">
 		<td>message</td>
 		<td>string</td>
-		<td>The body of the message. This can contain a lot more detail of the message.</td>
-		<td>Required</td>
+		<td>The body of the message. This can contain a lot more detail of the message. This is optional, and will be sent as an empty string if not provided.</td>
+		<td>Optional</td>
 	</tr>
 	<tr class="odd">
 		<td>url</td>
@@ -117,10 +117,28 @@ define contact{
 
 <pre class="code">https://notifrier.appspot.com/notifry</pre>
 
-<p>On success, the response will look like this:</p>
+<p>If sending to a single source (or multiple sources without error), upon success, the response will look like as below:</p>
 
-<pre class="code">{"success": true, "size": 68, "truncated": false}</pre>
+<pre class="code">{
+	"messages": 1,
+	"size": 68,
+	"truncated": false
+}</pre>
 
-<p>On failure, the error message is returned.</p>
+<p>If sending to multiple sources which causes some errors, the response will look like as below.
+The error field indicates which sources failed and why. You can compare the number of sources
+you sent with the messages field to see if all messages were sent.</p>
 
-<pre class="code">{"error": "Error message describing why it failed."}</pre>
+<pre class="code">{
+	"size": 41
+	"error": "46e38849bc5925945e0ae30d50bf2ea2: No source matches this key",
+	"messages": 1,
+	"truncated": false,
+}</pre>
+
+<p>On complete failure, the error message is returned. The hash matches your incoming source key.</p>
+
+<pre class="code">{
+	"messages": 0,
+	"error": "46e38849bc5925945e0ae30d50bf2ea2: Error message describing why it failed."
+}</pre>

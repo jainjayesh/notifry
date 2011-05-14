@@ -4,6 +4,9 @@
 
 % if error:
 	<p>${error}</p>
+	% if messages > 0:
+		<p>Additionally, ${messages} sent successfully with size ${size}.</p>
+	% endif
 % else:
-	<p>Send successfully. Message size is ${size}.</p>
+	<p>Sent successfully. Sent ${messages} with size ${size}.</p>
 % endif

@@ -20,6 +20,7 @@ from lib.Renderer import Renderer
 from model.UserSource import UserSource
 from model.UserDevice import UserDevice
 from model.UserMessage import UserMessage
+from model.UserMessage import ExceptionUserMessage
 from model.UserDevices import UserDevices
 from model.UserSources import UserSources
 from model.UserMessages import UserMessages
@@ -411,61 +412,51 @@ class notifry:
 		# The defaults are provided below.
 		input = web.input(source = None, message = None, title = None, url = None)
 
+		renderer.addData('messages', 0)
+
 		# We must have the following keys passed,
 		# otherwise this is an invalid request.
-		if not input.source or not input.message or not input.title:
+		if not input.source or not input.title:
 			# Fail with an error.
-			renderer.addData('error', 'Missing required parameters - need at least source, message, and title.')
+			renderer.addData('error', 'Missing required parameters - need at least source and title.')
 			return renderer.render('messages/send.html')
 
-		# Find the source matching the source key.
-		source = SourcePointer.get_source(input.source)
+		source_keys = input.source.split(",")
+		messages = []
+		errors = []
 
-		if not source:
-			# No such source.
-			renderer.addData('error', 'No source matches the key ' + str(input.source))
-			return renderer.render('messages/send.html')
+		if len(source_keys) > 10:
+			renderer.addData('error', 'You can not send to more than 10 sources at a time.')
 
-		# If the source is server disabled, let the calling sysadmin know.
-		if not source.enabled:
-			renderer.addData('error', 'User has this source disabled on the server.')
-			return renderer.render('messages/send.html')
+		# Try to make a message for each.
+		for key in source_keys:
+			try:
+				messages.append(UserMessage.from_web(key.strip(), input, web.ctx.ip, UserMessages))
+			except ExceptionUserMessage, ex:
+				errors.append(ex.args[0])
 
-		# Create the message object.
-		message_collection = UserMessages.get_user_message_collection(source.owner)
-		message = UserMessage(parent=message_collection)
-		message.owner = source.owner
-		message.source = source
-		message.message = input.message
-		message.title = input.title
-		if input.url:
-			message.url = input.url
-		message.timestamp = datetime.datetime.now()
-		message.deliveredToGoogle = False
-		message.lastDeliveryAttempt = None
-		message.sourceIp = web.ctx.ip
+		if len(errors) > 0:
+			renderer.addData('error', ", ".join(errors))
 
-		if not message.checksize():
-			# Too big! We've done our best, but...
-			renderer.addData('error', 'Your message is too big. The title and URL were too long and the message could not be trimmed to fit. Maximum size is nearly 500 bytes.')
-			return renderer.render('messages/send.html')
+		if len(messages) > 0:
+			# Get the AC2DM sender.
+			sender = AC2DM.factory()
 
-		def transaction(message):
-			message_collection = UserMessages.get_user_message_collection_static(source.owner)
-			message.put()
-			message_collection.add_message(message)
-			message_collection.put()
-		db.run_in_transaction(transaction, message)
+			# At least something went through.
+			for message in messages:
+				def transaction(message):
+					message_collection = UserMessages.get_user_message_collection_static(message.source.owner)
+					message.put()
+					message_collection.add_message(message)
+					message_collection.put()
+				db.run_in_transaction(transaction, message)
 
-		# Now that it's saved, send it to Google.
-		sender = AC2DM.factory()
-		sender.send_to_all(message)
+				sender.send_to_all(message)
 
-		# Don't return the message - that would leak client information.
-		renderer.addData('success', True)
-		renderer.addData('size', message.getsize())
-		renderer.addData('truncated', message.wasTruncated)
-		renderer.addTemplate('error', None)
+				renderer.addData('size', message.getsize())
+				renderer.addData('truncated', message.wasTruncated)
+
+		renderer.addData('messages', len(messages))
 		return renderer.render('messages/send.html')
 
 # Messages - list of messages in the system.

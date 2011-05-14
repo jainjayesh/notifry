@@ -16,10 +16,14 @@
 
 from google.appengine.ext import db
 from model.UserSource import UserSource
+from model.SourcePointer import SourcePointer
 import datetime
 import hashlib
 
 SIZE_LIMIT = 512
+
+class ExceptionUserMessage(Exception):
+	pass
 
 class UserMessage(db.Model):
 	owner = db.UserProperty()
@@ -106,5 +110,40 @@ class UserMessage(db.Model):
 		message.lastDeliveryAttempt = None
 		message.sourceIp = ip
 		message.wasTruncated = False
+
+		return message
+
+	@staticmethod
+	def from_web(source_key, input, ip, UserMessages):
+		# Find the source matching the source key.
+		source = SourcePointer.get_source(source_key)
+
+		if not source:
+			raise ExceptionUserMessage(source_key + ': No source matches this key')
+
+		# If the source is server disabled, let the calling sysadmin know.
+		if not source.enabled:
+			raise ExceptionUserMessage(source_key + ': User has this source disabled on the server')
+
+		# Create the message object.
+		message_collection = UserMessages.get_user_message_collection(source.owner)
+		message = UserMessage(parent=message_collection)
+		message.owner = source.owner
+		message.source = source
+		if input.message:
+			message.message = input.message
+		else:
+			message.message = ''
+		message.title = input.title
+		if input.url:
+			message.url = input.url
+		message.timestamp = datetime.datetime.now()
+		message.deliveredToGoogle = False
+		message.lastDeliveryAttempt = None
+		message.sourceIp = ip
+
+		if not message.checksize():
+			# Too big! We've done our best, but...
+			raise ExceptionUserMessage(source_key + ': Your message is too big. The title and URL were too long and the message could not be trimmed to fit. Maximum size is nearly 500 bytes')
 
 		return message
