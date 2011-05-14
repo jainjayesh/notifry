@@ -81,6 +81,10 @@ class UserMessages(db.Model):
 		return UserMessages.get_or_insert(UserMessages.key_for(owner), owner = owner)
 
 	@staticmethod
+	def get_user_message_collection_static(owner):
+		return UserMessages.get_by_key_name(UserMessages.key_for(owner))
+
+	@staticmethod
 	def get_user_messages(owner):
 		collection = UserMessages.get_user_message_collection(owner)
 		return collection.get_messages()

@@ -129,24 +129,28 @@ class devices:
 			ac2dm = AC2DM.factory()
 			ac2dm.notify_device_delete(device)
 
-			# Now delete it.
 			devices = UserDevices.get_user_device_collection(users.get_current_user())
-			def transaction(devices, device):
+
+			# Now delete it.
+			def transaction(device):
+				devices = UserDevices.get_user_device_collection_static(users.get_current_user())
 				devices.remove_device(device)
 				device.delete()
 				devices.put()
-			db.run_in_transaction(transaction, devices, device)
+			db.run_in_transaction(transaction, device)
 	
 			renderer.addData('success', True)
 			return renderer.render('device/deletecomplete.html')
 		elif action == 'deregister':
 			device = self.get_device()
 			devices = UserDevices.get_user_device_collection(users.get_current_user())
-			def transaction(devices, device):
+
+			def transaction(device):
+				devices = UserDevices.get_user_device_collection_static(users.get_current_user())
 				devices.remove_device(device)
 				device.delete()
 				devices.put()
-			db.run_in_transaction(transaction, devices, device)
+			db.run_in_transaction(transaction, device)
 			renderer.addData('success', True)
 			return renderer.render('apionly.html')
 		elif action == 'register':
@@ -188,11 +192,12 @@ class devices:
 			device.deviceVersion = input.deviceversion
 			device.deviceNickname = input.nickname
 
-			def transaction(devices, device):
+			def transaction(device):
+				devices = UserDevices.get_user_device_collection_static(users.get_current_user())
 				device.put()
 				devices.add_device(device)
 				devices.put()
-			db.run_in_transaction(transaction, devices, device)
+			db.run_in_transaction(transaction, device)
 			
 			renderer.addData('device', device)
 			return renderer.render('apionly.html')
@@ -270,10 +275,12 @@ class sources:
 			# Now create the test message.
 			message_collection = UserMessages.get_user_message_collection(users.get_current_user())
 			message = UserMessage.create_test(source, web.ctx.ip, message_collection)
-			def transaction(message_collection, message):
+			def transaction(message):
+				message.put()
+				message_collection = UserMessages.get_user_message_collection_static(users.get_current_user())
 				message_collection.add_message(message)
 				message_collection.put()
-			db.run_in_transaction(transaction, message_collection, message)
+			db.run_in_transaction(transaction, message)
 
 			sender = AC2DM.factory()
 			sender.send_to_all(message)
@@ -284,18 +291,19 @@ class sources:
 			source = self.get_source()
 			message_collection = UserMessages.get_user_message_collection(source.owner)
 			message_collection.delete_for_source(source)
+			source_collection = UserSources.get_user_source_collection(users.get_current_user())
 
 			# Notify devices that something changed.
 			# Also, if given a device, exclude that device from
 			# the notification.
 			input = web.input(device = None)
 			source.notify_delete(input.device)
-			source_collection = UserSources.get_user_source_collection(users.get_current_user())
-			def transaction(source_collection, source):
+			def transaction(source):
+				source_collection = UserSources.get_user_source_collection_static(users.get_current_user())
 				source_collection.remove_source(source)
 				source.delete()
 				source_collection.put()
-			db.run_in_transaction(transaction, source_collection, source)
+			db.run_in_transaction(transaction, source)
 
 			# Remove the pointer. If this fails, it's not a big issue, as it's
 			# checked anyway before use.
@@ -326,14 +334,17 @@ class sources:
 				source.owner = users.get_current_user()
 				if form.enabled.get_value():
 					source.enabled = True
+
+				# Make sure the source collection exists.
+				UserSources.get_user_source_collection(users.get_current_user())
 				
 				# Place into source collection.
-				source_collection = UserSources.get_user_source_collection(users.get_current_user())
-				def transaction(source_collection, source):
+				def transaction(source):
+					source_collection = UserSources.get_user_source_collection_static(users.get_current_user())
 					source.put()
 					source_collection.add_source(source)
 					source_collection.put()
-				db.run_in_transaction(transaction, source_collection, source)
+				db.run_in_transaction(transaction, source)
 
 				# Set up the source pointer.
 				SourcePointer.persist(source)
@@ -439,12 +450,12 @@ class notifry:
 			renderer.addData('error', 'Your message is too big. The title and URL were too long and the message could not be trimmed to fit. Maximum size is nearly 500 bytes.')
 			return renderer.render('messages/send.html')
 
-		def transaction(message, message_collection):
+		def transaction(message):
+			message_collection = UserMessages.get_user_message_collection_static(source.owner)
 			message.put()
 			message_collection.add_message(message)
 			message_collection.put()
-
-		db.run_in_transaction(transaction, message, message_collection)
+		db.run_in_transaction(transaction, message)
 
 		# Now that it's saved, send it to Google.
 		sender = AC2DM.factory()

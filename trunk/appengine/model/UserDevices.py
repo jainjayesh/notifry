@@ -65,6 +65,10 @@ class UserDevices(db.Model):
 		return UserDevices.get_or_insert(UserDevices.key_for(owner), owner = owner)
 
 	@staticmethod
+	def get_user_device_collection_static(owner):
+		return UserDevices.get_by_key_name(UserDevices.key_for(owner))
+
+	@staticmethod
 	def get_user_devices(owner):
 		collection = UserDevices.get_user_device_collection(owner)
 		return collection.get_devices()

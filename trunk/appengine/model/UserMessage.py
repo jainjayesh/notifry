@@ -106,6 +106,5 @@ class UserMessage(db.Model):
 		message.lastDeliveryAttempt = None
 		message.sourceIp = ip
 		message.wasTruncated = False
-		message.put()
 
 		return message

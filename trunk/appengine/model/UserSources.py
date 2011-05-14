@@ -65,6 +65,10 @@ class UserSources(db.Model):
 		return UserSources.get_or_insert(UserSources.key_for(owner), owner=owner)
 
 	@staticmethod
+	def get_user_source_collection_static(owner):
+		return UserSources.get_by_key_name(UserSources.key_for(owner))
+
+	@staticmethod
 	def get_user_sources(owner):
 		collection = UserSources.get_user_source_collection(owner)
 		return collection.get_sources()
