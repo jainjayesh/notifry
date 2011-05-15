@@ -244,6 +244,7 @@ public class Notifry extends Activity
 		@Override
 		public void onReceive( Context context, Intent intent )
 		{
+			Log.d("Notifry", "Re-performing health check.");
 			doHealthCheck();
 		}
 	};	

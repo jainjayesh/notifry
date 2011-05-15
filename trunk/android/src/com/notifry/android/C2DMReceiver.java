@@ -18,6 +18,8 @@
 
 package com.notifry.android;
 
+import java.io.IOException;
+
 import org.apache.http.ParseException;
 
 import com.google.android.c2dm.C2DMBaseReceiver;
@@ -42,7 +44,7 @@ public class C2DMReceiver extends C2DMBaseReceiver
 		super("notifry@gmail.com");
 	}
 
-	public void onRegistrered( Context context, String registration ) throws Exception
+	public void onRegistered( Context context, String registration ) throws IOException
 	{
 		Log.i("Notifry", "registered and got key: " + registration);
 

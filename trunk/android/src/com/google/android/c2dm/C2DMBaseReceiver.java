@@ -185,8 +185,8 @@ public abstract class C2DMBaseReceiver extends IntentService {
             } 
         } else {
             try {
-                onRegistered(context, registrationId);
                 C2DMessaging.setRegistrationId(context, registrationId);
+                onRegistered(context, registrationId);
             } catch (IOException ex) {
                 Log.e(TAG, "Registration error " + ex.getMessage());
             }
