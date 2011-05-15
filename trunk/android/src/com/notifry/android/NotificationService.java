@@ -18,6 +18,9 @@
 
 package com.notifry.android;
 
+import java.util.List;
+
+import com.notifry.android.database.NotifryAccount;
 import com.notifry.android.database.NotifryMessage;
 import com.notifry.android.database.NotifrySource;
 
@@ -77,12 +80,13 @@ public class NotificationService extends Service
 			// More than one message. Instead, the title is the source name,
 			// and the content is the number of unseen messages.
 			contentTitle = source.getTitle();
-			contentText = String.format("%d unseen messages", unreadMessagesOfType);		
+			contentText = String.format("%d unseen messages", unreadMessagesOfType);
 		}
 		
 		// Generate the intent to go to that message list.
 		Intent notificationIntent = new Intent(this, MessageList.class);
-		PendingIntent contentIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0);		
+		//notificationIntent.putExtra("sourceId", source.getId());
+		PendingIntent contentIntent = PendingIntent.getActivity(this, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);		
 
 		// Set the notification data.
 		notification.setLatestEventInfo(context, contentTitle, contentText, contentIntent);
@@ -241,19 +245,38 @@ public class NotificationService extends Service
 
 			if( source != null )
 			{
-				if( NotifryMessage.FACTORY.countUnread(this, source) == 0 )
+				this.updateNotificationFor(source);
+			}
+			else
+			{
+				// Do it for all sources.
+				List<NotifryAccount> accounts = NotifryAccount.FACTORY.listAll(this);
+				
+				for( NotifryAccount account: accounts )
 				{
-					this.notificationManager.cancel(source.getNotificationId());
-				}
-				else
-				{
-					// Change it to the real number of read messages.
-					Notification notification = setLatestEventInfo(source, null);
-					this.notificationManager.notify(source.getNotificationId(), notification);
-				}
+					List<NotifrySource> sources = NotifrySource.FACTORY.listAll(this, account.getAccountName());
+					for( NotifrySource thisSource: sources )
+					{
+						this.updateNotificationFor(thisSource);
+					}
+				}	
 			}
 		}
 
 		return;
+	}
+	
+	private void updateNotificationFor( NotifrySource source )
+	{
+		if( NotifryMessage.FACTORY.countUnread(this, source) == 0 )
+		{
+			this.notificationManager.cancel(source.getNotificationId());
+		}
+		else
+		{
+			// Change it to the real number of read messages.
+			Notification notification = setLatestEventInfo(source, null);
+			this.notificationManager.notify(source.getNotificationId(), notification);
+		}		
 	}
 }

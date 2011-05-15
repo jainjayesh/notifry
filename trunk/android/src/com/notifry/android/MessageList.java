@@ -42,6 +42,7 @@ public class MessageList extends ListActivity
 	private final static int DELETE_ALL = 1;
 	private final static int DELETE_SEEN = 2;
 	private final static int MARK_ALL_AS_SEEN = 3;
+	private final static int GO_HOME = 4;
 	private NotifrySource source = null;
 
 	/** Called when the activity is first created. */
@@ -75,20 +76,21 @@ public class MessageList extends ListActivity
 	
 	public void updateNotifications()
 	{
+		Intent intentData = new Intent(getBaseContext(), NotificationService.class);
+		intentData.putExtra("operation", "update");
 		if( this.getSource() != null )
 		{
-			Intent intentData = new Intent(getBaseContext(), NotificationService.class);
-			intentData.putExtra("operation", "update");
 			intentData.putExtra("sourceId", this.getSource().getId());
-			startService(intentData);
 		}
+		startService(intentData);
 	}
 
 	public void onResume()
 	{
 		super.onResume();
 		
-		//refreshView();
+		// Force updating the source.
+		this.source = null;
 
 		// And tell the notification service to clear the notification.
 		if( this.getSource() != null )
@@ -132,6 +134,7 @@ public class MessageList extends ListActivity
 	public boolean onCreateOptionsMenu( Menu menu )
 	{
 		boolean result = super.onCreateOptionsMenu(menu);
+		menu.add(0, GO_HOME, 0, R.string.main_menu).setIcon(android.R.drawable.ic_menu_manage);
 		menu.add(0, DELETE_ALL, 0, R.string.delete_all).setIcon(android.R.drawable.ic_menu_delete);
 		menu.add(0, DELETE_SEEN, 0, R.string.delete_read).setIcon(android.R.drawable.ic_menu_delete);
 		menu.add(0, MARK_ALL_AS_SEEN, 0, R.string.mark_all_as_seen).setIcon(android.R.drawable.ic_media_play);
@@ -151,6 +154,10 @@ public class MessageList extends ListActivity
 				return true;
 			case MARK_ALL_AS_SEEN:
 				markAllAsSeen();
+				return true;
+			case GO_HOME:
+				Intent homeIntent = new Intent(this, Notifry.class);
+				this.startActivity(homeIntent);
 				return true;
 		}
 
