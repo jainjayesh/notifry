@@ -65,6 +65,11 @@ public class HealthCheck
 		HealthCheck check = new HealthCheck();
 		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(context);
 		
+		if( false == settings.getBoolean(context.getString(R.string.masterEnable), true) )
+		{
+			check.addError(context.getString(R.string.health_check_disabled));
+		}
+		
 		// Do we have a C2DM ID?
 		final String registrationId = C2DMessaging.getRegistrationId(context);
 		if( registrationId == null || "".equals(registrationId) )

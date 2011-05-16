@@ -116,6 +116,7 @@
     
     <string name="need_tts_data_installed">You don\'t have the TTS data installed - redirecting you to the data.</string>
     
+    <string name="health_check_disabled">All notifications are turned off.</string>
     <string name="health_check_placeholder">Health Check information will go here.</string>
     <string name="health_check_all_ok">Health check passed.</string>
     <string name="health_error_no_c2dm_id">No C2DM ID. Please wait or restart the app.</string>

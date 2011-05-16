@@ -158,6 +158,8 @@ public class Notifry extends Activity
 		editor.commit();
 
 		this.changeEnabledLabelFor(view);
+		
+		this.doHealthCheck();
 	}
 
 	/**
