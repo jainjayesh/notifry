@@ -123,8 +123,7 @@ public class BackendClient
 
 		HttpResponse res = client.execute(method);
 		Header[] headers = res.getHeaders("Set-Cookie");
-		if( res.getStatusLine().getStatusCode() != 302 ||
-				headers.length == 0 )
+		if(	headers.length == 0 )
 		{
 			return res;
 		}
