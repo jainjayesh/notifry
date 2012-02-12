@@ -30,6 +30,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
+import android.content.pm.PackageManager.NameNotFoundException;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.speech.tts.TextToSpeech;
@@ -87,10 +88,17 @@ public class Notifry extends Activity
 		this.changeEnabledLabelFor(findViewById(R.id.home_disableAll));
 		
 		// Also, do a health check and post the results.
-		this.doHealthCheck();
+		try
+		{
+			this.doHealthCheck();
+		}
+		catch( NameNotFoundException e )
+		{
+			Log.d("Notifry", "Can't find own installed package...");
+		}
 	}
 	
-	public void doHealthCheck()
+	public void doHealthCheck() throws NameNotFoundException
 	{
 		// Peform the health check.
 		HealthCheck check = HealthCheck.performHealthcheck(this);
@@ -114,7 +122,10 @@ public class Notifry extends Activity
 		
 		if( allText.length() == 0 )
 		{
-			healthCheckArea.setText(getString(R.string.health_check_all_ok));
+			allText.append('\n');
+			allText.append('v');
+			allText.append(this.getPackageManager().getPackageInfo(this.getPackageName(), 0).versionName);
+			healthCheckArea.setText(getString(R.string.health_check_all_ok) + allText.toString());
 		}
 		else
 		{
@@ -147,8 +158,9 @@ public class Notifry extends Activity
 	 * Onclick handler to toggle the master enable.
 	 * 
 	 * @param view
+	 * @throws NameNotFoundException 
 	 */
-	public void disableEnableNotifications( View view )
+	public void disableEnableNotifications( View view ) throws NameNotFoundException
 	{
 		// Enable or disable the master enable flag, updating the button as
 		// appropriate.
@@ -247,7 +259,14 @@ public class Notifry extends Activity
 		public void onReceive( Context context, Intent intent )
 		{
 			Log.d("Notifry", "Re-performing health check.");
-			doHealthCheck();
+			try
+			{
+				doHealthCheck();
+			}
+			catch( NameNotFoundException e )
+			{
+				Log.d("Notifry", "Can't find own package information...");
+			}
 		}
 	};	
 }
