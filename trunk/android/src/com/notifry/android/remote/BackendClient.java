@@ -123,10 +123,6 @@ public class BackendClient
 
 		HttpResponse res = client.execute(method);
 		Header[] headers = res.getHeaders("Set-Cookie");
-		if(	headers.length == 0 )
-		{
-			return res;
-		}
 
 		String ascidCookie = null;
 		for( Header header : headers )
