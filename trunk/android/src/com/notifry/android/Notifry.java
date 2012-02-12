@@ -129,6 +129,9 @@ public class Notifry extends Activity
 		}
 		else
 		{
+			allText.append('\n');
+			allText.append('v');
+			allText.append(this.getPackageManager().getPackageInfo(this.getPackageName(), 0).versionName);			
 			healthCheckArea.setText(allText.toString().trim());
 		}
 		
