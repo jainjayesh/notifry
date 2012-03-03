@@ -17,6 +17,7 @@
 import datetime
 from model.UserMessages import UserMessages
 from google.appengine.ext import db
+from google.appengine.ext.db import BadRequestError
 
 # The deferred function to actually delete messages per collection.
 def delete_messages_for_collection(collection_key):
@@ -32,4 +33,9 @@ def delete_messages_for_collection(collection_key):
 					check_collection.remove_message(message)
 					message.delete()
 			check_collection.put()
-	db.run_in_transaction(transaction, collection)
+	try:
+		db.run_in_transaction(transaction, collection)
+	except BadRequestError, ex:
+		# Typically this is a transaction that has expired. Return normally
+		# to prevent retrying this task.
+		return
