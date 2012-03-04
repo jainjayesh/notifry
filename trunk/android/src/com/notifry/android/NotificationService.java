@@ -59,7 +59,16 @@ public class NotificationService extends Service
 	{
 		int icon = R.drawable.icon_statusbar;
 		long when = System.currentTimeMillis(); // TODO - make this the timestamp on the message?
-		Notification notification = new Notification(icon, getString(R.string.app_name), when);		
+		Notification notification;
+		if( message != null )
+		{
+			// From a generous person! http://code.google.com/p/notifry/issues/detail?id=27
+			notification = new Notification(icon, message.getTitle(), when);
+		}
+		else
+		{
+			notification = new Notification(icon, getString(R.string.app_name), when);		
+		}	
 		
 		int unreadMessagesOfType = 0;
 		Context context = getApplicationContext();
