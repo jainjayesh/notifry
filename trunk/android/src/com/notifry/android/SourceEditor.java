@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.json.JSONException;
 
@@ -281,6 +282,24 @@ public class SourceEditor extends PreferenceActivity
 				// Nothing to do here - this doesn't make sense.
 				return this;
 			}
+
+			public void apply()
+			{
+				// TODO Auto-generated method stub
+				
+			}
+
+			public android.content.SharedPreferences.Editor putStringSet( String arg0, Set<String> arg1 )
+			{
+				// TODO Auto-generated method stub
+				return null;
+			}
+		}
+
+		public Set<String> getStringSet( String arg0, Set<String> arg1 )
+		{
+			// TODO Auto-generated method stub
+			return null;
 		}
 	}
 	
