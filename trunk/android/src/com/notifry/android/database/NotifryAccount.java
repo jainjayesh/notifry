@@ -103,7 +103,15 @@ public class NotifryAccount extends ORM<NotifryAccount>
 	public void registerWithBackend( Context context, String key, boolean register, String statusMessage, Handler handler, HashMap<String, Object> metadata )
 	{
 		// Register the device with the server.
-		BackendRequest request = new BackendRequest("/devices/register");
+		BackendRequest request;
+		if( register )
+		{
+			request = new BackendRequest("/devices/register");
+		}
+		else
+		{
+			request = new BackendRequest("/devices/deregister");
+		}
 		request.add("devicekey", key);
 		request.add("devicetype", "android");
 		try
