@@ -27,6 +27,8 @@ import java.util.HashMap;
 
 import org.json.JSONException;
 
+import com.actionbarsherlock.app.SherlockListActivity;
+import com.actionbarsherlock.view.MenuItem;
 import com.google.android.c2dm.C2DMessaging;
 import com.notifry.android.database.NotifryAccount;
 import com.notifry.android.remote.BackendRequest;
@@ -34,7 +36,6 @@ import com.notifry.android.remote.BackendResponse;
 
 import android.accounts.AccountManager;
 import android.app.AlertDialog;
-import android.app.ListActivity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -46,8 +47,6 @@ import android.os.Message;
 import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
@@ -57,7 +56,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class ChooseAccount extends ListActivity implements CompoundButton.OnCheckedChangeListener, View.OnClickListener 
+public class ChooseAccount extends SherlockListActivity implements CompoundButton.OnCheckedChangeListener, View.OnClickListener 
 {
 	private static final int REFRESH_IDS = 1;
 	private static final String TAG = "Notifry";
@@ -109,19 +108,22 @@ public class ChooseAccount extends ListActivity implements CompoundButton.OnChec
 		}
 	}
 	
-	@Override
-	public boolean onCreateOptionsMenu( Menu menu )
+	public boolean onCreateOptionsMenu( com.actionbarsherlock.view.Menu menu )
 	{
 		boolean result = super.onCreateOptionsMenu(menu);
-		menu.add(0, REFRESH_IDS, 0, R.string.refresh_ids).setIcon(android.R.drawable.ic_menu_rotate);
+		menu.add(0, REFRESH_IDS, 0, R.string.refresh_ids).setIcon(android.R.drawable.ic_menu_rotate).setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM | MenuItem.SHOW_AS_ACTION_WITH_TEXT);
 		return result;
 	}
 
-	@Override
-	public boolean onOptionsItemSelected( MenuItem item )
+	public boolean onOptionsItemSelected( com.actionbarsherlock.view.MenuItem item )
 	{
 		switch( item.getItemId() )
 		{
+			case android.R.id.home:
+				Intent intent = new Intent(this, Notifry.class);
+				intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+				startActivity(intent);
+				return true;
 			case REFRESH_IDS:
 				// Dispatch this to the updater service.
 				Intent intentData = new Intent(getBaseContext(), UpdaterService.class);

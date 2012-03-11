@@ -20,24 +20,24 @@ package com.notifry.android;
 
 import java.text.ParseException;
 
+import com.actionbarsherlock.app.SherlockListActivity;
+import com.actionbarsherlock.view.Menu;
+import com.actionbarsherlock.view.MenuItem;
 import com.notifry.android.database.NotifryDatabaseAdapter;
 import com.notifry.android.database.NotifryMessage;
 import com.notifry.android.database.NotifrySource;
 
-import android.app.ListActivity;
 import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.widget.ListView;
 import android.widget.SimpleCursorAdapter;
 import android.widget.TextView;
 
-public class MessageList extends ListActivity
+public class MessageList extends SherlockListActivity
 {
 	private final static int DELETE_ALL = 1;
 	private final static int DELETE_SEEN = 2;
@@ -134,10 +134,9 @@ public class MessageList extends ListActivity
 	public boolean onCreateOptionsMenu( Menu menu )
 	{
 		boolean result = super.onCreateOptionsMenu(menu);
-		menu.add(0, GO_HOME, 0, R.string.main_menu).setIcon(android.R.drawable.ic_menu_manage);
 		menu.add(0, DELETE_ALL, 0, R.string.delete_all).setIcon(android.R.drawable.ic_menu_delete);
-		menu.add(0, DELETE_SEEN, 0, R.string.delete_read).setIcon(android.R.drawable.ic_menu_delete);
-		menu.add(0, MARK_ALL_AS_SEEN, 0, R.string.mark_all_as_seen).setIcon(android.R.drawable.ic_media_play);
+		menu.add(0, DELETE_SEEN, 0, R.string.delete_read).setIcon(android.R.drawable.ic_menu_delete).setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM | MenuItem.SHOW_AS_ACTION_WITH_TEXT);
+		menu.add(0, MARK_ALL_AS_SEEN, 0, R.string.mark_all_as_seen).setIcon(android.R.drawable.ic_media_play).setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM | MenuItem.SHOW_AS_ACTION_WITH_TEXT);
 		return result;
 	}
 
@@ -146,6 +145,11 @@ public class MessageList extends ListActivity
 	{
 		switch( item.getItemId() )
 		{
+			case android.R.id.home:
+				Intent intent = new Intent(this, Notifry.class);
+				intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+				startActivity(intent);
+				return true;
 			case DELETE_ALL:
 				deleteAll(false);
 				return true;
@@ -154,10 +158,6 @@ public class MessageList extends ListActivity
 				return true;
 			case MARK_ALL_AS_SEEN:
 				markAllAsSeen();
-				return true;
-			case GO_HOME:
-				Intent homeIntent = new Intent(this, Notifry.class);
-				this.startActivity(homeIntent);
 				return true;
 		}
 

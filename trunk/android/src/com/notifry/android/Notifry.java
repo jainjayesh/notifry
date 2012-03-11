@@ -20,10 +20,10 @@ package com.notifry.android;
 
 import java.util.Date;
 
+import com.actionbarsherlock.app.SherlockActivity;
 import com.google.android.c2dm.C2DMessaging;
 import com.notifry.android.database.NotifryMessage;
 
-import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -40,7 +40,7 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class Notifry extends Activity
+public class Notifry extends SherlockActivity
 {	
 	public final static String UPDATE_INTENT = "com.notifry.android.UpdateUI";
 	

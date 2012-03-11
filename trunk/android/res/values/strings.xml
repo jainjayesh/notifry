@@ -59,12 +59,12 @@
     <string name="email_source_key">Email source key</string>
     <string name="messages">Messages</string>
     
-    <string name="settings_heading">Notifry Settings</string>
-    <string name="choose_accounts_heading">Notifry - Choose accounts</string>
-    <string name="sources_heading">Notifry - Manage sources</string>
-    <string name="editor_heading">Notifry - Edit source</string>
-    <string name="messages_heading">Notifry - Recent messages</string>
-    <string name="message_detail_heading">Notifry - Message</string>
+    <string name="settings_heading">Settings</string>
+    <string name="choose_accounts_heading">Choose accounts</string>
+    <string name="sources_heading">Manage sources</string>
+    <string name="editor_heading">Edit source</string>
+    <string name="messages_heading">Recent messages</string>
+    <string name="message_detail_heading">Message</string>
     
     <string name="no_accounts">No Google accounts on this phone. You will need at least one to be able to use this program.</string>
     <string name="accounts_help">The checkbox registers or deregisters that account with the backend server. Then, tap the account name to manage sources.</string>

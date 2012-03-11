@@ -18,17 +18,18 @@
 
 package com.notifry.android;
 
+import com.actionbarsherlock.app.SherlockPreferenceActivity;
+
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.EditTextPreference;
 import android.preference.Preference;
-import android.preference.PreferenceActivity;
 import android.preference.PreferenceManager;
 import android.preference.Preference.OnPreferenceChangeListener;
 import android.preference.Preference.OnPreferenceClickListener;
 
-public class Settings extends PreferenceActivity
+public class Settings extends SherlockPreferenceActivity
 {
 	private EditTextPreference delayReading;
 	private EditTextPreference shakeThreshold;
@@ -57,7 +58,7 @@ public class Settings extends PreferenceActivity
 		
 		shakeWaitTime = (EditTextPreference) findPreference(getString(R.string.shakeWaitTime));
 		shakeWaitTime.setOnPreferenceChangeListener(shakeWaitTimeHandler);
-		updateShakeWaitTimeSummary(settings.getString(getString(R.string.shakeWaitTime), "60"));		
+		updateShakeWaitTimeSummary(settings.getString(getString(R.string.shakeWaitTime), "60"));
 	}
 	
 	// On click handler for stopping the text in motion.
@@ -170,4 +171,18 @@ public class Settings extends PreferenceActivity
 			// Not a valid number... ignore.
 		}
 	}
+	
+	public boolean onOptionsItemSelected( com.actionbarsherlock.view.MenuItem item )
+	{
+		switch( item.getItemId() )
+		{
+			case android.R.id.home:
+				Intent intent = new Intent(this, Notifry.class);
+				intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+				startActivity(intent);
+				return true;
+		}
+
+		return super.onOptionsItemSelected(item);
+	}	
 }

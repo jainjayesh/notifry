@@ -27,6 +27,7 @@ import java.util.Set;
 
 import org.json.JSONException;
 
+import com.actionbarsherlock.view.MenuItem;
 import com.notifry.android.database.NotifrySource;
 import com.notifry.android.remote.BackendRequest;
 import com.notifry.android.remote.BackendResponse;
@@ -665,4 +666,21 @@ public class SourceEditor extends PreferenceActivity
 
 		return this.source;
 	}
+	
+	/**
+	 * When the home button is hit...
+	 */
+	public boolean onOptionsItemSelected( MenuItem item )
+	{
+		switch( item.getItemId() )
+		{
+			case android.R.id.home:
+				Intent intent = new Intent(getBaseContext(), SourceList.class);
+				intent.putExtra("account",this.getSource().getAccountName());
+				startActivity(intent);
+				return true;
+		}
+
+		return super.onOptionsItemSelected((android.view.MenuItem) item);
+	}	
 }

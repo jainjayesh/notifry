@@ -18,17 +18,17 @@
 
 package com.notifry.android;
 
+import com.actionbarsherlock.app.SherlockActivity;
+import com.actionbarsherlock.view.Menu;
+import com.actionbarsherlock.view.MenuItem;
 import com.notifry.android.database.NotifryMessage;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
 
-public class MessageDetail extends Activity
+public class MessageDetail extends SherlockActivity
 {
 	private final static int BACK_TO_LIST = 1;
 	private NotifryMessage message = null;
@@ -98,6 +98,7 @@ public class MessageDetail extends Activity
 	{
 		switch( item.getItemId() )
 		{
+			case android.R.id.home:			
 			case BACK_TO_LIST:
 				Intent intent = new Intent(this, MessageList.class);
 				intent.putExtra("sourceId", getMessage().getSource().getId());

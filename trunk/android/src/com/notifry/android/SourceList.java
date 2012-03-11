@@ -23,13 +23,15 @@ import java.util.ArrayList;
 import org.json.JSONArray;
 import org.json.JSONException;
 
+import com.actionbarsherlock.app.SherlockListActivity;
+import com.actionbarsherlock.view.Menu;
+import com.actionbarsherlock.view.MenuItem;
 import com.notifry.android.database.NotifryAccount;
 import com.notifry.android.database.NotifrySource;
 import com.notifry.android.remote.BackendRequest;
 import com.notifry.android.remote.BackendResponse;
 
 import android.app.AlertDialog;
-import android.app.ListActivity;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -40,8 +42,6 @@ import android.os.Message;
 import android.text.Editable;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
@@ -51,7 +51,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class SourceList extends ListActivity implements View.OnClickListener, CompoundButton.OnCheckedChangeListener
+public class SourceList extends SherlockListActivity implements View.OnClickListener, CompoundButton.OnCheckedChangeListener
 {
 	public final static int ADD_SOURCE = 1;
 	public final static int REFRESH_SERVER = 2;
@@ -66,7 +66,7 @@ public class SourceList extends ListActivity implements View.OnClickListener, Co
 
 		// Set the layout, and allow text filtering.
 		setContentView(R.layout.screen_sources);
-		getListView().setTextFilterEnabled(true);		
+		getListView().setTextFilterEnabled(true);
 	}
 	
 	public void onConfigurationChanged( Configuration newConfig )
@@ -146,8 +146,8 @@ public class SourceList extends ListActivity implements View.OnClickListener, Co
 	public boolean onCreateOptionsMenu( Menu menu )
 	{
 		boolean result = super.onCreateOptionsMenu(menu);
-		menu.add(0, ADD_SOURCE, 0, R.string.create_source).setIcon(android.R.drawable.ic_menu_add);
-		menu.add(0, REFRESH_SERVER, 0, R.string.refresh_sources_server).setIcon(android.R.drawable.ic_menu_rotate);
+		menu.add(0, ADD_SOURCE, 0, R.string.create_source).setIcon(android.R.drawable.ic_menu_add).setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
+		menu.add(0, REFRESH_SERVER, 0, R.string.refresh_sources_server).setIcon(android.R.drawable.ic_menu_rotate).setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
 		return result;
 	}
 
@@ -156,6 +156,11 @@ public class SourceList extends ListActivity implements View.OnClickListener, Co
 	{
 		switch( item.getItemId() )
 		{
+			case android.R.id.home:
+				Intent intent = new Intent(this, ChooseAccount.class);
+				intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+				startActivity(intent);
+				return true;
 			case ADD_SOURCE:
 				askForSourceName();
 				return true;
