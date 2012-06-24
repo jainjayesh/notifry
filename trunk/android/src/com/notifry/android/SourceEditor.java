@@ -286,8 +286,7 @@ public class SourceEditor extends PreferenceActivity
 
 			public void apply()
 			{
-				// TODO Auto-generated method stub
-				
+				thisActivity.source.save(thisActivity);
 			}
 
 			public android.content.SharedPreferences.Editor putStringSet( String arg0, Set<String> arg1 )
