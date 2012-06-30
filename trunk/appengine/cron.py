@@ -17,8 +17,11 @@
 import web
 from lib.Renderer import Renderer
 from model.UserMessages import UserMessages
+from model.UserMessage import UserMessage
 from google.appengine.ext import deferred
+from google.appengine.ext import db
 from lib.DeleteHelper import delete_messages_for_collection
+import datetime
 
 urls = (
 	'/cron/deletemessages', 'deletemessages'
@@ -30,14 +33,15 @@ renderer = Renderer('templates/')
 # Cron script to delete messages.
 class deletemessages:
 	def GET(self):
-		# Find all message collections.
-		collections = UserMessages.all(keys_only=True)
-		count = 0
-		for collection_key in collections:
-			deferred.defer(delete_messages_for_collection, collection_key)
-			count += 1
+		# Older than 1 day.
+		older_than = datetime.datetime.now() - datetime.timedelta(1)
+		# Find all messages.
+		messages = UserMessage.all(keys_only=True)
+		messages.filter("timestamp < ", older_than)
+		results = messages.fetch(200)
+		db.delete(results)
 
-		renderer.addData('number', count)
+		renderer.addData('number', len(results))
 		return renderer.render('cron/deletemessages.html')
 
 # Initialise and run the application.

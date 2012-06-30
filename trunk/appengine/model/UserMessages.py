@@ -37,7 +37,7 @@ class UserMessages(db.Model):
 		return result
 
 	def get_messages(self):
-		return UserMessage.get_by_id(self.messages, self)
+		return UserMessage.get_by_id(self.messages[-200:], self)
 
 	def get_messages_for_source(self, source):
 		final_messages = []

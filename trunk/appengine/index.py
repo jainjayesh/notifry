@@ -477,11 +477,12 @@ class messages:
 		else:
 			messages = UserMessages.get_user_messages(users.get_current_user())
 
-		messages = sorted(messages, key=lambda message: message.timestamp)
+		messages = sorted(messages, key=lambda message: message.timestamp if message else datetime.datetime.now())
 		messages.reverse()
 
 		renderer.addData('filtersource', source)
 		renderer.addData('messages', messages)
+		renderer.addData('storedMessages', len(UserMessages.get_user_message_collection(users.get_current_user()).messages))
 
 		return renderer.render('messages/index.html')
 
