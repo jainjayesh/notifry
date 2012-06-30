@@ -63,6 +63,36 @@ define contact{
 
 <p>&nbsp;</p>
 
+<h2>Zabbix Integration</h2>
+
+<p>If you have a Zabbix server, you can send messages with the following instructions.</p>
+
+<ol>
+	<li>Set up either the PHP or Python version of the script, and test that it works. A suggestion is to
+		place it into /etc/zabbix/alert.d.</li>
+	<li>Add another script into /etc/zabbix/alert.d, called notifry.sh, with this as the contents. Make the script executable
+		and adjust the path to the notifry program as appropriate.
+		<pre class="code">
+#!/bin/bash
+
+SOURCE=$1
+EVENT=$2
+NOTIFICATION=$3
+
+/etc/zabbix/alert.d/notifry.py -s "$SOURCE" -t "$EVENT" -m "$3"</pre>
+	</li>
+	<li>Add a new Media type to Zabbix. (Found under Administration -> Media types). Use the following settings:
+		<ul>
+			<li>Description: Notifry</li>
+			<li>Type: script</li>
+			<li>Script name: notifry.sh</li>
+		</ul>
+	</li>
+	<li>Each user can now add a media type of Notifry to their profile. In the 'send to', use the source key.</li>
+</ol>
+
+<p>&nbsp;</p>
+
 <h2>API Reference</h2>
 
 <h3>Parameters</h3>
