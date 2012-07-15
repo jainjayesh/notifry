@@ -21,12 +21,8 @@
  * This script sends the notification to the backend server for the given source.
  * Return codes:
  * 0 - Success
- * 1 - HTTP error
- * 2 - Backend error
+ * 1 - An error occurred.
  */
-
-// Configuration.
-$BACKEND = 'https://notifrier.appspot.com/notifry';
 
 // Parse the command line arguments.
 $options = getopt("s:t:m:u:");
@@ -49,70 +45,102 @@ if( !isset($options['s']) || !isset($options['m']) || !isset($options['t']) )
 	usage();
 }
 
-// Prepare our parameters.
-$params = array();
-$params['source'] = $options['s'];
-$params['message'] = $options['m'];
-
-if( $params['message'] == '-' )
+/**
+ * Notifry someone.
+ * @param string $source The source key.
+ * @param string $title The title of the notification.
+ * @param string $message The message body of the notification.
+ * @param string|NULL $url The URL to send along with it.
+ * @param string $backend The backend URL.
+ * @return array An array with a boolean key 'success'. On false, another
+ * key is set with 'error', on true, a key is set with 'message'.
+ */
+function notifry($source, $title, $message, $url = NULL, $backend = 'https://notifrier.appspot.com/notifry')
 {
-	$params['message'] = file_get_contents('php://stdin');
-}
-
-$params['title'] = $options['t'];
-$params['format'] = 'json';
-
-if( isset($options['u']) )
-{
-	$params['url'] = $options['u'];
-}
-
-// Encode the parameters for transport.
-$encodedParameters = array();
-foreach( $params as $key => $value )
-{
-	$encodedParameters[] = $key . "=" . urlencode($value);
-}
-$body = implode("&", $encodedParameters);
-
-// Using CURL, send the request to the server.
-$c = curl_init($BACKEND);
-curl_setopt($c, CURLOPT_POST, true);
-curl_setopt($c, CURLOPT_POSTFIELDS, $body);
-curl_setopt($c, CURLOPT_RETURNTRANSFER, true);
-curl_setopt($c, CURLOPT_CONNECTTIMEOUT, 20);
-$page = curl_exec($c);
-
-// Parse the result.
-if( $page !== FALSE )
-{
-	// The result is JSON encoded.
-	$decoded = json_decode($page, TRUE);
-	if( $decoded === FALSE )
+	$params = array();
+	$params['source'] = $source;
+	$params['message'] = $message;
+	$params['title'] = $title;
+	$params['format'] = 'json';
+	if( false === is_null($url) )
 	{
-		echo "Failed to decode server response: ", $page, "\n";
+		$params['url'] = $url;
 	}
-	else
+	
+	$encodedParameters = array();
+	foreach( $params as $key => $value )
 	{
-		if( isset($decoded['error']) )
+		$encodedParameters[] = $key . "=" . urlencode($value);
+	}
+	$body = implode("&", $encodedParameters);
+
+	// Using CURL, send the request to the server.
+	$c = curl_init($backend);
+	curl_setopt($c, CURLOPT_POST, true);
+	curl_setopt($c, CURLOPT_POSTFIELDS, $body);
+	curl_setopt($c, CURLOPT_RETURNTRANSFER, true);
+	curl_setopt($c, CURLOPT_CONNECTTIMEOUT, 20);
+	$page = curl_exec($c);
+
+	// Parse the result.
+	$result = array('success' => false);
+	if( $page !== FALSE )
+	{
+		// The result is JSON encoded.
+		$decoded = json_decode($page, TRUE);
+		if( $decoded === FALSE )
 		{
-			echo "Server did not accept our message: ", $decoded['error'], "\n";
-			curl_close($c);
-			exit(2);
+			$result['error'] = "Failed to decode server response: " . $page;
 		}
 		else
 		{
-			echo "Success! Message size ", $decoded['size'], ".\n";
+			if( isset($decoded['error']) )
+			{
+				$result['error'] = $decoded['error'];
+			}
+			else
+			{
+				$result['success'] = true;
+				$result['message'] = "Success! Message size " . $decoded['size'];
+			}
 		}
 	}
+	else
+	{
+		$result['error'] = curl_error($c);
+	}
+
+	curl_close($c);
+
+	return $result;
+}
+
+// Prepare our parameters.
+$message = $options['m'];
+
+if( $message == '-' )
+{
+	$message = file_get_contents('php://stdin');
+}
+
+$url = null;
+
+if( isset($options['u']) )
+{
+	$url = $options['u'];
+}
+
+$result = notifry($options['s'], $options['t'], $message, $url);
+
+if( $result['success'] == FALSE )
+{
+	echo $result['error'], "\n";
+	exit(1);
 }
 else
 {
-	echo "HTTP error: ", curl_error($c), "\n";
-	curl_close($c);
-	exit(1);
+	echo $result['message'], "\n";
+	exit(0);
 }
-
-curl_close($c);
 
 ?>
