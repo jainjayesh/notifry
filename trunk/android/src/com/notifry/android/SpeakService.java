@@ -64,7 +64,7 @@ public class SpeakService extends Service implements SensorEventListener, TextTo
 	public void onInit( int status )
 	{
 		// Prepare parameters.
-		this.parameters.put(TextToSpeech.Engine.KEY_PARAM_STREAM, String.valueOf(AudioManager.STREAM_NOTIFICATION));
+		this.parameters.put(TextToSpeech.Engine.KEY_PARAM_STREAM, String.valueOf(this.getAudioStream()));
 		
 		// Ready.
 		// Log.d("Notifry", "TTS init complete...");
@@ -134,6 +134,23 @@ public class SpeakService extends Service implements SensorEventListener, TextTo
 
 		// Create the TTS object.
 		this.tts = new TextToSpeech(this, this);
+	}
+
+	private int getAudioStream()
+	{
+		SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
+		String desiredStream = settings.getString(getString(R.string.ttsAudioStream), "NOTIFICATION");
+		int stream = AudioManager.STREAM_NOTIFICATION;
+		if( desiredStream.equals("ALARM") )
+		{
+			stream = AudioManager.STREAM_ALARM;
+		}
+		else if( desiredStream.equals("MUSIC") )
+		{
+			stream = AudioManager.STREAM_MUSIC;
+		}
+		
+		return stream;
 	}
 
 	@Override
@@ -224,6 +241,9 @@ public class SpeakService extends Service implements SensorEventListener, TextTo
 			// Send along the text.
 			String text = intent.getExtras().getString("text");
 			// Log.d("Notifry", "Got intent to read message: " + text);
+			
+			// Also change the audio stream if needed.
+			this.parameters.put(TextToSpeech.Engine.KEY_PARAM_STREAM, String.valueOf(this.getAudioStream()));
 
 			// Why do we do this weird queue thing for the onInit call to work with?
 			// That's because if we call tts.speak() before it's initialized nothing

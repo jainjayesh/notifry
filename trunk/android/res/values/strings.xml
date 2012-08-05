@@ -34,6 +34,8 @@
     <string name="shakewaittime_summary">Wait %d seconds for a shake event.</string>
     <string name="speakformat">TTS Output format</string>
     <string name="speakformat_summary" formatted="false">%s is source, %m is message, %t is title, %a is account. Default %t %m.</string>
+    <string name="tts_audio_stream_title">TTS Audio Stream</string>
+    <string name="tts_auto_stream_summary">The audio stream used to play TTS output.</string>
     <string name="notification_settings">Notification settings</string>
     <string name="notification_settings_summary">Change how notifications are delivered.</string>
     <string name="play_ringtone">Play ringtone</string>
@@ -46,6 +48,7 @@
     <string name="fast_led_flash_summary">Use a fast LED flash - useful for phones like the G2 which have short flashes.</string>
     <string name="speak_message">Speak the message</string>
     <string name="speak_message_summary">Speak out the message using Text to Speech.</string>
+    <string name="notification">NOTIFICATION</string>
     
     <string name="disable_all_notifications">Disable all notifications</string>
     <string name="enable_all_notifications">Enable all notifications</string>
@@ -167,6 +170,7 @@
     <string name="fastLedFlash">fastLedFlash</string>
     <string name="speakMessage">speakMessage</string>
     <string name="speakFormat">speakFormat</string>
+    <string name="ttsAudioStream">ttsAudioStream</string>
     <string name="preferencesName">SpeakMessageServicePrefs</string>
     
     <string name="notts">You do not have the TTS library installed - Speak Message Service can not read out your messages until you install it.</string>

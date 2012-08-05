@@ -19,4 +19,14 @@
  -->
 
 <resources  xmlns:android="http://schemas.android.com/apk/res/android">
+    <string-array name="ttsAudioStreamEntries">
+        <item>Alarm Stream</item>
+        <item>Notification Stream</item>
+        <item>Music Stream</item>
+    </string-array>
+    <string-array name="ttsAudioStreamvalues">
+        <item>ALARM</item>
+        <item>NOTIFICATION</item>
+        <item>MUSIC</item>
+    </string-array>
 </resources>
