@@ -1,5 +1,5 @@
-application: notifrier
-version: 39
+application: notifrier-hrd
+version: 40
 runtime: python
 api_version: 1
 
