@@ -22,6 +22,8 @@ from google.appengine.ext import deferred
 from google.appengine.ext import db
 from lib.DeleteHelper import delete_messages_for_collection
 import datetime
+from model.GeneralCounterShard import GeneralCounterShard
+from model.GeneralCounterShard import GeneralCounterShardConfig
 
 urls = (
 	'/cron/deletemessages', 'deletemessages'
@@ -41,7 +43,26 @@ class deletemessages:
 		results = messages.fetch(200)
 		db.delete(results)
 
-		renderer.addData('number', len(results))
+		message_count = len(results)
+
+		# And do the same with the stats counter shards.
+		shards = GeneralCounterShard.all(keys_only=True)
+		shards.filter("name <", older_than.strftime("%Y-%m-%d_%H"))
+		results = shards.fetch(200)
+		db.delete(results)
+
+		shard_count = len(results)
+
+		shardconfigs = GeneralCounterShardConfig.all(keys_only=True)
+		shardconfigs.filter("name < ", older_than.strftime("%Y-%m-%d_%H"))
+		results = shardconfigs.fetch(200)
+		db.delete(results)
+
+		shard_config_count = len(results)
+
+		renderer.addData('number', message_count)
+		renderer.addData('shards', shard_count)
+		renderer.addData('shardconfig', shard_config_count)
 		return renderer.render('cron/deletemessages.html')
 
 # Initialise and run the application.

@@ -54,6 +54,9 @@ class UserMessages(db.Model):
 		else:
 			self.messages = []
 			self.messages.append(id)
+		# And cull off old messages.
+		if len(self.messages) > 500:
+			self.messages = self.messages[-500:]
 
 	def remove_message(self, message):
 		if self.messages:
