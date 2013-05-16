@@ -1,5 +1,5 @@
 # Notifry - Google App Engine backend
-# 
+#
 # Copyright 2011 Daniel Foote
 #
 # Licensed under the Apache License, Version 2.0 (the 'License');
@@ -20,6 +20,7 @@ from lib.Renderer import Renderer
 from lib.AC2DM import AC2DM
 from model.AC2DMAuthToken import AC2DMAuthToken
 from model.AC2DMAuthToken import AC2DMTokenException
+from model.UserDevices import UserDevices
 import datetime
 
 urls = (
@@ -27,6 +28,7 @@ urls = (
 	'/admin/token/(.*)', 'token',
 	'/admin/createtoken/', 'createtoken',
 	'/admin/stats/(.*)', 'stats',
+	'/admin/users', 'users'
 )
 
 # Create the renderer and the initial context.
@@ -51,13 +53,24 @@ class stats:
 			renderer.addData('counters', summary)
 			return renderer.render('admin/stats/counters.html')
 
+class users:
+	def GET(self):
+		devices = UserDevices.all()
+
+		result = ""
+
+		for device in devices:
+			result += device.owner.email() + '\n'
+
+		return result
+
 # Tokens list.
 class token:
 	def GET(self, action):
 		if action == 'create' or action == 'edit':
 			token = self.get_token()
 			renderer.addTemplate('action', action)
-			
+
 			form = self.get_form()
 			form.fill(token.dict())
 
