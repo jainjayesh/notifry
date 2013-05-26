@@ -41,7 +41,7 @@ public class C2DMReceiver extends C2DMBaseReceiver
 
 	public C2DMReceiver()
 	{
-		super("notifry@gmail.com");
+		super("143735399903");
 	}
 
 	public void onRegistered( Context context, String registration ) throws IOException

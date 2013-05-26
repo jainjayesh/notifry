@@ -37,11 +37,11 @@ class AC2DM:
 
 	def send_to_google(self, params):
 		result = fetch(
-			"https://android.apis.google.com/c2dm/send",
+			"https://android.googleapis.com/gcm/send",
 			urllib.urlencode(params), # POST body
 			"POST", # HTTP method
 			{
-				'Authorization': 'GoogleLogin auth=' + self.token.token
+				'Authorization': 'key=' + self.token.token
 			}, # Additional headers
 			False, # Don't allow a truncated response
 			True, # Do follow redirects.
@@ -179,7 +179,7 @@ class AC2DM:
 			logging.error(errorMessage)
 
 			# Send an email when it fails. This should not contain any private data.
-			mail.send_mail(sender="Notifry <notifry@gmail.com>", to="Notifry <notifry@gmail.com>", subject="Error sending message", body=errorMessage)
+			mail.send_mail(sender="Notifry <chris.esacademy@gmail.com>", to="Notifry <chris.esacademy@gmail.com>", subject="Error sending message", body=errorMessage)
 			return False
 
 	def increment_counter(self, name):

@@ -5,6 +5,7 @@ Web application
 """
 import webapi as web
 import webapi, wsgi, utils
+import webapp2 as webapp
 import debugerror
 from utils import lstrips, safeunicode
 import sys

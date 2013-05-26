@@ -177,5 +177,5 @@
     
     <string name="announce_sep">says</string>
     
-    <string name="backend_url">notifrier.appspot.com</string>
+    <string name="backend_url">notifries.appspot.com</string>
 </resources>

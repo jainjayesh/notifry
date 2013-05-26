@@ -1,10 +1,10 @@
-application: notifrier-hrd
-version: 44
-runtime: python
+application: notifries
+version: 45
+runtime: python27
 api_version: 1
+threadsafe: false
 
 builtins:
-- datastore_admin: on
 - deferred: on
 - remote_api: on
 

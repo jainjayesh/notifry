@@ -65,7 +65,7 @@ class AC2DMAuthToken(db.Model):
 		params['Email'] = username
 		params['Passwd'] = password
 		params['service'] = 'ac2dm'
-		params['source'] = 'Notifry - 0.1'
+		params['source'] = 'Notifry - 1.14'
 
 		result = fetch(
 			"https://www.google.com/accounts/ClientLogin",

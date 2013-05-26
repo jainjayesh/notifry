@@ -68,7 +68,7 @@ public class Notifry extends SherlockActivity
 		else
 		{
 			Log.i("Notifry", "No existing registrationId. Registering.");
-			C2DMessaging.register(this, "notifry@gmail.com");
+			C2DMessaging.register(this, "143735399903");
 		}
 		
 		// Clean out old messages.
