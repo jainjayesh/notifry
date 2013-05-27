@@ -60,12 +60,16 @@ class AC2DMAuthToken(db.Model):
 	@staticmethod
 	def from_username_password(username, password):
 		# Attempt to create a token from a username and password.
+		# This still works, but only makes sense for the AC2DM service which
+		# is deprecated and there are no new account registrations so it is
+		# kind of useless. Nonetheless, leaving this in as someone may still
+		# have an account with AC2DM registration and want to use that.
 		params = {}
 		params['accountType'] = 'HOSTED_OR_GOOGLE'
 		params['Email'] = username
 		params['Passwd'] = password
 		params['service'] = 'ac2dm'
-		params['source'] = 'Notifry - 1.14'
+		params['source'] = 'Notifry - v45'
 
 		result = fetch(
 			"https://www.google.com/accounts/ClientLogin",

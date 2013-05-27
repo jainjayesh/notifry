@@ -179,7 +179,7 @@ class AC2DM:
 			logging.error(errorMessage)
 
 			# Send an email when it fails. This should not contain any private data.
-			mail.send_mail(sender="Notifry <chris.esacademy@gmail.com>", to="Notifry <chris.esacademy@gmail.com>", subject="Error sending message", body=errorMessage)
+			mail.send_mail(sender="Notifry <notifryhost@gmail.com>", to="Notifry <notifryhost@gmail.com>", subject="Error sending message", body=errorMessage)
 			return False
 
 	def increment_counter(self, name):
